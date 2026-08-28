@@ -1,6 +1,11 @@
 import Fastify from "fastify";
 import { NodeStreamableHTTPServerTransport } from "@modelcontextprotocol/node";
 import { loadGatewayConfig } from "./config/upstreamConfig.js";
+import {
+  createDatabasePool,
+  loadDatabaseConfig,
+} from "./config/database.js";
+import { initializeDatabase } from "./database/initializeDatabase.js";
 import { ToolPolicy } from "./policy/toolPolicy.js";
 import { createGatewayServer } from "./server/createGatewayServer.js";
 import { RemoteMcpConnection } from "./upstream/remoteMcpConnection.js";
@@ -8,6 +13,10 @@ import { ToolRegistry } from "./upstream/toolRegistry.js";
 
 const configPath = process.env.UPSTREAM_CONFIG ?? "config/upstreams.yaml";
 const config = await loadGatewayConfig(configPath);
+const databasePool = createDatabasePool(loadDatabaseConfig());
+if (databasePool) {
+  await initializeDatabase(databasePool);
+}
 
 const connections = [];
 for (const upstream of config.upstreams.filter(({ enabled }) => enabled)) {
@@ -54,6 +63,7 @@ for (const method of ["GET", "DELETE"] as const) {
 const shutdown = async () => {
   await app.close();
   await registry.close();
+  await databasePool?.end();
 };
 
 process.on("SIGTERM", () => void shutdown());

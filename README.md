@@ -16,6 +16,8 @@ Tools Gateway (ClusterIP, no Ingress)
     +-- Context7 MCP (external HTTPS)
 
 Vault -> ESO -> Gateway environment -> upstream Authorization header
+                   |
+                   +-> PostgreSQL (service-owned DB and role)
 ```
 
 - Skill과 작업 판단은 각 MCP client가 소유합니다.
@@ -25,6 +27,25 @@ Vault -> ESO -> Gateway environment -> upstream Authorization header
 - Gateway는 Vault에 직접 접근하지 않으며 Credential Broker도 호출하지 않습니다.
 - Gateway는 Kubernetes `ClusterIP`로만 노출하며 public Ingress와 inbound JWT를 사용하지 않습니다.
 - 현재 범위는 `tools/list`와 `tools/call`입니다. prompts, resources, sampling, elicitation, tasks는 아직 중개하지 않습니다.
+
+## Database
+
+SaaS 데이터 계층을 활성화하면 Gateway는 기동 시 PostgreSQL 연결을 확인하고
+advisory lock 아래에서 미적용 마이그레이션을 트랜잭션으로 실행합니다. 연결 또는
+마이그레이션이 실패하면 요청을 받지 않고 기동에 실패합니다.
+
+운영 자격증명은 Vault `infra/tools-gateway-db`의 `username`, `password`에 저장하고
+External Secrets Operator가 `PGUSER`, `PGPASSWORD`로 주입합니다. 관리자 PostgreSQL
+계정은 Gateway에 제공하지 않습니다.
+
+- `DATABASE_ENABLED`: 운영에서는 `true`; 로컬 기본값은 `false`
+- `PGHOST`, `PGPORT`, `PGDATABASE`: 비민감 연결 대상
+- `PGUSER`, `PGPASSWORD`: Secret으로만 주입
+- `PGPOOL_MAX`: 연결 풀 상한, 기본값 `10`
+
+첫 마이그레이션은 `users`, `user_service_permissions`, `api_keys`,
+`user_mcp_upstreams`, `tool_usage_logs`와 `schema_migrations`를 생성하고
+`admin@snappytory.com` 초기 관리자 행을 멱등 시딩합니다.
 
 ## Tool names
 

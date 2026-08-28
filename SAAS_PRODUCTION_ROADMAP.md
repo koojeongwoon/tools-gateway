@@ -179,12 +179,15 @@ CREATE INDEX idx_usage_logs_user ON tool_usage_logs(user_id, created_at DESC);
 ```
 
 ### 🔹 Phase 1: 전용 DB 프로비저닝 및 기본 데이터 계층 구축
+- **상태 (2026-08-29)**: 구현 완료, 운영 클러스터 검증 진행 중
 - **목표**: PostgreSQL에 `tools_gateway_db` 생성 및 ORM/DB 드라이버 연동
 - **세부 작업**:
-  1. PostgreSQL `tools_gateway_db` 생성 및 `tools_gateway_user` 계정 생성/권한 부여
-  2. 위 5개 핵심 테이블 DDL 스크립트 마이그레이션 실행
-  3. `tools-gateway` 프로젝트에 DB 연결 풀 구성 (`pg` 또는 `Kysely` 등 경량 드라이버)
-  4. 초기 관리자 유저(`admin@snappytory.com`) 및 기본 시스템 권한 시딩(Seeding)
+  1. [x] PostgreSQL `tools_gateway_db` 생성 및 `tools_gateway_user` 계정 생성/권한 부여
+  2. [x] 위 5개 핵심 테이블 DDL을 버전 마이그레이션으로 구현
+  3. [x] `pg` 연결 풀 및 fail-closed 기동 구성
+  4. [x] 초기 관리자 유저(`admin@snappytory.com`) 멱등 시딩
+  5. [x] Vault `infra/tools-gateway-db` → ExternalSecret → Pod 환경변수 연결
+  6. [ ] 운영 롤아웃 및 실제 테이블/관리자 시드 검증
 
 ### 🔹 Phase 2: Redis Stream 유저 동기화 & Gateway API Key 가드
 - **목표**: Redis Stream 이벤트 컨슈머 탑재 및 키 기반 인증으로 게이트웨이 보안 잠금
