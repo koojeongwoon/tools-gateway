@@ -13,14 +13,15 @@ try {
   await client.query("BEGIN");
   await client.query(
     `INSERT INTO user_service_permissions (id, user_id, service_name, allowed_actions)
-     VALUES ($1, 'tg_usr_initial_admin', 'knowledge', '["admin"]'::jsonb),
-            ($2, 'tg_usr_initial_admin', 'context7', '["admin"]'::jsonb)
+     VALUES ($1, 'tg_usr_initial_admin', 'knowledge', '["read"]'::jsonb),
+            ($2, 'tg_usr_initial_admin', 'context7', '["read"]'::jsonb)
      ON CONFLICT (user_id, service_name) DO NOTHING`,
     [`tg_perm_${randomUUID()}`, `tg_perm_${randomUUID()}`],
   );
   await client.query(
     `INSERT INTO api_keys (id, user_id, name, key_prefix, key_hash, allowed_scopes)
-     VALUES ($1, 'tg_usr_initial_admin', $2, $3, $4, '["*"]'::jsonb)`,
+     VALUES ($1, 'tg_usr_initial_admin', $2, $3, $4,
+             '["knowledge:read", "context7:read"]'::jsonb)`,
     [keyId, process.argv[2] ?? "initial-admin-cli", rawKey.slice(0, 16), hash],
   );
   await client.query("COMMIT");
