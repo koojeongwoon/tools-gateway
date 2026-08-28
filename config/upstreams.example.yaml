@@ -1,0 +1,17 @@
+upstreams:
+  - id: example
+    toolPrefix: example
+    networkScope: cluster
+    endpoint: http://example-mcp.tools.svc.cluster.local/mcp
+    transport: streamable-http
+    enabled: true
+    timeoutMs: 30000
+    headers:
+      Authorization:
+        env: EXAMPLE_AUTHORIZATION
+
+toolPolicy:
+  default: deny
+  allow:
+    - example.*
+  deny: []
