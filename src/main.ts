@@ -1,4 +1,4 @@
-import { createMcpFastifyApp } from "@modelcontextprotocol/fastify";
+import Fastify from "fastify";
 import { NodeStreamableHTTPServerTransport } from "@modelcontextprotocol/node";
 import { loadGatewayConfig } from "./config/upstreamConfig.js";
 import { ToolPolicy } from "./policy/toolPolicy.js";
@@ -18,7 +18,7 @@ const registry = new ToolRegistry(connections);
 await registry.refresh();
 const policy = new ToolPolicy(config.toolPolicy);
 
-const app = createMcpFastifyApp();
+const app = Fastify({ logger: true });
 
 app.get("/healthz", async () => ({ status: "ok" }));
 app.get("/readyz", async () => ({
