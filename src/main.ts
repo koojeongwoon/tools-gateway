@@ -10,12 +10,30 @@ import { ToolPolicy } from "./policy/toolPolicy.js";
 import { createGatewayServer } from "./server/createGatewayServer.js";
 import { RemoteMcpConnection } from "./upstream/remoteMcpConnection.js";
 import { ToolRegistry } from "./upstream/toolRegistry.js";
+import { createClient } from "redis";
+import { loadRedisConfig } from "./config/redis.js";
+import { bearerToken, KeyVerifier } from "./auth/keyVerifier.js";
+import { ScopeGuard } from "./auth/scopeGuard.js";
+import { UserSyncConsumer } from "./events/userSyncConsumer.js";
 
 const configPath = process.env.UPSTREAM_CONFIG ?? "config/upstreams.yaml";
 const config = await loadGatewayConfig(configPath);
 const databasePool = createDatabasePool(loadDatabaseConfig());
 if (databasePool) {
   await initializeDatabase(databasePool);
+}
+const redis = databasePool ? createClient(loadRedisConfig()) : undefined;
+if (redis) await redis.connect();
+const keyVerifier = databasePool && redis
+  ? new KeyVerifier(databasePool, redis)
+  : undefined;
+const eventRedis = redis?.duplicate();
+if (eventRedis) await eventRedis.connect();
+const userSyncConsumer = databasePool && eventRedis && keyVerifier
+  ? new UserSyncConsumer(eventRedis, databasePool, keyVerifier)
+  : undefined;
+if (userSyncConsumer) {
+  await userSyncConsumer.start();
 }
 
 const connections = [];
@@ -28,6 +46,10 @@ await registry.refresh();
 const policy = new ToolPolicy(config.toolPolicy);
 
 const app = Fastify({ logger: true });
+const apiKeyAuthEnabled = process.env.API_KEY_AUTH_ENABLED === "true";
+if (apiKeyAuthEnabled && !keyVerifier) {
+  throw new Error("API key authentication requires database and Redis");
+}
 
 app.get("/healthz", async () => ({ status: "ok" }));
 app.get("/readyz", async () => ({
@@ -36,7 +58,16 @@ app.get("/readyz", async () => ({
 }));
 
 app.post("/mcp", async (request, reply) => {
-  const server = createGatewayServer(registry, policy);
+  const token = bearerToken(request.headers.authorization);
+  const principal = token && keyVerifier ? await keyVerifier.verify(token) : undefined;
+  if (apiKeyAuthEnabled && !principal) {
+    return reply.code(401).send({ error: "Unauthorized" });
+  }
+  const server = createGatewayServer(
+    registry,
+    policy,
+    apiKeyAuthEnabled && principal ? new ScopeGuard(principal) : undefined,
+  );
   const transport = new NodeStreamableHTTPServerTransport({
     sessionIdGenerator: undefined,
   });
@@ -63,6 +94,9 @@ for (const method of ["GET", "DELETE"] as const) {
 const shutdown = async () => {
   await app.close();
   await registry.close();
+  userSyncConsumer?.stop();
+  await eventRedis?.quit();
+  await redis?.quit();
   await databasePool?.end();
 };
 

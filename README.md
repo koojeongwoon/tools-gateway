@@ -42,10 +42,33 @@ External Secrets Operator가 `PGUSER`, `PGPASSWORD`로 주입합니다. 관리�
 - `PGHOST`, `PGPORT`, `PGDATABASE`: 비민감 연결 대상
 - `PGUSER`, `PGPASSWORD`: Secret으로만 주입
 - `PGPOOL_MAX`: 연결 풀 상한, 기본값 `10`
+- `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`: 인증 캐시 및 `auth:events` Stream
+- `API_KEY_AUTH_ENABLED`: 호출자 키 배포 전에는 `false`, 강제 인증 전환 시 `true`
 
 첫 마이그레이션은 `users`, `user_service_permissions`, `api_keys`,
 `user_mcp_upstreams`, `tool_usage_logs`와 `schema_migrations`를 생성하고
 `admin@snappytory.com` 초기 관리자 행을 멱등 시딩합니다.
+
+Redis Stream 사용자 이벤트는 `auth:events`의 `data` 필드에 아래 JSON 계약을
+담습니다. 알 수 없거나 손상된 이벤트는 적용하지 않고 `auth:events:dlq`로 보냅니다.
+
+```json
+{
+  "schema": "auth.user.v1",
+  "eventId": "evt_...",
+  "eventType": "USER_CREATED",
+  "occurredAt": "2026-08-29T00:00:00Z",
+  "subject": {
+    "id": "auth-user-id",
+    "email": "user@example.com",
+    "name": "Example User"
+  }
+}
+```
+
+`USER_DISABLED`와 `USER_DELETED`는 사용자와 API Key를 비활성화하고 Redis 인증
+캐시를 제거합니다. API Key 인증이 활성화되면 `/mcp`는 정확한 Bearer 토큰을
+요구하며 DB 권한과 키 scope를 모두 만족하는 도구만 노출하고 호출합니다.
 
 ## Tool names
 

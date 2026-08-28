@@ -190,13 +190,17 @@ CREATE INDEX idx_usage_logs_user ON tool_usage_logs(user_id, created_at DESC);
   6. [x] 운영 롤아웃 및 실제 테이블/관리자 시드 검증
 
 ### 🔹 Phase 2: Redis Stream 유저 동기화 & Gateway API Key 가드
+- **상태 (2026-08-29)**: 진행 중 (호환 배포 후 API Key 배포/강제 전환 대기)
 - **목표**: Redis Stream 이벤트 컨슈머 탑재 및 키 기반 인증으로 게이트웨이 보안 잠금
 - **세부 작업**:
-  1. `src/events/user-sync-consumer.ts`: Redis Stream `auth:events` 구독 워커 구현
-  2. `src/auth/key-verifier.ts`: SHA-256 해시 검증 및 Redis 캐싱 레이어 구현
-  3. `src/auth/scope-guard.ts`: `tools/call` 실행 전 스코프 일치 검증 로직
-  4. `src/proxy/tool-filter.ts`: `tools/list` 요청 시 유저 권한에 맞는 도구만 동적 반환
-  5. 테스트 케이스 작성: 유효한 키, 만료된 키, 권한 없는 도구 호출 시 정상 차단 검증
+  1. [x] `src/events/userSyncConsumer.ts`: Redis Stream `auth:events` 구독 워커 구현
+  2. [x] `src/auth/keyVerifier.ts`: SHA-256 해시 검증 및 Redis 캐싱 레이어 구현
+  3. [x] `src/auth/scopeGuard.ts`: `tools/call` 실행 전 스코프 일치 검증 로직
+  4. [x] `tools/list` 요청 시 유저 권한에 맞는 도구만 동적 반환
+  5. [x] 인증/스코프 단위 테스트
+  6. [ ] 관리자 API Key 1회 발급 및 호출자 Secret 배포
+  7. [ ] `API_KEY_AUTH_ENABLED=true` 전환 후 401/허용/거부 운영 E2E
+  8. [ ] auth-app `auth.user.v1` publisher 연동 E2E
 
 ### 🔹 Phase 3: 유저 & API Key 관리 REST API 엔드포인트
 - **목표**: 사용자가 API 키를 발급/조회/삭제하고 자신의 권한을 확인할 수 있는 백엔드 API
