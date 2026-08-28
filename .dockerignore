@@ -1,0 +1,9 @@
+.git
+.idea
+.pnpm-store
+config/upstreams.yaml
+dist
+node_modules
+test
+*.log
+
