@@ -14,8 +14,9 @@
 3. **무상태(Stateless) 고속 인증 & 다이나믹 MCP 페더레이션**
    - API Key 검증 결과와 허용 도구 메타데이터는 **Redis에 캐싱**하여 게이트웨이 병목(1ms 이하 검증)을 원천 차단합니다.
    - 요청 시점에 **"사용자가 접근 가능한 공용 도구" + "해당 사용자가 직접 등록한 개인 커스텀 MCP 도구"**를 동적으로 병합하여 응답합니다.
-4. **시크릿 보안 격리 (HashiCorp Vault)**
-   - 사용자가 등록한 커스텀 MCP의 인증 토큰 및 백엔드 시크릿은 DB 평문 저장을 금지하며, **HashiCorp Vault (`secret/tools-gateway/users/{userId}/...`)**에 암호화 보관 후 실행 시점에만 주입합니다.
+4. **애플리케이션 봉투 암호화 (Envelope Encryption with AES-256-GCM)**
+   - Vault는 사용자의 개별 시크릿을 저장하는 DB 용도로 쓰지 않으며, **게이트웨이 파드 부팅 시 '마스터 암호화 키(Master Key)'만 1회 주입**합니다.
+   - 사용자가 등록한 모든 커스텀 MCP 인증 토큰/시크릿은 **PostgreSQL(`tools_gateway_db`) 내에 AES-256-GCM으로 안전하게 암호화 보관**되어, DB 백업 하나만으로 유저 자산 전체가 100% 정합성을 유지하며 복원됩니다.
 
 ---
 
@@ -72,7 +73,7 @@ CREATE TABLE api_keys (
 );
 
 -- =============================================================================
--- 4. 유저별 등록한 커스텀 MCP 업스트림 서버 목록
+-- 4. 유저별 등록한 커스텀 MCP 업스트림 서버 목록 (봉투 암호화 적용)
 -- =============================================================================
 CREATE TABLE user_mcp_upstreams (
     id VARCHAR(64) PRIMARY KEY,                  -- tg_ups_xxxxxxxx
@@ -80,7 +81,11 @@ CREATE TABLE user_mcp_upstreams (
     tool_prefix VARCHAR(50) NOT NULL,            -- 도구 prefix (예: 'my_notion', 'erp')
     endpoint_url VARCHAR(500) NOT NULL,          -- https://my-mcp.company.com/mcp
     transport VARCHAR(20) DEFAULT 'streamable-http', -- 'streamable-http', 'sse'
-    vault_secret_path VARCHAR(255),              -- 'secret/tools-gateway/users/{userId}/{toolPrefix}'
+    auth_type VARCHAR(20) DEFAULT 'bearer',      -- 'bearer', 'api_key', 'custom_header', 'none'
+    auth_header_name VARCHAR(100) DEFAULT 'Authorization',
+    encrypted_auth_value TEXT,                   -- AES-256-GCM 암호문
+    encryption_iv VARCHAR(32),                   -- 초기화 벡터 (IV)
+    encryption_tag VARCHAR(32),                  -- 무결성 인증 태그 (Auth Tag)
     is_enabled BOOLEAN DEFAULT TRUE,
     description TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -136,8 +141,9 @@ CREATE INDEX idx_usage_logs_user ON tool_usage_logs(user_id, created_at DESC);
 │      요청된 도구의 Scope 권한 검사 (미보유 시 즉시 403 / -32003 에러)   │
 │                                                                        │
 │ 4. [Proxy & Header Injection]:                                         │
-│    - 공용 도구 ➔ 글로벌 Vault 헤더 + `X-Consumer-Id: {userId}` 주입    │
-│    - 커스텀 도구 ➔ 유저 전용 Vault 시크릿 헤더 주입 후 원격 호출       │
+│    - 공용 도구 ➔ 글로벌 공용 헤더 + `X-Consumer-Id: {userId}` 주입      │
+│    - 커스텀 도구 ➔ DB에서 암호화된 토큰 로드 후 마스터 키로 즉시      │
+│      메모리 내 복호화(AES-GCM) ➔ 대상 MCP 서버로 안전하게 프록시 전송  │
 │                                                                        │
 │ 5. [Audit Logger]:                                                     │
 │    - 비동기로 `tool_usage_logs`에 실행 결과, 시간, 상태 기록           │
@@ -149,7 +155,7 @@ CREATE INDEX idx_usage_logs_user ON tool_usage_logs(user_id, created_at DESC);
 ## 📅 4. 단계별 구현 로드맵 (Actionable Phases)
 
 ```
-[Phase 1: DB & 모델] ➔ [Phase 2: Gateway 인증 미들웨어] ➔ [Phase 3: 관리 REST API] ➔ [Phase 4: 커스텀 MCP] ➔ [Phase 5: 웹 콘솔 UI]
+[Phase 1: DB & 모델] ➔ [Phase 2: Gateway 인증 미들웨어] ➔ [Phase 3: 관리 REST API] ➔ [Phase 4: 커스텀 MCP & 암호화] ➔ [Phase 5: 웹 콘솔 UI]
 ```
 
 ### 🔹 Phase 1: 전용 DB 프로비저닝 및 기본 데이터 계층 구축
@@ -157,7 +163,7 @@ CREATE INDEX idx_usage_logs_user ON tool_usage_logs(user_id, created_at DESC);
 - **세부 작업**:
   1. PostgreSQL `tools_gateway_db` 생성 및 `tools_gateway_user` 계정 생성/권한 부여
   2. 위 5개 핵심 테이블 DDL 스크립트 마이그레이션 실행
-  3. `tools-gateway` 프로젝트에 DB 연결 풀 구성 (`pg` 또는 `Kysely` / `Prisma` 등 경량 쿼리 빌더)
+  3. `tools-gateway` 프로젝트에 DB 연결 풀 구성 (`pg` 또는 `Kysely` 등 경량 드라이버)
   4. 초기 관리자 유저(`admin@snappytory.com`) 및 기본 시스템 권한 시딩(Seeding)
 
 ### 🔹 Phase 2: Gateway API Key 인증 & Scope 검증 미들웨어
@@ -177,13 +183,14 @@ CREATE INDEX idx_usage_logs_user ON tool_usage_logs(user_id, created_at DESC);
   4. `DELETE /api/v1/keys/:keyId`: API Key 즉시 폐기/비활성화
   5. `GET /api/v1/permissions`: 현재 유저가 사용 가능한 서비스/도구 권한 목록 조회
 
-### 🔹 Phase 4: 유저 커스텀 MCP 등록 & Vault 시크릿 동적 프록시
+### 🔹 Phase 4: 유저 커스텀 MCP 등록 & AES-GCM 봉투 암호화
 - **목표**: 사용자가 개인 MCP 서버 URL과 토큰을 등록하고 게이트웨이에서 통합 호출
 - **세부 작업**:
-  1. `POST /api/v1/upstreams`: 커스텀 MCP 등록 및 Vault에 시크릿 암호화 저장
-  2. `POST /api/v1/upstreams/:id/test`: MCP 엔드포인트 헬스체크 및 `tools/list` 사전 검증
-  3. Gateway Proxy 라우터에 동적 유저 업스트림 라우팅 핸들러 추가
-  4. 도구 네임스페이스 충돌 방지 로직 (Prefix 강제 규칙)
+  1. `src/crypto/envelope-crypto.ts`: AES-256-GCM 기반 암복호화 유틸리티 구현
+  2. `POST /api/v1/upstreams`: 커스텀 MCP 등록 (토큰을 AES-GCM으로 암호화하여 DB 저장)
+  3. `POST /api/v1/upstreams/:id/test`: MCP 엔드포인트 헬스체크 및 `tools/list` 사전 검증
+  4. Gateway Proxy 라우터에 동적 유저 업스트림 라우팅 핸들러 추가
+  5. 도구 네임스페이스 충돌 방지 로직 (Prefix 강제 규칙)
 
 ### 🔹 Phase 5: 웹 관리 콘솔 (UI) & 프로덕션 배포
 - **목표**: 개발자/사용자가 브라우저에서 편리하게 관리할 수 있는 웹 대시보드
