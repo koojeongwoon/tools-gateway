@@ -22,7 +22,7 @@ export function createGatewayServer(
     .filter(
       ({ publicName, annotations }) =>
         policy.allows(publicName) &&
-        (!scopeGuard || scopeGuard.allows({ name: publicName, annotations })),
+        (!scopeGuard || scopeGuard.allows(publicName)),
     )) {
     server.registerTool(
       tool.publicName,
@@ -41,10 +41,7 @@ export function createGatewayServer(
       },
       async (arguments_) =>
         policy.enforce(tool.publicName, async () => {
-          if (scopeGuard && !scopeGuard.allows({
-            name: tool.publicName,
-            annotations: tool.annotations,
-          })) {
+          if (scopeGuard && !scopeGuard.allows(tool.publicName)) {
             throw new Error(`tool is outside API key scope: ${tool.publicName}`);
           }
           return registry.call(

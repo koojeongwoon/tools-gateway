@@ -2,21 +2,23 @@ import { describe, expect, it } from "vitest";
 import { ScopeGuard } from "../src/auth/scopeGuard.js";
 
 describe("ScopeGuard", () => {
-  it("requires both service permission and API key scope", () => {
+  it("requires both user and API key permission for the exact tool", () => {
     const guard = new ScopeGuard({
       userId: "u1", apiKeyId: "k1", systemRole: "USER",
-      scopes: ["knowledge:read"], permissions: { knowledge: ["read"] },
+      scopes: ["tool:knowledge.query"], toolPatterns: ["knowledge.query"],
     });
-    expect(guard.allows({ name: "knowledge.query", annotations: { readOnlyHint: true } })).toBe(true);
-    expect(guard.allows({ name: "knowledge.delete", annotations: { readOnlyHint: false } })).toBe(false);
-    expect(guard.allows({ name: "context7.query", annotations: { readOnlyHint: true } })).toBe(false);
+    expect(guard.allows("knowledge.query")).toBe(true);
+    expect(guard.allows("knowledge.delete")).toBe(false);
+    expect(guard.allows("context7.query")).toBe(false);
   });
 
-  it("treats tools without an explicit read-only annotation as write", () => {
+  it("supports operator-approved namespace patterns without annotations", () => {
     const guard = new ScopeGuard({
       userId: "u1", apiKeyId: "k1", systemRole: "USER",
-      scopes: ["knowledge:read"], permissions: { knowledge: ["read"] },
+      scopes: ["tool:knowledge.*"], toolPatterns: ["knowledge.*"],
     });
-    expect(guard.allows({ name: "knowledge.unknown" })).toBe(false);
+    expect(guard.allows("knowledge.query")).toBe(true);
+    expect(guard.allows("knowledge.index")).toBe(true);
+    expect(guard.allows("knowledgeAdmin.delete")).toBe(false);
   });
 });

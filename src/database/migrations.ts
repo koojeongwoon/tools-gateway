@@ -103,4 +103,22 @@ CREATE INDEX idx_user_perms ON user_service_permissions (user_id);
 CREATE INDEX idx_usage_logs_user ON tool_usage_logs (user_id, created_at DESC);
 `,
   },
+  {
+    version: 2,
+    name: "tool_level_permissions",
+    sql: `
+CREATE TABLE user_tool_permissions (
+  id VARCHAR(64) PRIMARY KEY,
+  user_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  tool_pattern VARCHAR(150) NOT NULL
+    CHECK (tool_pattern ~ '^[A-Za-z0-9_-]+\\.(\\*|[A-Za-z0-9_.-]+\\*?)$'),
+  granted_by VARCHAR(64) REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (user_id, tool_pattern)
+);
+
+CREATE INDEX idx_user_tool_permissions_user
+  ON user_tool_permissions (user_id);
+`,
+  },
 ];

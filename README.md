@@ -68,7 +68,13 @@ Redis Stream 사용자 이벤트는 `auth:events`의 `data` 필드에 아래 JSO
 
 `USER_DISABLED`와 `USER_DELETED`는 사용자와 API Key를 비활성화하고 Redis 인증
 캐시를 제거합니다. API Key 인증이 활성화되면 `/mcp`는 정확한 Bearer 토큰을
-요구하며 DB 권한과 키 scope를 모두 만족하는 도구만 노출하고 호출합니다.
+요구하며 `user_tool_permissions`와 키의 `tool:<pattern>` scope를 모두 만족하는
+도구만 노출하고 호출합니다. 예: `knowledge.query`, `knowledge.*`.
+
+Tool 권한은 MCP annotation의 `readOnlyHint`나 도구 이름의 동사를 해석하지 않습니다.
+Gateway 권한은 “누가 어떤 Tool을 호출할 수 있는가”만 제어합니다. Tool 인자에 담긴
+repository, document, tenant 등 실제 리소스 권한은 upstream MCP 서버가 최종적으로
+검사해야 합니다.
 
 ## Tool names
 

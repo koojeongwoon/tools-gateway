@@ -46,6 +46,7 @@ describe("database migrations", () => {
       "api_keys",
       "user_mcp_upstreams",
       "tool_usage_logs",
+      "user_tool_permissions",
     ]) {
       expect(sql).toContain(`CREATE TABLE ${table}`);
     }

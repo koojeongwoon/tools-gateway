@@ -73,4 +73,10 @@ async function seedAdministrator(client: PoolClient): Promise<void> {
   if (result.rows[0]?.system_role !== "ADMIN") {
     throw new Error("initial administrator seed conflicts with a non-admin user");
   }
+  await client.query(
+    `INSERT INTO user_tool_permissions (id, user_id, tool_pattern)
+     VALUES ('tg_perm_admin_knowledge', 'tg_usr_initial_admin', 'knowledge.*'),
+            ('tg_perm_admin_context7', 'tg_usr_initial_admin', 'context7.*')
+     ON CONFLICT (user_id, tool_pattern) DO NOTHING`,
+  );
 }

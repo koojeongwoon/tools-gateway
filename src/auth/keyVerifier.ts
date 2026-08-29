@@ -24,15 +24,15 @@ export class KeyVerifier {
       user_id: string;
       system_role: string;
       allowed_scopes: string[];
-      permissions: Record<string, string[]>;
+      tool_patterns: string[];
     }>(
       `SELECT k.id AS api_key_id, u.id AS user_id, u.system_role,
               k.allowed_scopes,
-              COALESCE(jsonb_object_agg(p.service_name, p.allowed_actions)
-                FILTER (WHERE p.service_name IS NOT NULL), '{}'::jsonb) AS permissions
+              COALESCE(array_agg(p.tool_pattern)
+                FILTER (WHERE p.tool_pattern IS NOT NULL), ARRAY[]::text[]) AS tool_patterns
          FROM api_keys k
          JOIN users u ON u.id = k.user_id
-         LEFT JOIN user_service_permissions p ON p.user_id = u.id
+         LEFT JOIN user_tool_permissions p ON p.user_id = u.id
         WHERE k.key_prefix = $1 AND k.key_hash = $2
           AND k.is_active AND u.is_active
           AND (k.expires_at IS NULL OR k.expires_at > NOW())
@@ -46,7 +46,7 @@ export class KeyVerifier {
       apiKeyId: row.api_key_id,
       systemRole: row.system_role,
       scopes: row.allowed_scopes,
-      permissions: row.permissions,
+      toolPatterns: row.tool_patterns,
     };
     await this.redis.set(cacheKey, JSON.stringify(principal), { EX: cacheTtlSeconds });
     await this.redis.sAdd(`tg:auth:user:${principal.userId}`, cacheKey);

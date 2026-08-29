@@ -1,7 +1,6 @@
 import type { Pool } from "pg";
 import type { RedisClientType } from "redis";
 import { z } from "zod";
-import { randomUUID } from "node:crypto";
 import type { KeyVerifier } from "../auth/keyVerifier.js";
 
 const eventSchema = z.object({
@@ -36,13 +35,6 @@ export async function applyUserSyncEvent(
          DO UPDATE SET email = EXCLUDED.email, name = EXCLUDED.name,
                        is_active = TRUE, updated_at = NOW()`,
         [`tg_usr_${event.subject.id}`, event.subject.email, event.subject.name, event.subject.id],
-      );
-      await client.query(
-        `INSERT INTO user_service_permissions
-           (id, user_id, service_name, allowed_actions)
-         VALUES ($1, $2, 'knowledge', '["read"]'::jsonb)
-         ON CONFLICT (user_id, service_name) DO NOTHING`,
-        [`tg_perm_${randomUUID()}`, `tg_usr_${event.subject.id}`],
       );
     } else {
       await client.query(

@@ -9,6 +9,7 @@ import { ToolPolicy } from "../src/policy/toolPolicy.js";
 import { createGatewayServer } from "../src/server/createGatewayServer.js";
 import { ToolRegistry } from "../src/upstream/toolRegistry.js";
 import type { UpstreamConnection } from "../src/upstream/upstreamConnection.js";
+import { ScopeGuard } from "../src/auth/scopeGuard.js";
 
 describe("MCP gateway server", () => {
   it("exposes prefixed tools and forwards calls end to end", async () => {
@@ -25,6 +26,10 @@ describe("MCP gateway server", () => {
           required: ["path"],
         },
       },
+      {
+        name: "create_pull_request",
+        inputSchema: { type: "object" },
+      },
     ];
     const upstream: UpstreamConnection = {
       id: "git",
@@ -39,6 +44,13 @@ describe("MCP gateway server", () => {
     const server = createGatewayServer(
       registry,
       new ToolPolicy({ default: "deny", allow: ["github.*"], deny: [] }),
+      new ScopeGuard({
+        userId: "user-1",
+        apiKeyId: "key-1",
+        systemRole: "USER",
+        scopes: ["tool:github.get_file"],
+        toolPatterns: ["github.get_file"],
+      }),
     );
     const client = new Client({ name: "test-client", version: "1.0.0" });
     const [clientTransport, serverTransport] =

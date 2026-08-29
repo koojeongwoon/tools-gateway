@@ -201,6 +201,7 @@ CREATE INDEX idx_usage_logs_user ON tool_usage_logs(user_id, created_at DESC);
   6. [ ] 관리자 API Key 1회 발급 및 호출자 Secret 배포
   7. [ ] `API_KEY_AUTH_ENABLED=true` 전환 후 401/허용/거부 운영 E2E
   8. [ ] auth-app `auth.user.v1` publisher 연동 E2E
+  9. [x] annotation 비의존 Tool 단위 권한(`user_tool_permissions`) 적용
 
 ### 🔹 Phase 3: 유저 & API Key 관리 REST API 엔드포인트
 - **목표**: 사용자가 API 키를 발급/조회/삭제하고 자신의 권한을 확인할 수 있는 백엔드 API

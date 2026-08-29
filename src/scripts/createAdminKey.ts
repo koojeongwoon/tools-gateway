@@ -12,16 +12,16 @@ const client = await pool.connect();
 try {
   await client.query("BEGIN");
   await client.query(
-    `INSERT INTO user_service_permissions (id, user_id, service_name, allowed_actions)
-     VALUES ($1, 'tg_usr_initial_admin', 'knowledge', '["read"]'::jsonb),
-            ($2, 'tg_usr_initial_admin', 'context7', '["read"]'::jsonb)
-     ON CONFLICT (user_id, service_name) DO NOTHING`,
+    `INSERT INTO user_tool_permissions (id, user_id, tool_pattern)
+     VALUES ($1, 'tg_usr_initial_admin', 'knowledge.*'),
+            ($2, 'tg_usr_initial_admin', 'context7.*')
+     ON CONFLICT (user_id, tool_pattern) DO NOTHING`,
     [`tg_perm_${randomUUID()}`, `tg_perm_${randomUUID()}`],
   );
   await client.query(
     `INSERT INTO api_keys (id, user_id, name, key_prefix, key_hash, allowed_scopes)
      VALUES ($1, 'tg_usr_initial_admin', $2, $3, $4,
-             '["knowledge:read", "context7:read"]'::jsonb)`,
+             '["tool:knowledge.*", "tool:context7.*"]'::jsonb)`,
     [keyId, process.argv[2] ?? "initial-admin-cli", rawKey.slice(0, 16), hash],
   );
   await client.query("COMMIT");
