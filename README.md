@@ -10,7 +10,7 @@ Oracle k3s
 Agent Pods
     |
     v
-Tools Gateway (ClusterIP, no Ingress)
+Tools Gateway (ClusterIP behind authenticated Ingress)
     |
     +-- Knowledge MCP (cluster Service DNS)
     +-- Context7 MCP (external HTTPS)
@@ -25,7 +25,7 @@ Vault -> ESO -> Gateway environment -> upstream Authorization header
 - upstream 목록과 비민감 연결 정보는 Git에서 관리하는 YAML 파일로 선언합니다.
 - Gateway는 credential을 저장하거나 발급하지 않고 기존 Vault와 ESO로 주입받은 값을 upstream 요청 헤더에만 사용합니다.
 - Gateway는 Vault에 직접 접근하지 않으며 Credential Broker도 호출하지 않습니다.
-- Gateway는 Kubernetes `ClusterIP`로만 노출하며 public Ingress와 inbound JWT를 사용하지 않습니다.
+- Gateway Service는 `ClusterIP`를 유지하고 `/mcp`만 인증이 강제된 Traefik Ingress로 공개합니다.
 - 현재 범위는 `tools/list`와 `tools/call`입니다. prompts, resources, sampling, elicitation, tasks는 아직 중개하지 않습니다.
 
 ## Database
@@ -150,7 +150,10 @@ CONTEXT7_AUTHORIZATION=Bearer <Context7 API key>
 - upstream MCP namespace: `mcp-upstream-access: "true"`
 - upstream MCP Pod: `mcp-upstream: "true"`
 
-실제 namespace와 Pod에 라벨을 적용하고 Gateway Service는 `ClusterIP`로만 둡니다. Gateway용 Ingress는 만들지 않습니다.
+실제 namespace와 Pod에 라벨을 적용하고 Gateway Service는 `ClusterIP`로 유지합니다.
+Traefik Pod만 Service 3000에 접근할 수 있으며 외부에는
+`https://tools-gateway.lynply.com/mcp`만 노출합니다. `/healthz`와 `/readyz`는
+Ingress로 공개하지 않습니다.
 
 외부 upstream을 위해 TCP 443 egress를 허용하되 RFC1918, loopback 및 link-local CIDR은 해당 규칙에서 제외합니다. 내부 upstream은 별도의 namespace/Pod 라벨 규칙으로만 허용합니다.
 
@@ -169,6 +172,7 @@ pnpm start
 기본 endpoint:
 
 - MCP: `POST /mcp`
+- Public MCP: `POST https://tools-gateway.lynply.com/mcp` (Bearer API Key 필수)
 - Liveness: `GET /healthz`
 - Readiness: `GET /readyz`
 
@@ -191,6 +195,9 @@ pnpm start
 - deny-by-default 전역 Tool allow/deny 정책
 - ClusterIP 및 ingress/egress NetworkPolicy 설계 계약
 - MCP in-memory end-to-end test
+- API Key 인증 및 Tool 단위 권한 필터
+- Cloudflare Origin TLS + Traefik `/mcp` 전용 Ingress
+- 외부 무키 401, health 404, 임시 키 `tools/list` E2E
 
 운영용 `upstreams.yaml`, ConfigMap, ExternalSecret, Deployment, Service, NetworkPolicy 및 Argo CD Application은 GitOps 저장소인 `__dev/k3s`에서 관리합니다. 이 저장소에는 설정 스키마와 로컬 개발용 예제만 둡니다.
 

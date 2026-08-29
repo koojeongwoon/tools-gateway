@@ -199,7 +199,7 @@ CREATE INDEX idx_usage_logs_user ON tool_usage_logs(user_id, created_at DESC);
   4. [x] `tools/list` 요청 시 유저 권한에 맞는 도구만 동적 반환
   5. [x] 인증/스코프 단위 테스트
   6. [ ] 관리자 API Key 1회 발급 및 호출자 Secret 배포
-  7. [ ] `API_KEY_AUTH_ENABLED=true` 전환 후 401/허용/거부 운영 E2E
+  7. [x] `API_KEY_AUTH_ENABLED=true` 전환 후 무키 401/임시 유효 키 운영 E2E
   8. [ ] auth-app `auth.user.v1` publisher 연동 E2E
   9. [x] annotation 비의존 Tool 단위 권한(`user_tool_permissions`) 적용
 
@@ -226,7 +226,7 @@ CREATE INDEX idx_usage_logs_user ON tool_usage_logs(user_id, created_at DESC);
 - **세부 작업**:
   1. 대시보드 UI (API Key 생성 모달, Cursor/Claude 설정 JSON 원클릭 복사)
   2. 도구 사용량 차트 및 최근 실행 로그 뷰어
-  3. Traefik Ingress 라우팅 및 공개 도메인 (`mcp.snappytory.com`) 연동
+  3. [x] Traefik Ingress 및 공개 도메인 (`tools-gateway.lynply.com`) 연동
   4. Rate Limit 및 DoS 방어 정책 적용
 
 ---
