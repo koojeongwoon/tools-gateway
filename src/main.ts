@@ -18,6 +18,7 @@ import { UserSyncConsumer } from "./events/userSyncConsumer.js";
 import { loadOAuthConfig, OAuthSessionStore } from "./auth/oauthSession.js";
 import { ApiKeyService } from "./api/apiKeyService.js";
 import { registerManagementRoutes } from "./api/managementRoutes.js";
+import { DASHBOARD_HTML } from "./ui/dashboardHtml.js";
 
 const configPath = process.env.UPSTREAM_CONFIG ?? "config/upstreams.yaml";
 const config = await loadGatewayConfig(configPath);
@@ -64,6 +65,11 @@ if (oauthConfig) {
     new ApiKeyService(databasePool, keyVerifier),
   );
 }
+
+app.get("/", async (_request, reply) => {
+  reply.type("text/html; charset=utf-8");
+  return reply.send(DASHBOARD_HTML);
+});
 
 app.get("/healthz", async () => ({ status: "ok" }));
 app.get("/readyz", async () => ({

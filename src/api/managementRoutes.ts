@@ -27,11 +27,28 @@ export function registerManagementRoutes(
       const { sessionId, principal } = await sessions.completeLogin(query.code, query.state);
       await apiKeys.provisionUser(principal);
       reply.header("set-cookie", sessionCookie(sessionId));
-      return reply.code(200).send({ authenticated: true });
+      // 로그인 완료 후 대시보드 메인 화면으로 리다이렉트
+      return reply.redirect("/");
     } catch (error) {
       request.log.warn({ errorType: error instanceof Error ? error.name : "UnknownError" }, "SSO callback failed");
       return reply.code(401).send({ error: "SSO authentication failed" });
     }
+  });
+
+  app.get("/api/v1/auth/me", async (request, reply) => {
+    const sessionId = cookieValue(request, "tg_session");
+    if (!sessionId) return reply.code(401).send({ authenticated: false });
+    const principal = await sessions.resolve(sessionId);
+    if (!principal) return reply.code(401).send({ authenticated: false });
+    const userId = await apiKeys.provisionUser(principal);
+    return {
+      authenticated: true,
+      user: {
+        id: userId,
+        email: principal.email,
+        name: principal.name,
+      },
+    };
   });
 
   app.post("/api/v1/auth/logout", async (request, reply) => {
