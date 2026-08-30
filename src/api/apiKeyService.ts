@@ -30,11 +30,12 @@ export class ApiKeyService {
           [id, session.email ?? null, session.name ?? null, session.subject],
         );
       } else {
-        if (!session.email) throw new Error("SSO identity has not been synchronized yet");
+        const userEmail = session.email ?? `${session.subject}@snappytory.internal`;
+        const userName = session.name ?? session.email ?? session.subject;
         await client.query(
           `INSERT INTO users (id, email, name, external_provider, external_subject_id)
            VALUES ($1, $2, $3, 'snappytory_auth', $4)`,
-          [id, session.email, session.name ?? session.email, session.subject],
+          [id, userEmail, userName, session.subject],
         );
       }
       await client.query("COMMIT");
