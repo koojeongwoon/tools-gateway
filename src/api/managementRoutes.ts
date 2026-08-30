@@ -58,8 +58,8 @@ export function registerManagementRoutes(
       reply.header("set-cookie", sessionCookie(sessionId));
       return reply.redirect("/");
     } catch (error) {
-      request.log.warn({ errorType: error instanceof Error ? error.name : "UnknownError" }, "SSO callback failed");
-      return reply.code(401).send({ error: "SSO authentication failed" });
+      request.log.error({ err: error, message: error instanceof Error ? error.message : String(error) }, "SSO callback failed");
+      return reply.code(401).send({ error: "SSO authentication failed", detail: error instanceof Error ? error.message : String(error) });
     }
   });
 
