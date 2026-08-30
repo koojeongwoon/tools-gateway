@@ -90,6 +90,8 @@ app.post("/mcp", async (request, reply) => {
   let requestPolicy = policy;
   const customConnections: RemoteMcpConnection[] = [];
 
+  const activeCustomPrefixes: string[] = [];
+
   if (principal && customUpstreamService) {
     const customUpstreams = await customUpstreamService.list(principal.userId);
     const activeCustom = customUpstreams.filter((u) => u.isEnabled);
@@ -118,6 +120,7 @@ app.post("/mcp", async (request, reply) => {
           customConnections.push(conn);
           await requestRegistry.addRoute(conn);
           requestPolicy.allowPattern(`${custom.toolPrefix}.*`);
+          activeCustomPrefixes.push(custom.toolPrefix);
         } catch (err) {
           request.log.error({ err, prefix: custom.toolPrefix }, "Failed to connect custom upstream");
         }
@@ -125,10 +128,18 @@ app.post("/mcp", async (request, reply) => {
     }
   }
 
+  const effectivePrincipal = principal
+    ? {
+        ...principal,
+        scopes: [...principal.scopes, ...activeCustomPrefixes.map((p) => `tool:${p}.*`)],
+        toolPatterns: [...principal.toolPatterns, ...activeCustomPrefixes.map((p) => `${p}.*`)],
+      }
+    : undefined;
+
   const server = createGatewayServer(
     requestRegistry,
     requestPolicy,
-    apiKeyAuthEnabled && principal ? new ScopeGuard(principal) : undefined,
+    apiKeyAuthEnabled && effectivePrincipal ? new ScopeGuard(effectivePrincipal) : undefined,
   );
   const transport = new NodeStreamableHTTPServerTransport({
     sessionIdGenerator: undefined,
