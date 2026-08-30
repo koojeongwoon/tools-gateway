@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { z } from "zod";
 import type { ApiKeyService } from "./apiKeyService.js";
+import type { CustomUpstreamService } from "./customUpstreamService.js";
 import type { OAuthSessionStore } from "../auth/oauthSession.js";
 import { DASHBOARD_HTML } from "../ui/dashboardHtml.js";
 
@@ -9,10 +10,21 @@ const createKeySchema = z.object({
   expiresAt: z.string().datetime({ offset: true }).optional(),
 });
 
+const createUpstreamSchema = z.object({
+  toolPrefix: z.string().trim().min(1).max(50).regex(/^[a-z][a-z0-9_]{0,49}$/),
+  endpointUrl: z.string().trim().url(),
+  transport: z.enum(["streamable-http", "sse"]).default("streamable-http"),
+  authType: z.enum(["bearer", "api_key", "custom_header", "none"]).default("bearer"),
+  authHeaderName: z.string().trim().min(1).max(100).default("Authorization"),
+  authValue: z.string().trim().optional(),
+  description: z.string().trim().max(255).optional(),
+});
+
 export function registerManagementRoutes(
   app: FastifyInstance,
   sessions: OAuthSessionStore,
   apiKeys: ApiKeyService,
+  upstreams: CustomUpstreamService,
 ): void {
   // 메인 접속 시 비로그인 상태면 자동으로 SSO 로그인 화면으로 리다이렉트
   app.get("/", async (request, reply) => {
@@ -44,7 +56,6 @@ export function registerManagementRoutes(
       const { sessionId, principal } = await sessions.completeLogin(query.code, query.state);
       await apiKeys.provisionUser(principal);
       reply.header("set-cookie", sessionCookie(sessionId));
-      // 로그인 완료 후 대시보드 메인 화면으로 리다이렉트
       return reply.redirect("/");
     } catch (error) {
       request.log.warn({ errorType: error instanceof Error ? error.name : "UnknownError" }, "SSO callback failed");
@@ -75,6 +86,7 @@ export function registerManagementRoutes(
     return reply.code(204).send();
   });
 
+  // API Key Routes
   app.post("/api/v1/keys", async (request, reply) => {
     const userId = await authenticatedUserId(request, sessions, apiKeys);
     if (!userId) return reply.code(401).send({ error: "Unauthorized" });
@@ -101,6 +113,38 @@ export function registerManagementRoutes(
     const userId = await authenticatedUserId(request, sessions, apiKeys);
     if (!userId) return reply.code(401).send({ error: "Unauthorized" });
     return apiKeys.permissions(userId);
+  });
+
+  // Custom MCP Upstream Routes (Phase 4)
+  app.post("/api/v1/upstreams", async (request, reply) => {
+    const userId = await authenticatedUserId(request, sessions, apiKeys);
+    if (!userId) return reply.code(401).send({ error: "Unauthorized" });
+    const parsed = createUpstreamSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "Invalid MCP upstream request", details: parsed.error.issues });
+    }
+    try {
+      const created = await upstreams.create(userId, parsed.data);
+      return reply.code(201).send(created);
+    } catch (error) {
+      return reply.code(400).send({ error: error instanceof Error ? error.message : "Failed to create upstream" });
+    }
+  });
+
+  app.get("/api/v1/upstreams", async (request, reply) => {
+    const userId = await authenticatedUserId(request, sessions, apiKeys);
+    if (!userId) return reply.code(401).send({ error: "Unauthorized" });
+    return upstreams.list(userId);
+  });
+
+  app.delete("/api/v1/upstreams/:id", async (request, reply) => {
+    const userId = await authenticatedUserId(request, sessions, apiKeys);
+    if (!userId) return reply.code(401).send({ error: "Unauthorized" });
+    const { id } = request.params as { id: string };
+    if (!await upstreams.delete(userId, id)) {
+      return reply.code(404).send({ error: "Custom MCP upstream not found" });
+    }
+    return reply.code(204).send();
   });
 }
 

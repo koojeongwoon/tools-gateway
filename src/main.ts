@@ -17,6 +17,8 @@ import { ScopeGuard } from "./auth/scopeGuard.js";
 import { UserSyncConsumer } from "./events/userSyncConsumer.js";
 import { loadOAuthConfig, OAuthSessionStore } from "./auth/oauthSession.js";
 import { ApiKeyService } from "./api/apiKeyService.js";
+import { CustomUpstreamService } from "./api/customUpstreamService.js";
+import { EnvelopeCrypto } from "./crypto/envelopeCrypto.js";
 import { registerManagementRoutes } from "./api/managementRoutes.js";
 import { DASHBOARD_HTML } from "./ui/dashboardHtml.js";
 
@@ -54,15 +56,20 @@ const apiKeyAuthEnabled = process.env.API_KEY_AUTH_ENABLED === "true";
 if (apiKeyAuthEnabled && !keyVerifier) {
   throw new Error("API key authentication requires database and Redis");
 }
+const masterSecret = process.env.ENCRYPTION_MASTER_KEY || "tools-gateway-default-encryption-key-2026";
+const envelopeCrypto = new EnvelopeCrypto(masterSecret);
+const customUpstreamService = databasePool ? new CustomUpstreamService(databasePool, envelopeCrypto) : undefined;
+
 const oauthConfig = loadOAuthConfig();
 if (oauthConfig) {
-  if (!databasePool || !redis || !keyVerifier) {
-    throw new Error("SSO management API requires database and Redis");
+  if (!databasePool || !redis || !keyVerifier || !customUpstreamService) {
+    throw new Error("SSO management API requires database, Redis and customUpstreamService");
   }
   registerManagementRoutes(
     app,
     new OAuthSessionStore(redis, oauthConfig),
     new ApiKeyService(databasePool, keyVerifier),
+    customUpstreamService,
   );
 }
 

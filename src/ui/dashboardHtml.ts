@@ -35,18 +35,18 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; }
     .card h2 { font-size: 1.15rem; color: var(--text-bright); margin-bottom: 0.8rem; display: flex; justify-content: space-between; align-items: center; }
     
-    .key-item { display: flex; justify-content: space-between; align-items: center; padding: 0.9rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 0.6rem; }
-    .key-info h4 { color: var(--text-bright); font-size: 0.95rem; }
-    .key-info p { font-size: 0.75rem; color: #8b949e; margin-top: 0.2rem; }
-    .key-prefix { font-family: monospace; background: var(--tag-bg); padding: 0.2rem 0.4rem; border-radius: 4px; color: var(--accent); }
+    .list-item { display: flex; justify-content: space-between; align-items: center; padding: 0.9rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 0.6rem; }
+    .list-info h4 { color: var(--text-bright); font-size: 0.95rem; }
+    .list-info p { font-size: 0.75rem; color: #8b949e; margin-top: 0.2rem; }
+    .code-badge { font-family: monospace; background: var(--tag-bg); padding: 0.2rem 0.4rem; border-radius: 4px; color: var(--accent); }
     
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; padding: 1rem; }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; padding: 1rem; z-index: 1000; }
     .modal-content { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; max-width: 480px; width: 100%; padding: 1.5rem; }
     .modal-content h3 { color: var(--text-bright); margin-bottom: 1rem; }
     .input-group { margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.4rem; }
     .input-group label { font-size: 0.85rem; color: #8b949e; }
-    .input-group input { background: var(--bg); border: 1px solid var(--border); color: var(--text-bright); padding: 0.6rem; border-radius: 6px; font-size: 0.9rem; }
-    .input-group input:focus { outline: none; border-color: var(--accent); }
+    .input-group input, .input-group select { background: var(--bg); border: 1px solid var(--border); color: var(--text-bright); padding: 0.6rem; border-radius: 6px; font-size: 0.9rem; }
+    .input-group input:focus, .input-group select:focus { outline: none; border-color: var(--accent); }
     .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.2rem; }
     
     .secret-box { background: #0b1d3a; border: 1px solid #1f6feb; border-radius: 6px; padding: 1rem; margin-top: 1rem; }
@@ -78,6 +78,20 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         </h2>
         <div id="keys-list" style="margin-top: 1rem;">
           <p style="color: #8b949e; font-size: 0.85rem;">발급된 키가 없습니다.</p>
+        </div>
+      </section>
+
+      <!-- Custom MCP Upstreams Section (Phase 4) -->
+      <section class="card">
+        <h2>
+          🔌 내 커스텀 MCP 서버 등록
+          <button class="btn btn-primary" onclick="openUpstreamModal()">+ 새 MCP 서버 등록</button>
+        </h2>
+        <p style="font-size: 0.8rem; color: #8b949e; margin-bottom: 0.8rem;">
+          개인 Notion, 사내 사설 MCP 등을 등록하면 게이트웨이가 토큰을 안전하게 암호화(AES-256-GCM) 보관하고 통합 프록시합니다.
+        </p>
+        <div id="upstreams-list" style="margin-top: 1rem;">
+          <p style="color: #8b949e; font-size: 0.85rem;">등록된 커스텀 MCP 서버가 없습니다.</p>
         </div>
       </section>
 
@@ -132,6 +146,43 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     </div>
   </div>
 
+  <!-- Custom MCP Upstream Modal -->
+  <div id="upstream-modal" class="modal">
+    <div class="modal-content">
+      <h3>🔌 새 커스텀 MCP 서버 등록</h3>
+      <form id="upstream-form" onsubmit="createUpstream(event)">
+        <div class="input-group">
+          <label for="ups-prefix">도구 접두사 (Tool Prefix)</label>
+          <input type="text" id="ups-prefix" placeholder="예: my_notion, internal_db (소문자/언더바)" pattern="^[a-z][a-z0-9_]{0,49}$" required>
+        </div>
+        <div class="input-group">
+          <label for="ups-url">엔드포인트 URL</label>
+          <input type="url" id="ups-url" placeholder="https://my-mcp.company.com/mcp" required>
+        </div>
+        <div class="input-group">
+          <label for="ups-auth-type">인증 방식</label>
+          <select id="ups-auth-type" onchange="toggleAuthValueInput()">
+            <option value="bearer">Bearer Token</option>
+            <option value="api_key">API Key</option>
+            <option value="none">인증 없음 (None)</option>
+          </select>
+        </div>
+        <div class="input-group" id="ups-auth-val-group">
+          <label for="ups-auth-val">인증 시크릿 (토큰 / 키) - AES-256-GCM 암호화 보관</label>
+          <input type="password" id="ups-auth-val" placeholder="비밀 토큰 입력">
+        </div>
+        <div class="input-group">
+          <label for="ups-desc">설명 (선택)</label>
+          <input type="text" id="ups-desc" placeholder="예: 개인 노션 워크스페이스 문서 도구">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeUpstreamModal()">닫기</button>
+          <button type="submit" class="btn btn-primary">등록하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
     let currentUser = null;
 
@@ -144,6 +195,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             currentUser = data.user;
             renderAuthUser(currentUser);
             loadKeys();
+            loadUpstreams();
             loadPermissions();
             document.getElementById('dashboard-content').style.display = 'flex';
             return;
@@ -179,9 +231,9 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           return;
         }
         listDiv.innerHTML = keys.map(k => \`
-          <div class="key-item">
-            <div class="key-info">
-              <h4>\${k.name} <span class="key-prefix">\${k.key_prefix}...</span></h4>
+          <div class="list-item">
+            <div class="list-info">
+              <h4>\${k.name} <span class="code-badge">\${k.key_prefix}...</span></h4>
               <p>생성일: \${new Date(k.created_at).toLocaleDateString()} | 스코프: \${k.allowed_scopes.join(', ')}</p>
             </div>
             <button class="btn btn-danger" onclick="revokeKey('\${k.id}')">삭제</button>
@@ -189,6 +241,30 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         \`).join('');
       } catch (e) {
         listDiv.innerHTML = '<p style="color: var(--danger); font-size: 0.85rem;">키 목록 로드 실패</p>';
+      }
+    }
+
+    async function loadUpstreams() {
+      const listDiv = document.getElementById('upstreams-list');
+      try {
+        const res = await fetch('/api/v1/upstreams');
+        if (!res.ok) return;
+        const upstreams = await res.json();
+        if (upstreams.length === 0) {
+          listDiv.innerHTML = '<p style="color: #8b949e; font-size: 0.85rem;">등록된 커스텀 MCP 서버가 없습니다.</p>';
+          return;
+        }
+        listDiv.innerHTML = upstreams.map(u => \`
+          <div class="list-item">
+            <div class="list-info">
+              <h4>⚡ prefix: <span class="code-badge">\${u.toolPrefix}.*</span> \${u.description ? ' - ' + u.description : ''}</h4>
+              <p>엔드포인트: \${u.endpointUrl} | 인증: \${u.authType} | 등록일: \${new Date(u.createdAt).toLocaleDateString()}</p>
+            </div>
+            <button class="btn btn-danger" onclick="deleteUpstream('\${u.id}')">삭제</button>
+          </div>
+        \`).join('');
+      } catch (e) {
+        listDiv.innerHTML = '<p style="color: var(--danger); font-size: 0.85rem;">MCP 서버 목록 로드 실패</p>';
       }
     }
 
@@ -200,7 +276,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         const data = await res.json();
         let html = '';
         if (data.tools && data.tools.length > 0) {
-          html += '<div style="margin-bottom: 0.8rem;"><strong>허용된 MCP 도구:</strong><br>';
+          html += '<div style="margin-bottom: 0.8rem;"><strong>허용된 공용 MCP 도구:</strong><br>';
           html += data.tools.map(t => \`<span class="tag">⚡ \${t}</span>\`).join('');
           html += '</div>';
         }
@@ -209,7 +285,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           html += data.services.map(s => \`<span class="tag">\${s.service_name} (\${s.allowed_actions.join(', ')})</span>\`).join('');
           html += '</div>';
         }
-        permsDiv.innerHTML = html || '<p style="color: #8b949e; font-size: 0.85rem;">부여된 특별 권한 없음 (기본 공용 도구 사용 가능)</p>';
+        permsDiv.innerHTML = html || '<p style="color: #8b949e; font-size: 0.85rem;">기본 공용 도구 사용 가능</p>';
       } catch (e) {
         permsDiv.innerHTML = '<p style="color: var(--danger); font-size: 0.85rem;">권한 목록 로드 실패</p>';
       }
@@ -258,6 +334,67 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           loadKeys();
         } else {
           alert('키 삭제 실패');
+        }
+      } catch (e) {
+        alert('요청 중 오류 발생');
+      }
+    }
+
+    function openUpstreamModal() {
+      document.getElementById('upstream-form').reset();
+      toggleAuthValueInput();
+      document.getElementById('upstream-modal').style.display = 'flex';
+    }
+
+    function closeUpstreamModal() {
+      document.getElementById('upstream-modal').style.display = 'none';
+      loadUpstreams();
+    }
+
+    function toggleAuthValueInput() {
+      const type = document.getElementById('ups-auth-type').value;
+      document.getElementById('ups-auth-val-group').style.display = type === 'none' ? 'none' : 'flex';
+    }
+
+    async function createUpstream(e) {
+      e.preventDefault();
+      const toolPrefix = document.getElementById('ups-prefix').value.trim();
+      const endpointUrl = document.getElementById('ups-url').value.trim();
+      const authType = document.getElementById('ups-auth-type').value;
+      const authValue = document.getElementById('ups-auth-val').value.trim();
+      const description = document.getElementById('ups-desc').value.trim();
+
+      try {
+        const res = await fetch('/api/v1/upstreams', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            toolPrefix,
+            endpointUrl,
+            authType,
+            authValue: authType !== 'none' ? authValue : undefined,
+            description: description || undefined,
+          }),
+        });
+        if (res.ok) {
+          closeUpstreamModal();
+        } else {
+          const err = await res.json();
+          alert('MCP 서버 등록 실패: ' + (err.error || '알 수 없는 오류'));
+        }
+      } catch (e) {
+        alert('요청 중 오류 발생');
+      }
+    }
+
+    async function deleteUpstream(id) {
+      if (!confirm('정말 이 커스텀 MCP 서버를 삭제하시겠습니까?')) return;
+      try {
+        const res = await fetch(\`/api/v1/upstreams/\${id}\`, { method: 'DELETE' });
+        if (res.ok) {
+          loadUpstreams();
+        } else {
+          alert('MCP 서버 삭제 실패');
         }
       } catch (e) {
         alert('요청 중 오류 발생');
