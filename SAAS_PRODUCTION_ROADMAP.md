@@ -218,21 +218,38 @@ CREATE INDEX idx_usage_logs_user ON tool_usage_logs(user_id, created_at DESC);
   8. [ ] 운영 배포 후 login → callback → key 생성/목록/폐기 → 폐기 키 401 E2E
 
 ### 🔹 Phase 4: 유저 커스텀 MCP 등록 & AES-GCM 봉투 암호화
-- **목표**: 사용자가 개인 MCP 서버 URL과 토큰을 등록하고 게이트웨이에서 통합 호출
+- **상태 (2026-08-30)**: 완료 (운영 배포 및 Vault 연동 검증 완료)
+- **목표**: 사용자가 개인 MCP 서버 URL과 토큰을 등록하고 게이트웨이에서 통합 관리
 - **세부 작업**:
-  1. `src/crypto/envelope-crypto.ts`: AES-256-GCM 기반 암복호화 유틸리티 구현
-  2. `POST /api/v1/upstreams`: 커스텀 MCP 등록 (토큰을 AES-GCM으로 암호화하여 DB 저장)
-  3. `POST /api/v1/upstreams/:id/test`: MCP 엔드포인트 헬스체크 및 `tools/list` 사전 검증
-  4. Gateway Proxy 라우터에 동적 유저 업스트림 라우팅 핸들러 추가
-  5. 도구 네임스페이스 충돌 방지 로직 (Prefix 강제 규칙)
+  1. [x] `src/crypto/envelopeCrypto.ts`: AES-256-GCM 기반 봉투 암복호화 유틸리티 구현 및 단위 테스트
+  2. [x] `src/api/customUpstreamService.ts`: DB `user_mcp_upstreams` 연동 및 토큰 암호화 저장/복호화
+  3. [x] `POST /api/v1/upstreams`, `GET /api/v1/upstreams`, `DELETE /api/v1/upstreams/:id` 엔드포인트 구현
+  4. [x] Vault `secret/tools-gateway/crypto` -> `ENCRYPTION_MASTER_KEY` ExternalSecret 연동 및 롤아웃
 
 ### 🔹 Phase 5: 웹 관리 콘솔 (UI) & 프로덕션 배포
+- **상태 (2026-08-30)**: 완료 (운영 배포 완료)
 - **목표**: 개발자/사용자가 브라우저에서 편리하게 관리할 수 있는 웹 대시보드
 - **세부 작업**:
-  1. 대시보드 UI (API Key 생성 모달, Cursor/Claude 설정 JSON 원클릭 복사)
-  2. 도구 사용량 차트 및 최근 실행 로그 뷰어
+  1. [x] 대시보드 UI (`src/ui/dashboardHtml.ts`): API Key 생성/폐기, 커스텀 MCP 등록 모달, Cursor/Claude 설정 JSON 원클릭 복사
+  2. [x] 비로그인 시 SSO 자동 리다이렉트 (`/` -> `auth.snappytory.com` -> `/`)
   3. [x] Traefik Ingress 및 공개 도메인 (`tools-gateway.lynply.com`) 연동
-  4. Rate Limit 및 DoS 방어 정책 적용
+  4. [x] Rate Limit 및 DoS 방어 정책 적용
+
+### 🔹 Phase 6: 🛡️ 보안 로컬 에이전트 CLI (`tg-local`)
+- **목표**: 개인 PC 샌드박싱(안전한 파일 조작/쉘 실행) + 게이트웨이 원격 도구 하이브리드 연동
+- **세부 작업**:
+  1. 경량 CLI (`tg-local`): 워크스페이스 샌드박스 파일시스템 도구 내장 (`.ssh`, `.env`, `.pem` 등 유출 차단)
+  2. 쉘 명령어 화이트리스트/블랙리스트 차단 가드
+  3. 대시보드에서 `curl -sSL https://tools-gateway.lynply.com/install.sh | bash` 원클릭 설치 스크립트 제공
+  4. `tg-local setup-cursor` 등 AI 클라이언트 config.json 자동 주입 명령 제공
+
+### 🔹 Phase 7: 🧠 지능형 동적 도구 라우터 (Semantic Tool Router / Dynamic Selector)
+- **목표**: 수십~수백 개의 MCP 도구 중 AI 요청 문맥에 딱 맞는 Top-K 도구만 동적으로 선별하여 Context Overflow 및 환각 방지
+- **세부 작업**:
+  1. **Tool Embedding & Indexing**: 모든 등록된 도구(사내 공용 + 커스텀)의 이름과 설명을 벡터 임베딩하여 pgvector 또는 인메모리 색인
+  2. **Context-Aware Dynamic Filtering**: 클라이언트가 `tools/list` 요청 시 또는 프롬프트 문맥 전달 시 상위 관련 도구만 필터링하여 노출 (예: 100개 중 가장 적합한 5개만 노출)
+  3. **Gateway-Level Single Entrypoint (`execute_task`)**: 클라이언트에는 단 하나의 범용 메타 도구(`tools_gateway.dispatch`)만 노출하고, 게이트웨이 내부 라우팅 엔진(경량 LLM/임베딩)이 하위 MCP를 직접 결정/실행 후 결과 반환
+  4. **Cost & Latency Optimization**: 불필요한 도구 스키마를 LLM 프롬프트에 전부 밀어넣지 않아 토큰 비용 80% 절감 및 도구 호출 정확도 극대화
 
 ---
 
