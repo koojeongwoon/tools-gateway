@@ -66,11 +66,6 @@ if (oauthConfig) {
   );
 }
 
-app.get("/", async (_request, reply) => {
-  reply.type("text/html; charset=utf-8");
-  return reply.send(DASHBOARD_HTML);
-});
-
 app.get("/healthz", async () => ({ status: "ok" }));
 app.get("/readyz", async () => ({
   status: "ready",
