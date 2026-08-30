@@ -19,11 +19,11 @@ export interface CustomMcpUpstream {
 export interface CreateCustomUpstreamDto {
   toolPrefix: string;
   endpointUrl: string;
-  transport?: "streamable-http" | "sse";
-  authType?: "bearer" | "api_key" | "custom_header" | "none";
-  authHeaderName?: string;
-  authValue?: string;
-  description?: string;
+  transport?: "streamable-http" | "sse" | undefined;
+  authType?: "bearer" | "api_key" | "custom_header" | "none" | undefined;
+  authHeaderName?: string | undefined;
+  authValue?: string | undefined;
+  description?: string | undefined;
 }
 
 export class CustomUpstreamService {
@@ -76,7 +76,11 @@ export class CustomUpstreamService {
       ],
     );
 
-    return result.rows[0];
+    const created = result.rows[0];
+    if (!created) {
+      throw new Error("Failed to insert custom MCP upstream");
+    }
+    return created;
   }
 
   async list(userId: string): Promise<CustomMcpUpstream[]> {
