@@ -15,6 +15,9 @@ import { loadRedisConfig } from "./config/redis.js";
 import { bearerToken, KeyVerifier } from "./auth/keyVerifier.js";
 import { ScopeGuard } from "./auth/scopeGuard.js";
 import { UserSyncConsumer } from "./events/userSyncConsumer.js";
+import { loadOAuthConfig, OAuthSessionStore } from "./auth/oauthSession.js";
+import { ApiKeyService } from "./api/apiKeyService.js";
+import { registerManagementRoutes } from "./api/managementRoutes.js";
 
 const configPath = process.env.UPSTREAM_CONFIG ?? "config/upstreams.yaml";
 const config = await loadGatewayConfig(configPath);
@@ -49,6 +52,17 @@ const app = Fastify({ logger: true });
 const apiKeyAuthEnabled = process.env.API_KEY_AUTH_ENABLED === "true";
 if (apiKeyAuthEnabled && !keyVerifier) {
   throw new Error("API key authentication requires database and Redis");
+}
+const oauthConfig = loadOAuthConfig();
+if (oauthConfig) {
+  if (!databasePool || !redis || !keyVerifier) {
+    throw new Error("SSO management API requires database and Redis");
+  }
+  registerManagementRoutes(
+    app,
+    new OAuthSessionStore(redis, oauthConfig),
+    new ApiKeyService(databasePool, keyVerifier),
+  );
 }
 
 app.get("/healthz", async () => ({ status: "ok" }));

@@ -204,13 +204,18 @@ CREATE INDEX idx_usage_logs_user ON tool_usage_logs(user_id, created_at DESC);
   9. [x] annotation 비의존 Tool 단위 권한(`user_tool_permissions`) 적용
 
 ### 🔹 Phase 3: 유저 & API Key 관리 REST API 엔드포인트
+- **상태 (2026-08-29)**: 코드 구현 및 로컬 검증 완료, 운영 SSO client/Vault 연결과 배포 대기
 - **목표**: 사용자가 API 키를 발급/조회/삭제하고 자신의 권한을 확인할 수 있는 백엔드 API
 - **세부 작업**:
-  1. `POST /api/v1/auth/sso-callback`: 통합인증 로그인 후 JIT 유저 프로비저닝 (Web 로그인용)
-  2. `POST /api/v1/keys`: 새 API Key 발급 (원문 1회 반환 + DB 해시 저장)
-  3. `GET /api/v1/keys`: 내가 발급한 키 목록 조회 (Prefix, 생성일, 최근사용일)
-  4. `DELETE /api/v1/keys/:keyId`: API Key 즉시 폐기/비활성화
-  5. `GET /api/v1/permissions`: 현재 유저가 사용 가능한 서비스/도구 권한 목록 조회
+  1. [x] `GET /api/v1/auth/login` + `GET /api/v1/auth/sso-callback`: Authorization Code + PKCE 로그인, Gateway 서버 세션, JIT 유저 프로비저닝
+  2. [x] `POST /api/v1/keys`: 새 API Key 발급 (원문 1회 반환 + DB SHA-256 해시 저장)
+  3. [x] `GET /api/v1/keys`: 내가 발급한 키 목록 조회 (Prefix, 생성일, 최근사용일)
+  4. [x] `DELETE /api/v1/keys/:keyId`: 소유자 범위 API Key 즉시 soft revoke 및 인증 캐시 무효화
+  5. [x] `GET /api/v1/permissions`: 현재 유저가 사용 가능한 서비스/도구 권한 목록 조회
+  6. [x] Tool 선택 UI 제외; 키 스코프는 발급 시점의 `user_tool_permissions`에서 서버가 생성
+  7. [x] auth-app에 SUPER_ADMIN 전용 `POST /api/admin/clients` 구현 (PKCE public client, client secret/Vault 불필요)
+     - 운영에서 독립 tenant `tools-gateway` 생성 후 동일 이름의 client를 해당 tenant에만 매핑
+  8. [ ] 운영 배포 후 login → callback → key 생성/목록/폐기 → 폐기 키 401 E2E
 
 ### 🔹 Phase 4: 유저 커스텀 MCP 등록 & AES-GCM 봉투 암호화
 - **목표**: 사용자가 개인 MCP 서버 URL과 토큰을 등록하고 게이트웨이에서 통합 호출
