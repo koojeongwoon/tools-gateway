@@ -60,6 +60,21 @@ export class ToolRegistry {
     return route.connection.callTool(route.tool.name, arguments_);
   }
 
+  clone(): ToolRegistry {
+    const next = new ToolRegistry([...this.connections]);
+    for (const [name, route] of this.routes) {
+      next.routes.set(name, route);
+    }
+    return next;
+  }
+
+  async addRoute(connection: UpstreamConnection): Promise<void> {
+    for (const tool of await connection.listTools()) {
+      const publicName = `${connection.toolPrefix}.${tool.name}`;
+      this.routes.set(publicName, { connection, tool });
+    }
+  }
+
   async close(): Promise<void> {
     await Promise.all(this.connections.map((connection) => connection.close()));
   }

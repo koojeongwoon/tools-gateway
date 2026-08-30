@@ -18,12 +18,12 @@ export class RemoteMcpConnection implements UpstreamConnection {
   private readonly transport: StreamableHTTPClientTransport;
   private readonly timeoutMs: number;
 
-  private constructor(config: UpstreamConfig) {
+  private constructor(config: UpstreamConfig, customHeaders?: Record<string, string>) {
     this.id = config.id;
     this.toolPrefix = config.toolPrefix;
     this.timeoutMs = config.timeoutMs;
     this.client = new Client({ name: "tools-gateway", version: "0.1.0" });
-    const headers = resolveUpstreamHeaders(config);
+    const headers = { ...resolveUpstreamHeaders(config), ...customHeaders };
     this.transport = new StreamableHTTPClientTransport(new URL(config.endpoint), {
       ...(Object.keys(headers).length > 0
         ? { requestInit: { headers } }
@@ -33,8 +33,9 @@ export class RemoteMcpConnection implements UpstreamConnection {
 
   static async connect(
     config: UpstreamConfig,
+    customHeaders?: Record<string, string>,
   ): Promise<RemoteMcpConnection> {
-    const connection = new RemoteMcpConnection(config);
+    const connection = new RemoteMcpConnection(config, customHeaders);
     await connection.client.connect(connection.transport);
     return connection;
   }

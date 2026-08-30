@@ -85,9 +85,49 @@ app.post("/mcp", async (request, reply) => {
   if (apiKeyAuthEnabled && !principal) {
     return reply.code(401).send({ error: "Unauthorized" });
   }
+
+  let requestRegistry = registry;
+  let requestPolicy = policy;
+  const customConnections: RemoteMcpConnection[] = [];
+
+  if (principal && customUpstreamService) {
+    const customUpstreams = await customUpstreamService.list(principal.userId);
+    const activeCustom = customUpstreams.filter((u) => u.isEnabled);
+    if (activeCustom.length > 0) {
+      requestRegistry = registry.clone();
+      requestPolicy = new ToolPolicy(config.toolPolicy);
+      for (const custom of activeCustom) {
+        try {
+          const authInfo = await customUpstreamService.getDecryptedAuthValue(principal.userId, custom.toolPrefix);
+          const headers: Record<string, string> = {};
+          if (authInfo?.authValue) {
+            headers[authInfo.authHeaderName] = authInfo.authType === "bearer" && !authInfo.authValue.startsWith("Bearer ")
+              ? `Bearer ${authInfo.authValue}`
+              : authInfo.authValue;
+          }
+          const conn = await RemoteMcpConnection.connect({
+            id: custom.id,
+            toolPrefix: custom.toolPrefix,
+            networkScope: "external",
+            endpoint: custom.endpointUrl,
+            transport: "streamable-http",
+            enabled: true,
+            timeoutMs: 30000,
+            headers: {},
+          }, headers);
+          customConnections.push(conn);
+          await requestRegistry.addRoute(conn);
+          requestPolicy.allowPattern(`${custom.toolPrefix}.*`);
+        } catch (err) {
+          request.log.error({ err, prefix: custom.toolPrefix }, "Failed to connect custom upstream");
+        }
+      }
+    }
+  }
+
   const server = createGatewayServer(
-    registry,
-    policy,
+    requestRegistry,
+    requestPolicy,
     apiKeyAuthEnabled && principal ? new ScopeGuard(principal) : undefined,
   );
   const transport = new NodeStreamableHTTPServerTransport({
@@ -98,6 +138,7 @@ app.post("/mcp", async (request, reply) => {
   reply.raw.on("close", () => {
     void transport.close();
     void server.close();
+    void Promise.all(customConnections.map((c) => c.close()));
   });
 
   await transport.handleRequest(request.raw, reply.raw, request.body);

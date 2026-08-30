@@ -20,6 +20,10 @@ export class ToolPolicy {
     return this.allowed.some((pattern) => pattern.test(toolName));
   }
 
+  allowPattern(glob: string): void {
+    this.allowed.push(toPattern(glob));
+  }
+
   async enforce<T>(toolName: string, operation: () => Promise<T>): Promise<T> {
     if (!this.allows(toolName)) {
       throw new Error(`tool is not allowed by gateway policy: ${toolName}`);
