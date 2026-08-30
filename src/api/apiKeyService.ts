@@ -30,12 +30,13 @@ export class ApiKeyService {
           [id, session.email ?? null, session.name ?? null, session.subject],
         );
       } else {
-        const userEmail = session.email ?? `${session.subject}@snappytory.internal`;
-        const userName = session.name ?? session.email ?? session.subject;
+        if (!session.email) {
+          throw new Error("OIDC token is missing required 'email' claim");
+        }
         await client.query(
           `INSERT INTO users (id, email, name, external_provider, external_subject_id)
            VALUES ($1, $2, $3, 'snappytory_auth', $4)`,
-          [id, userEmail, userName, session.subject],
+          [id, session.email, session.name ?? session.email, session.subject],
         );
       }
       await client.query("COMMIT");
