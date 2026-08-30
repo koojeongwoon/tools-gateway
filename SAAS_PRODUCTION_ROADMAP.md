@@ -243,13 +243,24 @@ CREATE INDEX idx_usage_logs_user ON tool_usage_logs(user_id, created_at DESC);
   3. 대시보드에서 `curl -sSL https://tools-gateway.lynply.com/install.sh | bash` 원클릭 설치 스크립트 제공
   4. `tg-local setup-cursor` 등 AI 클라이언트 config.json 자동 주입 명령 제공
 
-### 🔹 Phase 7: 🧠 지능형 동적 도구 라우터 (Semantic Tool Router / Dynamic Selector)
-- **목표**: 수십~수백 개의 MCP 도구 중 AI 요청 문맥에 딱 맞는 Top-K 도구만 동적으로 선별하여 Context Overflow 및 환각 방지
+### 🔹 Phase 7: 🧠 지능형 분산 도구 라우팅 & 오케스트레이션 MSA (Spring Cloud / Spring AI 기반)
+- **목표**: 대규모 엔터프라이즈 환경에서 수십~수백 개의 MCP 도구를 지능적으로 라우팅하고, 앞단(Edge Ingress)과 뒷단(Tool Execution Workers)을 MSA로 분리하여 독립 스케일링(HPA) 및 장애 격리(Fault Tolerance) 달성
+- **아키텍처 스택**:
+  - **Tier 1 (Edge Ingress Gateway)**: Spring Cloud Gateway / Fastify (인증, 토큰 캐싱, Rate Limiting, 트래픽 라우팅)
+  - **Tier 2 (Semantic Orchestrator & Router)**: Spring Boot / Spring AI (임베딩 유사도 검색, 문맥 기반 Top-K 도구 동적 선별, Fan-out/Fan-in 병렬 실행)
+  - **Tier 3 (MCP Client Execution Pool)**: Java 21 가상 스레드(Virtual Threads) 기반 하위 MCP 풀링, 서킷 브레이커(Resilience4j), 타임아웃 격리
 - **세부 작업**:
-  1. **Tool Embedding & Indexing**: 모든 등록된 도구(사내 공용 + 커스텀)의 이름과 설명을 벡터 임베딩하여 pgvector 또는 인메모리 색인
-  2. **Context-Aware Dynamic Filtering**: 클라이언트가 `tools/list` 요청 시 또는 프롬프트 문맥 전달 시 상위 관련 도구만 필터링하여 노출 (예: 100개 중 가장 적합한 5개만 노출)
-  3. **Gateway-Level Single Entrypoint (`execute_task`)**: 클라이언트에는 단 하나의 범용 메타 도구(`tools_gateway.dispatch`)만 노출하고, 게이트웨이 내부 라우팅 엔진(경량 LLM/임베딩)이 하위 MCP를 직접 결정/실행 후 결과 반환
-  4. **Cost & Latency Optimization**: 불필요한 도구 스키마를 LLM 프롬프트에 전부 밀어넣지 않아 토큰 비용 80% 절감 및 도구 호출 정확도 극대화
+  1. **MSA 분리 & 독립 스케일링 모델 설계**:
+     - 가벼운 I/O 인그레스 게이트웨이와 무거운 임베딩/오케스트레이션 워커를 별도 Pod/서비스로 분리
+     - 도구 호출 트래픽 폭증 시 실행 워커(Worker) Pod만 수평 자동 확장(HPA)
+  2. **Tool Embedding & Indexing**: 
+     - 모든 등록된 도구(사내 공용 + 유저 커스텀)의 이름과 설명을 벡터 임베딩하여 pgvector 또는 Qdrant/인메모리 색인
+  3. **Context-Aware Dynamic Filtering (Dynamic `tools/list`)**:
+     - 클라이언트 문맥에 맞춰 전체 100개 중 가장 적합한 Top-K(예: 3~5개) 도구만 선별하여 AI 클라이언트에 전달 (Context Overflow 방지)
+  4. **단일 진입점 메타 도구 (`tools_gateway.dispatch`) 지원**:
+     - AI 클라이언트에는 단 하나의 오케스트레이터 도구만 노출하고, 게이트웨이 내부 엔진이 적절한 하위 MCP들을 직접 호출 및 결과 취합
+  5. **엔터프라이즈 회복탄력성 (Resilience4j)**:
+     - 하위 특정 MCP 서버 장애 시 게이트웨이 전체 전파 방지 (서킷 브레이커, Fallback, 지수 백오프 재시도)
 
 ---
 
