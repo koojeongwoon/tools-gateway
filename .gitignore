@@ -15,3 +15,10 @@ coverage/
 *.key
 *.p12
 *.pfx
+
+# Gradle / Java
+.gradle/
+build/
+bin/
+out/
+

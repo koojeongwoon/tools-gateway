@@ -19,6 +19,7 @@ import { loadOAuthConfig, OAuthSessionStore } from "./auth/oauthSession.js";
 import { ApiKeyService } from "./api/apiKeyService.js";
 import { CustomUpstreamService } from "./api/customUpstreamService.js";
 import { EnvelopeCrypto } from "./crypto/envelopeCrypto.js";
+import { AuditLogger } from "./audit/auditLogger.js";
 import { registerManagementRoutes } from "./api/managementRoutes.js";
 import { DASHBOARD_HTML } from "./ui/dashboardHtml.js";
 
@@ -59,6 +60,7 @@ if (apiKeyAuthEnabled && !keyVerifier) {
 const masterSecret = process.env.ENCRYPTION_MASTER_KEY || "tools-gateway-default-encryption-key-2026";
 const envelopeCrypto = new EnvelopeCrypto(masterSecret);
 const customUpstreamService = databasePool ? new CustomUpstreamService(databasePool, envelopeCrypto) : undefined;
+const auditLogger = databasePool ? new AuditLogger(databasePool) : undefined;
 
 const oauthConfig = loadOAuthConfig();
 if (oauthConfig) {
@@ -136,10 +138,21 @@ app.post("/mcp", async (request, reply) => {
       }
     : undefined;
 
+  const requestContext = principal
+    ? {
+        userId: principal.userId,
+        apiKeyId: principal.apiKeyId,
+        ipAddress: request.ip,
+        userAgent: request.headers["user-agent"],
+      }
+    : undefined;
+
   const server = createGatewayServer(
     requestRegistry,
     requestPolicy,
     apiKeyAuthEnabled && effectivePrincipal ? new ScopeGuard(effectivePrincipal) : undefined,
+    auditLogger,
+    requestContext,
   );
   const transport = new NodeStreamableHTTPServerTransport({
     sessionIdGenerator: undefined,
