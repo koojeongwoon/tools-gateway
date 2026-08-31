@@ -117,7 +117,7 @@ describe("MCP gateway server", () => {
 
     const result = await client.callTool({
       name: "github.get_file",
-      arguments: {},
+      arguments: { path: "src/main.ts" },
     });
     expect(result.content).toEqual([{ type: "text", text: "ok" }]);
 
@@ -128,10 +128,19 @@ describe("MCP gateway server", () => {
         toolName: "github.get_file",
         status: "SUCCESS",
         statusCode: 200,
+        arguments: { path: "src/main.ts" },
         ipAddress: "127.0.0.1",
         userAgent: "test-agent",
       }),
     );
+
+    const loggedEntry = logSpy.mock.calls[0]?.[0];
+    expect(loggedEntry).toBeDefined();
+    expect(loggedEntry?.requestBytes).toBeGreaterThan(0);
+    expect(loggedEntry?.responseBytes).toBeGreaterThan(0);
+    expect(loggedEntry?.inputTokens).toBeGreaterThan(0);
+    expect(loggedEntry?.outputTokens).toBeGreaterThan(0);
+    expect(loggedEntry?.creditsUsed).toBeGreaterThan(0);
 
     expect(mockPool.query).toHaveBeenCalledWith(
       expect.stringContaining("INSERT INTO tool_usage_logs"),

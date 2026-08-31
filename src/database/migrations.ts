@@ -121,4 +121,17 @@ CREATE INDEX idx_user_tool_permissions_user
   ON user_tool_permissions (user_id);
 `,
   },
+  {
+    version: 3,
+    name: "add_cost_and_capacity_metrics_to_tool_usage_logs",
+    sql: `
+ALTER TABLE tool_usage_logs
+  ADD COLUMN request_bytes INT NOT NULL DEFAULT 0,
+  ADD COLUMN response_bytes INT NOT NULL DEFAULT 0,
+  ADD COLUMN input_tokens INT NOT NULL DEFAULT 0,
+  ADD COLUMN output_tokens INT NOT NULL DEFAULT 0,
+  ADD COLUMN credits_used NUMERIC(10, 4) NOT NULL DEFAULT 0.0000,
+  ADD COLUMN arguments JSONB;
+`,
+  },
 ];

@@ -6,7 +6,7 @@ import {
 import type { ToolPolicy } from "../policy/toolPolicy.js";
 import type { ToolRegistry } from "../upstream/toolRegistry.js";
 import type { ScopeGuard } from "../auth/scopeGuard.js";
-import type { AuditLogger } from "../audit/auditLogger.js";
+import { type AuditLogger, estimateTokens, calculateCredits } from "../audit/auditLogger.js";
 
 export interface GatewayRequestContext {
   userId?: string | undefined;
@@ -56,6 +56,11 @@ export function createGatewayServer(
         const ipAddress = requestContext?.ipAddress;
         const userAgent = requestContext?.userAgent;
 
+        const argsObj = isArgumentsObject(arguments_) ? arguments_ : {};
+        const argsJson = JSON.stringify(argsObj);
+        const requestBytes = Buffer.byteLength(argsJson, "utf8");
+        const inputTokens = estimateTokens(argsJson);
+
         try {
           const result = await policy.enforce(tool.publicName, async () => {
             if (scopeGuard && !scopeGuard.allows(tool.publicName)) {
@@ -63,15 +68,17 @@ export function createGatewayServer(
               (err as any).statusCode = 403;
               throw err;
             }
-            return registry.call(
-              tool.publicName,
-              isArgumentsObject(arguments_) ? arguments_ : {},
-            );
+            return registry.call(tool.publicName, argsObj);
           });
 
           if (auditLogger && requestContext?.userId) {
             const durationMs = performance.now() - start;
             const isError = (result as any)?.isError === true;
+            const resultJson = JSON.stringify(result ?? {});
+            const responseBytes = Buffer.byteLength(resultJson, "utf8");
+            const outputTokens = estimateTokens(resultJson);
+            const creditsUsed = calculateCredits(tool.publicName, requestBytes, responseBytes);
+
             void auditLogger.log({
               userId,
               apiKeyId,
@@ -79,6 +86,12 @@ export function createGatewayServer(
               status: isError ? "ERROR" : "SUCCESS",
               statusCode: isError ? 500 : 200,
               durationMs,
+              requestBytes,
+              responseBytes,
+              inputTokens,
+              outputTokens,
+              creditsUsed,
+              arguments: argsObj,
               ipAddress,
               userAgent,
             });
@@ -91,6 +104,11 @@ export function createGatewayServer(
             const isForbidden =
               (error as any)?.statusCode === 403 ||
               (error instanceof Error && error.message.includes("outside API key scope"));
+            const errorJson = JSON.stringify({ error: String(error) });
+            const responseBytes = Buffer.byteLength(errorJson, "utf8");
+            const outputTokens = estimateTokens(errorJson);
+            const creditsUsed = calculateCredits(tool.publicName, requestBytes, responseBytes);
+
             void auditLogger.log({
               userId,
               apiKeyId,
@@ -98,6 +116,12 @@ export function createGatewayServer(
               status: isForbidden ? "FORBIDDEN" : "ERROR",
               statusCode: isForbidden ? 403 : 500,
               durationMs,
+              requestBytes,
+              responseBytes,
+              inputTokens,
+              outputTokens,
+              creditsUsed,
+              arguments: argsObj,
               ipAddress,
               userAgent,
             });
