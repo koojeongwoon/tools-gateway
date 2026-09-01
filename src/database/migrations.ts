@@ -134,4 +134,34 @@ ALTER TABLE tool_usage_logs
   ADD COLUMN arguments JSONB;
 `,
   },
+  {
+    version: 4,
+    name: "tool_semantic_search_and_embeddings",
+    sql: `
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS pg_search CASCADE;
+
+CREATE TABLE tool_embeddings (
+  id VARCHAR(64) PRIMARY KEY,
+  tool_name VARCHAR(150) UNIQUE NOT NULL,
+  upstream_prefix VARCHAR(50) NOT NULL,
+  title VARCHAR(150) NOT NULL,
+  description TEXT NOT NULL,
+  input_schema JSONB,
+  embedding VECTOR(1536),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_tool_embeddings_hnsw
+  ON tool_embeddings USING hnsw (embedding vector_cosine_ops);
+
+CALL paradedb.create_bm25(
+  index_name => 'idx_tool_embeddings_bm25',
+  table_name => 'tool_embeddings',
+  key_field  => 'id',
+  text_fields => '{tool_name: {}, title: {}, description: {}}'
+);
+`,
+  },
 ];
+
