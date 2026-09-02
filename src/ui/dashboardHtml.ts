@@ -257,7 +257,8 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
     async function logout() {
       await fetch('/api/v1/auth/logout', { method: 'POST' });
-      renderGuest();
+      // 테넌트 인증 서버 로그아웃 페이지로 이동하여 SSO 세션 해제 및 로그인 화면 유도
+      location.href = 'https://auth.snappytory.com/portal/tenants/tools-gateway/signout?redirect_uri=' + encodeURIComponent('https://tools-gateway.lynply.com');
     }
 
         // ================= AI Credentials Functions =================
