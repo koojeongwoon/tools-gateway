@@ -306,17 +306,9 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           openaiHint.textContent = "범용 LLM 완성 API 키 (sk-...)";
         }
 
-        // Embedding Key
-        const embedStatus = document.getElementById('embed-status');
-        const embedHint = document.getElementById('embed-hint');
-        if (bundle.embedding_api_key && bundle.embedding_api_key.configured) {
-          embedStatus.textContent = "🟢 등록됨";
-          embedStatus.className = "status-badge linked";
-          embedHint.textContent = "등록된 키: " + (bundle.embedding_api_key.masked_hint || "sk-***");
-        } else {
-          embedStatus.textContent = "⚪ 미등록 (OpenAI 대체)";
-          embedStatus.className = "status-badge unlinked";
-          embedHint.textContent = "미등록 시 기본 OpenAI Key 자동 폴백 사용";
+        // Sync embedding key automatically if openai key is set
+        if (bundle.openai_api_key && bundle.openai_api_key.configured && (!bundle.embedding_api_key || !bundle.embedding_api_key.configured)) {
+          // Both share the same central OpenAI credential
         }
       } catch (e) {
         console.error("Failed to load AI bundle", e);
