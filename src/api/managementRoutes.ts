@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import type { ApiKeyService } from "./apiKeyService.js";
 import type { CustomUpstreamService } from "./customUpstreamService.js";
-import type { OAuthSessionStore } from "../auth/oauthSession.js";
+import type { OAuthSessionStore, GatewaySession } from "../auth/oauthSession.js";
 import { DASHBOARD_HTML } from "../ui/dashboardHtml.js";
 import { IamAiCredentialClient } from "../credential/iamAiCredentialClient.js";
 import {

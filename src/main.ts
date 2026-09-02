@@ -22,6 +22,7 @@ import { EnvelopeCrypto } from "./crypto/envelopeCrypto.js";
 import { AuditLogger } from "./audit/auditLogger.js";
 import { registerManagementRoutes } from "./api/managementRoutes.js";
 import { registerSecurityPlugins } from "./server/registerSecurityPlugins.js";
+import { IamAiCredentialClient } from "./credential/iamAiCredentialClient.js";
 
 const configPath = process.env.UPSTREAM_CONFIG ?? "config/upstreams.yaml";
 const config = await loadGatewayConfig(configPath);
