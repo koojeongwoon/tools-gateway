@@ -24,14 +24,27 @@ export async function registerSecurityPlugins(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"], // needed for dashboard scripts
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'", // needed for dashboard scripts
+          "https://static.cloudflareinsights.com",
+        ],
         scriptSrcAttr: ["'unsafe-inline'"], // needed for inline event handlers (e.g. onclick)
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", "data:"],
-        connectSrc: ["'self'"],
+        connectSrc: [
+          "'self'",
+          "https://cloudflareinsights.com",
+          "https://static.cloudflareinsights.com",
+          "https://auth.snappytory.com",
+        ],
+        formAction: ["'self'", "https://auth.snappytory.com"],
+        frameAncestors: ["'self'"],
       },
     },
     crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false,
+    crossOriginResourcePolicy: false,
   });
 
   // 2. CORS configuration
