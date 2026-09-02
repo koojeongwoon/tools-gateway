@@ -1,5 +1,6 @@
 import type { CallToolResult, Tool } from "@modelcontextprotocol/client";
 import type { UpstreamConnection } from "../upstream/upstreamConnection.js";
+import { deepFreeze } from "../utils/deepFreeze.js";
 
 export interface ToolRoute {
   readonly publicName: string;
@@ -26,6 +27,9 @@ export class ToolRouteMap {
     const routeMap = new Map<string, ToolRoute>();
 
     for (const connection of connections) {
+      if (!connection.toolPrefix || !/^[a-z0-9_-]+$/i.test(connection.toolPrefix)) {
+        throw new Error(`Invalid upstream toolPrefix invariant: ${connection.toolPrefix}`);
+      }
       const tools = await connection.listTools();
       for (const tool of tools) {
         const publicName = `${connection.toolPrefix}.${tool.name}`;
@@ -36,7 +40,7 @@ export class ToolRouteMap {
           publicName,
           upstreamId: connection.id,
           upstreamToolName: tool.name,
-          schema: tool,
+          schema: deepFreeze(tool),
           connection,
         });
       }
@@ -46,7 +50,7 @@ export class ToolRouteMap {
   }
 
   list(): readonly ToolRoute[] {
-    return Object.freeze(
+    return deepFreeze(
       [...this.routes.values()].sort((a, b) => a.publicName.localeCompare(b.publicName)),
     );
   }

@@ -6,7 +6,6 @@ import {
   loadDatabaseConfig,
 } from "./config/database.js";
 import { initializeDatabase } from "./database/initializeDatabase.js";
-import { ToolPolicy } from "./policy/toolPolicy.js";
 import { createGatewayServer } from "./server/createGatewayServer.js";
 import { RemoteMcpConnection } from "./upstream/remoteMcpConnection.js";
 import { ResilientUpstreamConnection } from "./upstream/resilientUpstreamConnection.js";
@@ -14,7 +13,6 @@ import { ToolRegistry } from "./upstream/toolRegistry.js";
 import { createClient } from "redis";
 import { loadRedisConfig } from "./config/redis.js";
 import { bearerToken, KeyVerifier } from "./auth/keyVerifier.js";
-import { ScopeGuard } from "./auth/scopeGuard.js";
 import { ToolAccessPolicy } from "./domain/toolAccessPolicy.js";
 import { UserSyncConsumer } from "./events/userSyncConsumer.js";
 import { loadOAuthConfig, OAuthSessionStore } from "./auth/oauthSession.js";
@@ -23,7 +21,7 @@ import { CustomUpstreamService } from "./api/customUpstreamService.js";
 import { EnvelopeCrypto } from "./crypto/envelopeCrypto.js";
 import { AuditLogger } from "./audit/auditLogger.js";
 import { registerManagementRoutes } from "./api/managementRoutes.js";
-import { DASHBOARD_HTML } from "./ui/dashboardHtml.js";
+import { registerSecurityPlugins } from "./server/registerSecurityPlugins.js";
 
 const configPath = process.env.UPSTREAM_CONFIG ?? "config/upstreams.yaml";
 const config = await loadGatewayConfig(configPath);
@@ -58,7 +56,18 @@ for (const upstream of config.upstreams.filter(({ enabled }) => enabled)) {
 const registry = new ToolRegistry(connections);
 await registry.refresh();
 
-const app = Fastify({ logger: true });
+const app = Fastify({
+  logger: {
+    level: process.env.LOG_LEVEL || "info",
+  },
+});
+
+// Production Security Plugins (Helmet, CORS, Rate-Limiting)
+await registerSecurityPlugins(app, {
+  rateLimitMax: Number(process.env.RATE_LIMIT_MAX ?? 1000),
+  rateLimitTimeWindow: process.env.RATE_LIMIT_WINDOW ?? "1 minute",
+});
+
 const apiKeyAuthEnabled = process.env.API_KEY_AUTH_ENABLED === "true";
 if (apiKeyAuthEnabled && !keyVerifier) {
   throw new Error("API key authentication requires database and Redis");

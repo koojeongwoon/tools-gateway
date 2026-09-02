@@ -1,4 +1,5 @@
 import type { Pool } from "pg";
+import { maskSensitiveArguments } from "../policy/toolArgumentSanitizer.js";
 
 export interface ToolAuditLogEntry {
   userId: string;
@@ -22,6 +23,8 @@ export class AuditLogger {
 
   async log(entry: ToolAuditLogEntry): Promise<void> {
     try {
+      const maskedArgs = entry.arguments ? maskSensitiveArguments(entry.arguments) : null;
+
       await this.pool.query(
         `INSERT INTO tool_usage_logs (
           user_id, api_key_id, tool_name, status, status_code, duration_ms,
@@ -40,7 +43,7 @@ export class AuditLogger {
           Math.max(0, Math.round(entry.inputTokens ?? 0)),
           Math.max(0, Math.round(entry.outputTokens ?? 0)),
           entry.creditsUsed ?? 0.0,
-          entry.arguments ? JSON.stringify(entry.arguments) : null,
+          maskedArgs ? JSON.stringify(maskedArgs) : null,
           isValidIp(entry.ipAddress) ? entry.ipAddress : null,
           entry.userAgent ?? null,
         ],

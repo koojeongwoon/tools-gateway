@@ -1,37 +1,15 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
-import { z } from "zod";
 import type { ApiKeyService } from "./apiKeyService.js";
 import type { CustomUpstreamService } from "./customUpstreamService.js";
 import type { OAuthSessionStore } from "../auth/oauthSession.js";
 import { DASHBOARD_HTML } from "../ui/dashboardHtml.js";
 import { IamAiCredentialClient } from "../credential/iamAiCredentialClient.js";
-
-const createKeySchema = z.object({
-  name: z.string().trim().min(1).max(100),
-  expiresAt: z.string().datetime({ offset: true }).optional(),
-});
-
-const createUpstreamSchema = z.object({
-  toolPrefix: z.string().trim().min(1).max(50).regex(/^[a-z][a-z0-9_]{0,49}$/),
-  endpointUrl: z.string().trim().url(),
-  transport: z.enum(["streamable-http", "sse"]).default("streamable-http"),
-  authType: z.enum(["bearer", "api_key", "custom_header", "none"]).default("bearer"),
-  authHeaderName: z.string().trim().min(1).max(100).default("Authorization"),
-  authValue: z.string().trim().optional(),
-  description: z.string().trim().max(255).optional(),
-});
-
-const saveAiKeySchema = z.object({
-  provider: z.enum(["OPENAI_API_KEY", "EMBEDDING_API_KEY"]),
-  apiKey: z.string().trim().min(1),
-  accountType: z.enum(["USER", "ORGANIZATION"]).default("USER"),
-});
-
-const checkDeviceSchema = z.object({
-  deviceAuthId: z.string().trim().min(1),
-  userCode: z.string().trim().min(1),
-  accountType: z.enum(["USER", "ORGANIZATION"]).default("USER"),
-});
+import {
+  CreateKeyRequestDto,
+  CreateUpstreamRequestDto,
+  SaveAiKeyRequestDto,
+  CheckDeviceRequestDto,
+} from "./dtos/managementDtos.js";
 
 export function registerManagementRoutes(
   app: FastifyInstance,
@@ -104,7 +82,7 @@ export function registerManagementRoutes(
   app.post("/api/v1/keys", async (request, reply) => {
     const userId = await authenticatedUserId(request, sessions, apiKeys);
     if (!userId) return reply.code(401).send({ error: "Unauthorized" });
-    const parsed = createKeySchema.safeParse(request.body);
+    const parsed = CreateKeyRequestDto.safeParse(request.body);
     if (!parsed.success) return reply.code(400).send({ error: "Invalid API key request" });
     return reply.code(201).send(await apiKeys.create(userId, parsed.data.name, parsed.data.expiresAt));
   });
@@ -133,7 +111,7 @@ export function registerManagementRoutes(
   app.post("/api/v1/upstreams", async (request, reply) => {
     const userId = await authenticatedUserId(request, sessions, apiKeys);
     if (!userId) return reply.code(401).send({ error: "Unauthorized" });
-    const parsed = createUpstreamSchema.safeParse(request.body);
+    const parsed = CreateUpstreamRequestDto.safeParse(request.body);
     if (!parsed.success) {
       return reply.code(400).send({ error: "Invalid MCP upstream request", details: parsed.error.issues });
     }
@@ -190,7 +168,7 @@ export function registerManagementRoutes(
   app.post("/api/v1/ai-credentials/codex/device/check", async (request, reply) => {
     const userId = await authenticatedUserId(request, sessions, apiKeys);
     if (!userId) return reply.code(401).send({ error: "Unauthorized" });
-    const parsed = checkDeviceSchema.safeParse(request.body);
+    const parsed = CheckDeviceRequestDto.safeParse(request.body);
     if (!parsed.success) return reply.code(400).send({ error: "Invalid check request" });
     try {
       const res = await iamAiClient.checkCodexDeviceFlow(
@@ -209,7 +187,7 @@ export function registerManagementRoutes(
   app.post("/api/v1/ai-credentials/keys", async (request, reply) => {
     const userId = await authenticatedUserId(request, sessions, apiKeys);
     if (!userId) return reply.code(401).send({ error: "Unauthorized" });
-    const parsed = saveAiKeySchema.safeParse(request.body);
+    const parsed = SaveAiKeyRequestDto.safeParse(request.body);
     if (!parsed.success) return reply.code(400).send({ error: "Invalid key request", details: parsed.error.issues });
     try {
       const res = await iamAiClient.saveApiKey(

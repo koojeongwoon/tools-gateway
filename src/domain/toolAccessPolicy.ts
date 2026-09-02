@@ -63,12 +63,23 @@ export class ToolAccessPolicy {
   }
 }
 
+function validatePatternString(glob: string): void {
+  if (typeof glob !== "string" || glob.trim().length === 0) {
+    throw new Error("Tool policy pattern must be a non-empty string");
+  }
+  if (/[\r\n\0]/.test(glob)) {
+    throw new Error(`Invalid characters in tool policy pattern: ${JSON.stringify(glob)}`);
+  }
+}
+
 function toPattern(glob: string): RegExp {
+  validatePatternString(glob);
   const escaped = glob.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
   return new RegExp(`^${escaped.replaceAll("*", ".*")}$`);
 }
 
 function matchesGlob(pattern: string, toolName: string): boolean {
+  validatePatternString(pattern);
   return pattern.endsWith("*")
     ? toolName.startsWith(pattern.slice(0, -1))
     : pattern === toolName;

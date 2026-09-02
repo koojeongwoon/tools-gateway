@@ -7,14 +7,17 @@ import type { ToolPolicy } from "../policy/toolPolicy.js";
 import type { ToolRegistry } from "../upstream/toolRegistry.js";
 import type { ScopeGuard } from "../auth/scopeGuard.js";
 import type { AuditLogger } from "../audit/auditLogger.js";
-import { ToolRouteMap, type ToolRoute } from "../domain/toolRouteMap.js";
+import { ToolRouteMap } from "../domain/toolRouteMap.js";
 import { ToolAccessPolicy } from "../domain/toolAccessPolicy.js";
 import {
   ToolInvocationContext,
   type GatewayRequestContext,
 } from "../domain/toolInvocationContext.js";
+import { ToolArgumentSanitizer } from "../policy/toolArgumentSanitizer.js";
 
 export type { GatewayRequestContext };
+
+const argumentSanitizer = new ToolArgumentSanitizer({ strict: true });
 
 export function createGatewayServer(
   registry: ToolRegistry | ToolRouteMap,
@@ -72,6 +75,9 @@ export function createGatewayServer(
       async (arguments_) => {
         const argsObj = isArgumentsObject(arguments_) ? arguments_ : {};
 
+        // Security Guardrail: Validate & sanitize tool invocation arguments
+        argumentSanitizer.validate(argsObj);
+
         return invocationContext.invoke(tool.publicName, argsObj, async () => {
           if (policy instanceof ToolAccessPolicy) {
             policy.assertAllowed(tool.publicName);
@@ -86,13 +92,29 @@ export function createGatewayServer(
             }
           }
 
-          return registry.call(tool.publicName, argsObj);
+          try {
+            return await registry.call(tool.publicName, argsObj);
+          } catch (upstreamError: any) {
+            // Data Protection: Mask sensitive downstream host/IP/internal stack details
+            const sanitizedMsg = maskInternalErrorDetails(upstreamError?.message || String(upstreamError));
+            const safeError = new Error(sanitizedMsg);
+            (safeError as any).statusCode = upstreamError?.statusCode ?? 502;
+            throw safeError;
+          }
         });
       },
     );
   }
 
   return server;
+}
+
+function maskInternalErrorDetails(message: string): string {
+  // Strip internal IP addresses (e.g., 10.x.x.x, 172.16-31.x.x, 192.168.x.x, 127.0.0.1)
+  let cleaned = message.replace(/\b(?:10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|127\.0\.0\.1)\b/g, "[internal-ip]");
+  // Strip node internal stack paths / filesystem details
+  cleaned = cleaned.replace(/\/(?:Users|home|root|app|var)\/[a-zA-Z0-9_/.-]+/g, "[internal-path]");
+  return cleaned;
 }
 
 function isArgumentsObject(value: unknown): value is Record<string, unknown> {
