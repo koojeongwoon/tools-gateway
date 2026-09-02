@@ -28,3 +28,4 @@
 - **과제 1 [P1 - 도구 가드레일 / -12점]**: 도구 실행 인자(Tool Arguments) 심층 검증 (`../../../etc/passwd`, 쉘 메타문자 `;`, `&&`, `|` 차단 / `src/policy/toolArgumentSanitizer.ts`)
 - **과제 2 [P1 - 일반 AppSec / -8점]**: Fastify 보안 플러그인 (`@fastify/helmet`, `@fastify/rate-limit`, `@fastify/cors`) 전면 등록
 - **과제 3 [P2 - 데이터 보호 / -4점]**: 다운스트림 MCP 서버 장애 시 내부 IP/스택트레이스 유출 방지 및 `tool_usage_log` 인자 마스킹
+- **과제 3 [P1 - 로깅 게이트]**: Fastify `pino.transport` 비동기 워커 스레드 및 `pino-roll` 일자별 파일 롤링 적용

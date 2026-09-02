@@ -4,6 +4,7 @@ import type { ApiKeyService } from "./apiKeyService.js";
 import type { CustomUpstreamService } from "./customUpstreamService.js";
 import type { OAuthSessionStore } from "../auth/oauthSession.js";
 import { DASHBOARD_HTML } from "../ui/dashboardHtml.js";
+import { IamAiCredentialClient } from "../credential/iamAiCredentialClient.js";
 
 const createKeySchema = z.object({
   name: z.string().trim().min(1).max(100),
@@ -20,11 +21,24 @@ const createUpstreamSchema = z.object({
   description: z.string().trim().max(255).optional(),
 });
 
+const saveAiKeySchema = z.object({
+  provider: z.enum(["OPENAI_API_KEY", "EMBEDDING_API_KEY"]),
+  apiKey: z.string().trim().min(1),
+  accountType: z.enum(["USER", "ORGANIZATION"]).default("USER"),
+});
+
+const checkDeviceSchema = z.object({
+  deviceAuthId: z.string().trim().min(1),
+  userCode: z.string().trim().min(1),
+  accountType: z.enum(["USER", "ORGANIZATION"]).default("USER"),
+});
+
 export function registerManagementRoutes(
   app: FastifyInstance,
   sessions: OAuthSessionStore,
   apiKeys: ApiKeyService,
   upstreams: CustomUpstreamService,
+  iamAiClient: IamAiCredentialClient = new IamAiCredentialClient(),
 ): void {
   // 메인 접속 시 비로그인 상태면 자동으로 SSO 로그인 화면으로 리다이렉트
   app.get("/", async (request, reply) => {
@@ -115,7 +129,7 @@ export function registerManagementRoutes(
     return apiKeys.permissions(userId);
   });
 
-  // Custom MCP Upstream Routes (Phase 4)
+  // Custom MCP Upstream Routes
   app.post("/api/v1/upstreams", async (request, reply) => {
     const userId = await authenticatedUserId(request, sessions, apiKeys);
     if (!userId) return reply.code(401).send({ error: "Unauthorized" });
@@ -145,6 +159,79 @@ export function registerManagementRoutes(
       return reply.code(404).send({ error: "Custom MCP upstream not found" });
     }
     return reply.code(204).send();
+  });
+
+  // ==========================================
+  // AI 자격증명 (Codex OAuth & API Keys) Routes
+  // ==========================================
+  app.get("/api/v1/ai-credentials/bundle", async (request, reply) => {
+    const userId = await authenticatedUserId(request, sessions, apiKeys);
+    if (!userId) return reply.code(401).send({ error: "Unauthorized" });
+    const bundle = await iamAiClient.getAiBundle(userId);
+    return reply.send(bundle || {
+      user_id: userId,
+      codex: { linked: false },
+      openai_api_key: { configured: false },
+      embedding_api_key: { configured: false },
+    });
+  });
+
+  app.post("/api/v1/ai-credentials/codex/device/start", async (request, reply) => {
+    const userId = await authenticatedUserId(request, sessions, apiKeys);
+    if (!userId) return reply.code(401).send({ error: "Unauthorized" });
+    try {
+      const init = await iamAiClient.startCodexDeviceFlow();
+      return reply.send(init);
+    } catch (err) {
+      return reply.code(502).send({ error: "Failed to start Codex Device Flow", message: String(err) });
+    }
+  });
+
+  app.post("/api/v1/ai-credentials/codex/device/check", async (request, reply) => {
+    const userId = await authenticatedUserId(request, sessions, apiKeys);
+    if (!userId) return reply.code(401).send({ error: "Unauthorized" });
+    const parsed = checkDeviceSchema.safeParse(request.body);
+    if (!parsed.success) return reply.code(400).send({ error: "Invalid check request" });
+    try {
+      const res = await iamAiClient.checkCodexDeviceFlow(
+        parsed.data.deviceAuthId,
+        parsed.data.userCode,
+        userId,
+        undefined,
+        parsed.data.accountType
+      );
+      return reply.send(res);
+    } catch (err) {
+      return reply.code(400).send({ error: "Pending or failed", message: String(err) });
+    }
+  });
+
+  app.post("/api/v1/ai-credentials/keys", async (request, reply) => {
+    const userId = await authenticatedUserId(request, sessions, apiKeys);
+    if (!userId) return reply.code(401).send({ error: "Unauthorized" });
+    const parsed = saveAiKeySchema.safeParse(request.body);
+    if (!parsed.success) return reply.code(400).send({ error: "Invalid key request", details: parsed.error.issues });
+    try {
+      const res = await iamAiClient.saveApiKey(
+        parsed.data.provider,
+        parsed.data.apiKey,
+        userId,
+        undefined,
+        parsed.data.accountType
+      );
+      return reply.send(res);
+    } catch (err) {
+      return reply.code(500).send({ error: "Failed to save AI key", message: String(err) });
+    }
+  });
+
+  app.delete("/api/v1/ai-credentials/keys/:provider", async (request, reply) => {
+    const userId = await authenticatedUserId(request, sessions, apiKeys);
+    if (!userId) return reply.code(401).send({ error: "Unauthorized" });
+    const { provider } = request.params as { provider: string };
+    const validProvider = provider.toUpperCase() as "OPENAI_API_KEY" | "EMBEDDING_API_KEY" | "CODEX_OAUTH";
+    const ok = await iamAiClient.deleteApiKey(validProvider, userId);
+    return ok ? reply.code(204).send() : reply.code(404).send({ error: "Credential not found" });
   });
 }
 
