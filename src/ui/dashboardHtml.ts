@@ -69,7 +69,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
       </div>
     </header>
 
-    <div id="dashboard-content" style="display: none; display: flex; flex-direction: column; gap: 1.5rem;">
+    <div id="dashboard-content" style="display: flex; flex-direction: column; gap: 1.5rem;">
             <!-- 🤖 AI Credentials (Codex OAuth / OpenAI / Embedding Keys) -->
       <section class="card">
         <h2>
@@ -243,10 +243,10 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           if (data.authenticated && data.user) {
             currentUser = data.user;
             renderAuthUser(currentUser);
-            loadAiCredentials();
             loadKeys();
             loadUpstreams();
             loadPermissions();
+            loadAiCredentials();
             document.getElementById('dashboard-content').style.display = 'flex';
             return;
           }
@@ -267,7 +267,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
     async function logout() {
       await fetch('/api/v1/auth/logout', { method: 'POST' });
-      location.reload();
+      location.href = '/api/v1/auth/login';
     }
 
     async function loadKeys() {
@@ -350,8 +350,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
     function closeKeyModal() {
       document.getElementById('key-modal').style.display = 'none';
-      loadAiCredentials();
-            loadKeys();
+      loadKeys();
     }
 
     async function createApiKey(e) {
@@ -382,8 +381,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
       try {
         const res = await fetch(\`/api/v1/keys/\${keyId}\`, { method: 'DELETE' });
         if (res.ok) {
-          loadAiCredentials();
-            loadKeys();
+          loadKeys();
         } else {
           alert('키 삭제 실패');
         }
