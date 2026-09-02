@@ -96,25 +96,15 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between; gap: 0.8rem;">
             <div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h4 style="font-size: 0.95rem; color: var(--text-bright);">OpenAI API Key</h4>
+                <h4 style="font-size: 0.95rem; color: var(--text-bright);">OpenAI API Key (벡터 임베딩 & 완성)</h4>
                 <span id="openai-status" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 12px; font-weight: bold; background: rgba(248, 81, 73, 0.15); color: var(--danger); border: 1px solid rgba(248, 81, 73, 0.4);">미등록</span>
               </div>
-              <p id="openai-hint" style="font-size: 0.8rem; color: #8b949e; margin-top: 0.4rem;">범용 LLM 완성 API 키 (sk-...)</p>
+              <p id="openai-hint" style="font-size: 0.8rem; color: #8b949e; margin-top: 0.4rem;">지식베이스/도구 벡터 임베딩 및 인덱싱 처리용 API 키 (sk-...)</p>
             </div>
             <button class="btn btn-outline" style="width: 100%;" onclick="openKeyInputModal('OPENAI_API_KEY', 'OpenAI API Key')">🔑 API Key 설정</button>
           </div>
 
-          <!-- Embedding API Key Card -->
-          <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between; gap: 0.8rem;">
-            <div>
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h4 style="font-size: 0.95rem; color: var(--text-bright);">Embedding API Key</h4>
-                <span id="embed-status" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 12px; font-weight: bold; background: rgba(248, 81, 73, 0.15); color: var(--danger); border: 1px solid rgba(248, 81, 73, 0.4);">미등록</span>
-              </div>
-              <p id="embed-hint" style="font-size: 0.8rem; color: #8b949e; margin-top: 0.4rem;">지식베이스/RAG 벡터 임베딩 키 (미등록 시 OpenAI 키 자동 대체)</p>
-            </div>
-            <button class="btn btn-outline" style="width: 100%;" onclick="openKeyInputModal('EMBEDDING_API_KEY', 'Embedding API Key')">⚡ 임베딩 키 설정</button>
-          </div>
+
 
         </div>
       </section>
