@@ -25,6 +25,7 @@ export async function registerSecurityPlugins(
       directives: {
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'", "'unsafe-inline'"], // needed for dashboard scripts
+        scriptSrcAttr: ["'unsafe-inline'"], // needed for inline event handlers (e.g. onclick)
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", "data:"],
         connectSrc: ["'self'"],
