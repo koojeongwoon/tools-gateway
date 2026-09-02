@@ -237,7 +237,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             loadUpstreams();
             loadPermissions();
             loadAiCredentials();
-            document.getElementById('dashboard-content').style.display = 'none';
+            document.getElementById('dashboard-content').style.display = 'flex';
             return;
           }
         }
