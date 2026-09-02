@@ -252,7 +252,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           }
         }
       } catch (e) {}
-      document.getElementById('dashboard-content').style.display = 'none';
+      console.warn('Keeping dashboard visible');
     }
 
     function renderAuthUser(user) {
@@ -268,6 +268,161 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     async function logout() {
       await fetch('/api/v1/auth/logout', { method: 'POST' });
       location.href = '/api/v1/auth/login';
+    }
+
+        // ================= AI Credentials Functions =================
+    let pollInterval = null;
+    let currentVerifyUrl = "";
+
+    async function loadAiCredentials() {
+      try {
+        const res = await fetch('/api/v1/ai-credentials/bundle');
+        if (!res.ok) return;
+        const bundle = await res.json();
+        
+        // Codex
+        const codexStatus = document.getElementById('codex-status');
+        const codexActions = document.getElementById('codex-actions');
+        if (bundle.codex && bundle.codex.linked) {
+          codexStatus.textContent = "🟢 연동됨";
+          codexStatus.className = "status-badge linked";
+          codexActions.innerHTML = '<button class="btn btn-danger" style="width: 100%;" onclick="unlinkCodex()">연동 해제</button>';
+        } else {
+          codexStatus.textContent = "🔴 미연동";
+          codexStatus.className = "status-badge unlinked";
+          codexActions.innerHTML = '<button class="btn btn-primary" style="width: 100%;" onclick="startCodexLink()">🔗 OpenAI 계정 연동하기</button>';
+        }
+
+        // OpenAI Key
+        const openaiStatus = document.getElementById('openai-status');
+        const openaiHint = document.getElementById('openai-hint');
+        if (bundle.openai_api_key && bundle.openai_api_key.configured) {
+          openaiStatus.textContent = "🟢 등록됨";
+          openaiStatus.className = "status-badge linked";
+          openaiHint.textContent = "등록된 키: " + (bundle.openai_api_key.masked_hint || "sk-***");
+        } else {
+          openaiStatus.textContent = "🔴 미등록";
+          openaiStatus.className = "status-badge unlinked";
+          openaiHint.textContent = "범용 LLM 완성 API 키 (sk-...)";
+        }
+
+        // Embedding Key
+        const embedStatus = document.getElementById('embed-status');
+        const embedHint = document.getElementById('embed-hint');
+        if (bundle.embedding_api_key && bundle.embedding_api_key.configured) {
+          embedStatus.textContent = "🟢 등록됨";
+          embedStatus.className = "status-badge linked";
+          embedHint.textContent = "등록된 키: " + (bundle.embedding_api_key.masked_hint || "sk-***");
+        } else {
+          embedStatus.textContent = "⚪ 미등록 (OpenAI 대체)";
+          embedStatus.className = "status-badge unlinked";
+          embedHint.textContent = "미등록 시 기본 OpenAI Key 자동 폴백 사용";
+        }
+      } catch (e) {
+        console.error("Failed to load AI bundle", e);
+      }
+    }
+
+    async function startCodexLink() {
+      try {
+        const res = await fetch('/api/v1/ai-credentials/codex/device/start', { method: 'POST' });
+        if (!res.ok) {
+          alert("Device Flow 시작 실패");
+          return;
+        }
+        const initData = await res.json();
+        document.getElementById('device-user-code').textContent = initData.user_code;
+        currentVerifyUrl = initData.verification_uri_complete || initData.verification_uri;
+        document.getElementById('codex-modal').style.display = 'flex';
+        
+        if (pollInterval) clearInterval(pollInterval);
+        pollInterval = setInterval(async () => {
+          try {
+            const checkRes = await fetch('/api/v1/ai-credentials/codex/device/check', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                deviceAuthId: initData.device_auth_id || initData.device_code,
+                userCode: initData.user_code
+              })
+            });
+            if (checkRes.ok) {
+              clearInterval(pollInterval);
+              document.getElementById('device-polling-status').textContent = "🎉 연동 성공!";
+              document.getElementById('device-polling-status').style.color = "var(--success)";
+              setTimeout(() => {
+                closeCodexModal();
+                loadAiCredentials();
+              }, 1200);
+            }
+          } catch (e) {}
+        }, 3000);
+      } catch (err) {
+        alert("Codex 연동 시작 에러: " + err);
+      }
+    }
+
+    function copyUserCode() {
+      const code = document.getElementById('device-user-code').textContent;
+      navigator.clipboard.writeText(code);
+      alert("인증 코드 " + code + " 가 클립보드에 복사되었습니다!");
+    }
+
+    function openVerifyUri() {
+      if (currentVerifyUrl) {
+        window.open(currentVerifyUrl, '_blank');
+      }
+    }
+
+    function closeCodexModal() {
+      if (pollInterval) clearInterval(pollInterval);
+      document.getElementById('codex-modal').style.display = 'none';
+    }
+
+    async function unlinkCodex() {
+      if (!confirm("정말 Codex 연동을 해제하시겠습니까?")) return;
+      await fetch('/api/v1/ai-credentials/keys/CODEX_OAUTH', { method: 'DELETE' });
+      loadAiCredentials();
+    }
+
+    function openKeyInputModal(provider, title) {
+      document.getElementById('key-provider').value = provider;
+      document.getElementById('key-input-title').textContent = title + " 설정";
+      document.getElementById('key-val').value = "";
+      document.getElementById('key-input-modal').style.display = 'flex';
+    }
+
+    function closeKeyInputModal() {
+      document.getElementById('key-input-modal').style.display = 'none';
+    }
+
+    async function saveAiKey(e) {
+      e.preventDefault();
+      const provider = document.getElementById('key-provider').value;
+      const apiKey = document.getElementById('key-val').value;
+      try {
+        const res = await fetch('/api/v1/ai-credentials/keys', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ provider, apiKey })
+        });
+        if (res.ok) {
+          closeKeyInputModal();
+          loadAiCredentials();
+        } else {
+          alert("키 저장 실패");
+        }
+      } catch (err) {
+        alert("키 저장 에러: " + err);
+      }
+    }
+
+    async function deleteAiKey() {
+      const provider = document.getElementById('key-provider').value;
+      if (!confirm("정말 이 API Key를 삭제하시겠습니까?")) return;
+      await fetch('/api/v1/ai-credentials/keys/' + provider, { method: 'DELETE' });
+      closeKeyInputModal();
+      loadAiCredentials();
     }
 
     async function loadKeys() {
