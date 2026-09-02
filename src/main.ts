@@ -9,11 +9,13 @@ import { initializeDatabase } from "./database/initializeDatabase.js";
 import { ToolPolicy } from "./policy/toolPolicy.js";
 import { createGatewayServer } from "./server/createGatewayServer.js";
 import { RemoteMcpConnection } from "./upstream/remoteMcpConnection.js";
+import { ResilientUpstreamConnection } from "./upstream/resilientUpstreamConnection.js";
 import { ToolRegistry } from "./upstream/toolRegistry.js";
 import { createClient } from "redis";
 import { loadRedisConfig } from "./config/redis.js";
 import { bearerToken, KeyVerifier } from "./auth/keyVerifier.js";
 import { ScopeGuard } from "./auth/scopeGuard.js";
+import { ToolAccessPolicy } from "./domain/toolAccessPolicy.js";
 import { UserSyncConsumer } from "./events/userSyncConsumer.js";
 import { loadOAuthConfig, OAuthSessionStore } from "./auth/oauthSession.js";
 import { ApiKeyService } from "./api/apiKeyService.js";
@@ -45,12 +47,16 @@ if (userSyncConsumer) {
 
 const connections = [];
 for (const upstream of config.upstreams.filter(({ enabled }) => enabled)) {
-  connections.push(await RemoteMcpConnection.connect(upstream));
+  const rawConnection = await RemoteMcpConnection.connect(upstream);
+  const resilientConnection = new ResilientUpstreamConnection(rawConnection, {
+    failureThreshold: 5,
+    resetTimeoutMs: 30000,
+  });
+  connections.push(resilientConnection);
 }
 
 const registry = new ToolRegistry(connections);
 await registry.refresh();
-const policy = new ToolPolicy(config.toolPolicy);
 
 const app = Fastify({ logger: true });
 const apiKeyAuthEnabled = process.env.API_KEY_AUTH_ENABLED === "true";
@@ -89,9 +95,7 @@ app.post("/mcp", async (request, reply) => {
   }
 
   let requestRegistry = registry;
-  let requestPolicy = policy;
-  const customConnections: RemoteMcpConnection[] = [];
-
+  const customConnections: ResilientUpstreamConnection[] = [];
   const activeCustomPrefixes: string[] = [];
 
   if (principal && customUpstreamService) {
@@ -99,7 +103,6 @@ app.post("/mcp", async (request, reply) => {
     const activeCustom = customUpstreams.filter((u) => u.isEnabled);
     if (activeCustom.length > 0) {
       requestRegistry = registry.clone();
-      requestPolicy = new ToolPolicy(config.toolPolicy);
       for (const custom of activeCustom) {
         try {
           const authInfo = await customUpstreamService.getDecryptedAuthValue(principal.userId, custom.toolPrefix);
@@ -109,7 +112,7 @@ app.post("/mcp", async (request, reply) => {
               ? `Bearer ${authInfo.authValue}`
               : authInfo.authValue;
           }
-          const conn = await RemoteMcpConnection.connect({
+          const rawConn = await RemoteMcpConnection.connect({
             id: custom.id,
             toolPrefix: custom.toolPrefix,
             networkScope: "external",
@@ -119,9 +122,12 @@ app.post("/mcp", async (request, reply) => {
             timeoutMs: 30000,
             headers: {},
           }, headers);
-          customConnections.push(conn);
-          await requestRegistry.addRoute(conn);
-          requestPolicy.allowPattern(`${custom.toolPrefix}.*`);
+          const resilientConn = new ResilientUpstreamConnection(rawConn, {
+            failureThreshold: 3,
+            resetTimeoutMs: 15000,
+          });
+          customConnections.push(resilientConn);
+          await requestRegistry.addRoute(resilientConn);
           activeCustomPrefixes.push(custom.toolPrefix);
         } catch (err) {
           request.log.error({ err, prefix: custom.toolPrefix }, "Failed to connect custom upstream");
@@ -138,6 +144,15 @@ app.post("/mcp", async (request, reply) => {
       }
     : undefined;
 
+  const accessPolicy = new ToolAccessPolicy({
+    globalConfig: {
+      default: "deny",
+      allow: [...config.toolPolicy.allow, ...activeCustomPrefixes.map((p) => `${p}.*`)],
+      deny: config.toolPolicy.deny,
+    },
+    principal: apiKeyAuthEnabled ? effectivePrincipal : undefined,
+  });
+
   const requestContext = principal
     ? {
         userId: principal.userId,
@@ -149,8 +164,8 @@ app.post("/mcp", async (request, reply) => {
 
   const server = createGatewayServer(
     requestRegistry,
-    requestPolicy,
-    apiKeyAuthEnabled && effectivePrincipal ? new ScopeGuard(effectivePrincipal) : undefined,
+    accessPolicy,
+    undefined,
     auditLogger,
     requestContext,
   );
