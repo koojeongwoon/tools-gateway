@@ -155,12 +155,9 @@ CREATE TABLE tool_embeddings (
 CREATE INDEX idx_tool_embeddings_hnsw
   ON tool_embeddings USING hnsw (embedding vector_cosine_ops);
 
-CALL paradedb.create_bm25(
-  index_name => 'idx_tool_embeddings_bm25',
-  table_name => 'tool_embeddings',
-  key_field  => 'id',
-  text_fields => '{tool_name: {}, title: {}, description: {}}'
-);
+CREATE INDEX idx_tool_embeddings_bm25
+  ON tool_embeddings USING bm25 (id, tool_name, title, description)
+  WITH (key_field='id');
 `,
   },
 ];
