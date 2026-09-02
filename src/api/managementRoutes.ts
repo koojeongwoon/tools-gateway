@@ -40,18 +40,7 @@ export function registerManagementRoutes(
   upstreams: CustomUpstreamService,
   iamAiClient: IamAiCredentialClient = new IamAiCredentialClient(),
 ): void {
-  // 메인 접속 시 비로그인 상태면 자동으로 SSO 로그인 화면으로 리다이렉트
-  app.get("/", async (request, reply) => {
-    const sessionId = cookieValue(request, "tg_session");
-    if (!sessionId) {
-      const { authorizationUrl } = await sessions.beginLogin();
-      return reply.redirect(authorizationUrl);
-    }
-    const principal = await sessions.resolve(sessionId);
-    if (!principal) {
-      const { authorizationUrl } = await sessions.beginLogin();
-      return reply.redirect(authorizationUrl);
-    }
+  app.get("/", async (_request, reply) => {
     reply.type("text/html; charset=utf-8");
     return reply.send(DASHBOARD_HTML);
   });

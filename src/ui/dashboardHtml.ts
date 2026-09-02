@@ -237,7 +237,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             loadUpstreams();
             loadPermissions();
             loadAiCredentials();
-            document.getElementById('dashboard-content').style.display = 'flex';
+            document.getElementById('dashboard-content').style.display = 'none';
             return;
           }
         }
@@ -257,7 +257,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
     async function logout() {
       await fetch('/api/v1/auth/logout', { method: 'POST' });
-      location.href = '/api/v1/auth/login';
+      renderGuest();
     }
 
         // ================= AI Credentials Functions =================
