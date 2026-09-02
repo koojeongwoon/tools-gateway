@@ -87,6 +87,7 @@ if (oauthConfig) {
     new OAuthSessionStore(redis, oauthConfig),
     new ApiKeyService(databasePool, keyVerifier),
     customUpstreamService,
+    new IamAiCredentialClient(oauthConfig.authServerUrl),
   );
 }
 

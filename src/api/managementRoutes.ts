@@ -143,11 +143,13 @@ export function registerManagementRoutes(
   // AI 자격증명 (Codex OAuth & API Keys) Routes
   // ==========================================
   app.get("/api/v1/ai-credentials/bundle", async (request, reply) => {
-    const userId = await authenticatedUserId(request, sessions, apiKeys);
-    if (!userId) return reply.code(401).send({ error: "Unauthorized" });
-    const bundle = await iamAiClient.getAiBundle(userId);
+    const session = await authenticatedUserSession(request, sessions);
+    if (!session) return reply.code(401).send({ error: "Unauthorized" });
+    const localUserId = await apiKeys.provisionUser(session);
+    // IAM 서버는 통합인증 sub(auth_id)를 키로 저장하므로 session.subject를 전달
+    const bundle = await iamAiClient.getAiBundle(session.subject);
     return reply.send(bundle || {
-      user_id: userId,
+      user_id: localUserId,
       codex: { linked: false },
       openai_api_key: { configured: false },
       embedding_api_key: { configured: false },
@@ -155,8 +157,8 @@ export function registerManagementRoutes(
   });
 
   app.post("/api/v1/ai-credentials/codex/device/start", async (request, reply) => {
-    const userId = await authenticatedUserId(request, sessions, apiKeys);
-    if (!userId) return reply.code(401).send({ error: "Unauthorized" });
+    const session = await authenticatedUserSession(request, sessions);
+    if (!session) return reply.code(401).send({ error: "Unauthorized" });
     try {
       const init = await iamAiClient.startCodexDeviceFlow();
       return reply.send(init);
@@ -166,15 +168,15 @@ export function registerManagementRoutes(
   });
 
   app.post("/api/v1/ai-credentials/codex/device/check", async (request, reply) => {
-    const userId = await authenticatedUserId(request, sessions, apiKeys);
-    if (!userId) return reply.code(401).send({ error: "Unauthorized" });
+    const session = await authenticatedUserSession(request, sessions);
+    if (!session) return reply.code(401).send({ error: "Unauthorized" });
     const parsed = CheckDeviceRequestDto.safeParse(request.body);
     if (!parsed.success) return reply.code(400).send({ error: "Invalid check request" });
     try {
       const res = await iamAiClient.checkCodexDeviceFlow(
         parsed.data.deviceAuthId,
         parsed.data.userCode,
-        userId,
+        session.subject,
         undefined,
         parsed.data.accountType
       );
@@ -185,15 +187,15 @@ export function registerManagementRoutes(
   });
 
   app.post("/api/v1/ai-credentials/keys", async (request, reply) => {
-    const userId = await authenticatedUserId(request, sessions, apiKeys);
-    if (!userId) return reply.code(401).send({ error: "Unauthorized" });
+    const session = await authenticatedUserSession(request, sessions);
+    if (!session) return reply.code(401).send({ error: "Unauthorized" });
     const parsed = SaveAiKeyRequestDto.safeParse(request.body);
     if (!parsed.success) return reply.code(400).send({ error: "Invalid key request", details: parsed.error.issues });
     try {
       const res = await iamAiClient.saveApiKey(
         parsed.data.provider,
         parsed.data.apiKey,
-        userId,
+        session.subject,
         undefined,
         parsed.data.accountType
       );
@@ -204,13 +206,22 @@ export function registerManagementRoutes(
   });
 
   app.delete("/api/v1/ai-credentials/keys/:provider", async (request, reply) => {
-    const userId = await authenticatedUserId(request, sessions, apiKeys);
-    if (!userId) return reply.code(401).send({ error: "Unauthorized" });
+    const session = await authenticatedUserSession(request, sessions);
+    if (!session) return reply.code(401).send({ error: "Unauthorized" });
     const { provider } = request.params as { provider: string };
     const validProvider = provider.toUpperCase() as "OPENAI_API_KEY" | "EMBEDDING_API_KEY" | "CODEX_OAUTH";
-    const ok = await iamAiClient.deleteApiKey(validProvider, userId);
+    const ok = await iamAiClient.deleteApiKey(validProvider, session.subject);
     return ok ? reply.code(204).send() : reply.code(404).send({ error: "Credential not found" });
   });
+}
+
+async function authenticatedUserSession(
+  request: FastifyRequest,
+  sessions: OAuthSessionStore,
+): Promise<GatewaySession | undefined> {
+  const sessionId = cookieValue(request, "tg_session");
+  if (!sessionId) return undefined;
+  return sessions.resolve(sessionId);
 }
 
 async function authenticatedUserId(
@@ -218,9 +229,7 @@ async function authenticatedUserId(
   sessions: OAuthSessionStore,
   apiKeys: ApiKeyService,
 ): Promise<string | undefined> {
-  const sessionId = cookieValue(request, "tg_session");
-  if (!sessionId) return undefined;
-  const principal = await sessions.resolve(sessionId);
+  const principal = await authenticatedUserSession(request, sessions);
   return principal ? apiKeys.provisionUser(principal) : undefined;
 }
 
