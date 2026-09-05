@@ -1,3 +1,5 @@
+import { maskHighEntropyTokens } from "../crypto/entropy.js";
+
 export class SanitizationViolationError extends Error {
   readonly statusCode = 400;
   readonly code = "SECURITY_VIOLATION";
@@ -6,6 +8,26 @@ export class SanitizationViolationError extends Error {
     super(`Tool argument security violation: ${message}`);
     this.name = "SanitizationViolationError";
   }
+}
+
+/**
+ * Normalizes unicode, strips zero-width non-printing characters used for bypasses,
+ * normalizes full-width characters (NFKC), and cleans excess whitespace.
+ */
+export function normalizeUnicodeAndWhitespace(text: string): string {
+  if (!text || typeof text !== "string") return text;
+
+  return text
+    // 1. Unicode NFKC normalization (turns full-width characters into standard ASCII)
+    .normalize("NFKC")
+    // 2. Remove invisible zero-width characters and directional overrides
+    // \u200B (ZWSP), \u200C (ZWNJ), \u200D (ZWJ), \uFEFF (BOM), \u200E/\u200F (LTR/RTL marks), \u2060 (word joiner)
+    .replace(/[\u200B-\u200D\uFEFF\u200E\u200F\u2060]/g, "")
+    // 3. Convert all non-standard spaces (\u00A0 NBSP, \u3000 ideographic space, \u2000-\u200A) to standard space
+    .replace(/[\u00A0\u3000\u2000-\u200A]/g, " ")
+    // 4. Collapse multiple spaces into single space and trim edges
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /**
@@ -20,15 +42,16 @@ const PATH_TRAVERSAL_PATTERNS = [
 ];
 
 /**
- * Patterns matching dangerous shell operators & command injection
+ * Patterns matching dangerous shell operators & command injection, including $IFS tricks
  */
 const COMMAND_INJECTION_PATTERNS = [
-  /[;&|`$]\s*(?:rm|cat|ls|whoami|curl|wget|bash|sh|zsh|python|node|id|kill|pkill|grep|awk|sed)\b/i,
+  /[;&|`$](?:\s+|\$\{?IFS\}?)*(?:rm|cat|ls|whoami|curl|wget|bash|sh|zsh|python|node|id|kill|pkill|grep|awk|sed)\b/i,
   /;\s*[^;]+/, // command chaining with semicolon
   /&&|\|\|/, // command chaining with and/or
   /\|(?!\s*\|)\s*[^|]+/, // pipe to another command
   /`[^`]+`/, // backtick command substitution
   /\$\([^)]+\)/, // $() subshell command substitution
+  /\$\{?IFS\}?/, // Shell Internal Field Separator whitespace bypass
   /[<>]\s*\/[a-zA-Z0-9_.-]+/, // file redirection to root or path
 ];
 
@@ -42,6 +65,9 @@ const SENSITIVE_KEY_PATTERNS = [
   /private_?key/i,
   /certificate/i,
 ];
+
+// Multilingual PII Patterns (Korean RRN: 6 digits - 7 digits)
+const KOREAN_RRN_PATTERN = /\b(\d{6})[- ]?([1-8]\d{6})\b/g;
 
 export interface SanitizerOptions {
   /** If true, strictly check for command injection and path traversal */
@@ -73,9 +99,12 @@ export class ToolArgumentSanitizer {
   }
 
   private checkStringValue(val: string, path: string): void {
-    // 1. Path Traversal Check
+    // Defense-in-depth: Normalize unicode and strip zero-width evasion characters before inspecting
+    const normalized = normalizeUnicodeAndWhitespace(val);
+
+    // 1. Path Traversal Check (check both raw and normalized)
     for (const pattern of PATH_TRAVERSAL_PATTERNS) {
-      if (pattern.test(val)) {
+      if (pattern.test(val) || pattern.test(normalized)) {
         throw new SanitizationViolationError(
           `Detected potential Path Traversal attack in parameter '${path}'`,
           path,
@@ -84,9 +113,9 @@ export class ToolArgumentSanitizer {
       }
     }
 
-    // 2. Command Injection Check
+    // 2. Command Injection Check (check both raw and normalized)
     for (const pattern of COMMAND_INJECTION_PATTERNS) {
-      if (pattern.test(val)) {
+      if (pattern.test(val) || pattern.test(normalized)) {
         throw new SanitizationViolationError(
           `Detected potential Command Injection in parameter '${path}'`,
           path,
@@ -99,6 +128,10 @@ export class ToolArgumentSanitizer {
 
 /**
  * Masks sensitive arguments for audit logging and diagnostics (Data Protection P2)
+ * Incorporates:
+ * 1. Sensitive Key Name Matching
+ * 2. High-Entropy Secret Detection (Shannon Entropy)
+ * 3. Multilingual PII Masking (e.g., Korean RRN)
  */
 export function maskSensitiveArguments<T extends Record<string, unknown>>(args: T): T {
   if (!args || typeof args !== "object") return args;
@@ -115,13 +148,18 @@ function deepMask(val: unknown): unknown {
   if (typeof val === "object") {
     const maskedObj: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(val)) {
-      const isSensitive = SENSITIVE_KEY_PATTERNS.some((p) => p.test(key));
-      if (isSensitive && typeof value === "string") {
+      const isSensitiveKey = SENSITIVE_KEY_PATTERNS.some((p) => p.test(key));
+      if (isSensitiveKey && typeof value === "string") {
         maskedObj[key] = "********";
       } else if (typeof value === "object" && value !== null) {
         maskedObj[key] = deepMask(value);
+      } else if (typeof value === "string") {
+        // Apply Multilingual PII Masking and High-Entropy Token Redaction
+        let processed = value.replace(KOREAN_RRN_PATTERN, "$1-*******");
+        processed = maskHighEntropyTokens(processed);
+        maskedObj[key] = isSensitiveKey ? "********" : processed;
       } else {
-        maskedObj[key] = isSensitive ? "********" : value;
+        maskedObj[key] = isSensitiveKey ? "********" : value;
       }
     }
     return maskedObj;

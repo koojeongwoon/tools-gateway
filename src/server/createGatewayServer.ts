@@ -14,6 +14,7 @@ import {
   type GatewayRequestContext,
 } from "../domain/toolInvocationContext.js";
 import { ToolArgumentSanitizer } from "../policy/toolArgumentSanitizer.js";
+import { sanitizeToolResult } from "../policy/toolOutputSanitizer.js";
 
 export type { GatewayRequestContext };
 
@@ -93,7 +94,9 @@ export function createGatewayServer(
           }
 
           try {
-            return await registry.call(tool.publicName, argsObj);
+            const rawResult = await registry.call(tool.publicName, argsObj);
+            // AI Guardrail: Sanitize and redact high-entropy keys/PII from tool output
+            return sanitizeToolResult(rawResult);
           } catch (upstreamError: any) {
             // Data Protection: Mask sensitive downstream host/IP/internal stack details
             const sanitizedMsg = maskInternalErrorDetails(upstreamError?.message || String(upstreamError));
