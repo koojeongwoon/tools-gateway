@@ -76,10 +76,10 @@ export function createGatewayServer(
       async (arguments_) => {
         const argsObj = isArgumentsObject(arguments_) ? arguments_ : {};
 
-        // Security Guardrail: Validate & sanitize tool invocation arguments
-        argumentSanitizer.validate(argsObj);
-
         return invocationContext.invoke(tool.publicName, argsObj, async () => {
+          // Security Guardrail: Validate & sanitize tool invocation arguments
+          argumentSanitizer.validate(argsObj);
+
           if (policy instanceof ToolAccessPolicy) {
             policy.assertAllowed(tool.publicName);
           } else {

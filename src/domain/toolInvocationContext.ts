@@ -76,11 +76,22 @@ export class ToolInvocationContext {
     } catch (error) {
       const durationMs = performance.now() - start;
       if (this.auditLogger && this.requestContext?.userId) {
+        const isSecurityViolation =
+          (error as any)?.code === "SECURITY_VIOLATION" ||
+          (error instanceof Error && error.name === "SanitizationViolationError");
         const isForbidden =
-          (error as any)?.statusCode === 403 ||
-          (error instanceof Error &&
-            (error.message.includes("outside API key scope") ||
-              error.message.includes("not allowed by gateway policy")));
+          !isSecurityViolation &&
+          ((error as any)?.statusCode === 403 ||
+            (error instanceof Error &&
+              (error.message.includes("outside API key scope") ||
+                error.message.includes("not allowed by gateway policy"))));
+        const status = isSecurityViolation
+          ? "SECURITY_VIOLATION"
+          : isForbidden
+            ? "FORBIDDEN"
+            : "ERROR";
+        const statusCode = isSecurityViolation ? 400 : isForbidden ? 403 : 500;
+
         const errorJson = JSON.stringify({ error: String(error) });
         const responseBytes = Buffer.byteLength(errorJson, "utf8");
         const outputTokens = estimateTokens(errorJson);
@@ -91,8 +102,8 @@ export class ToolInvocationContext {
           userId,
           apiKeyId,
           toolName,
-          status: isForbidden ? "FORBIDDEN" : "ERROR",
-          statusCode: isForbidden ? 403 : 500,
+          status,
+          statusCode,
           durationMs,
           requestBytes,
           responseBytes,

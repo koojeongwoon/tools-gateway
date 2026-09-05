@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import type { Pool } from "pg";
 import { maskSensitiveArguments } from "../policy/toolArgumentSanitizer.js";
 
@@ -6,7 +8,7 @@ export interface ToolAuditLogEntry {
   userId: string;
   apiKeyId?: string | undefined;
   toolName: string;
-  status: "SUCCESS" | "FORBIDDEN" | "ERROR";
+  status: "SUCCESS" | "FORBIDDEN" | "ERROR" | "SECURITY_VIOLATION";
   statusCode: number;
   durationMs: number;
   requestBytes?: number | undefined;
@@ -24,11 +26,17 @@ export interface AuditLoggerOptions {
   batchSize?: number;
   /** Maximum time in ms before buffered logs are written to DB (default: 1000ms) */
   flushIntervalMs?: number;
+  /** Optional directory for fallback rolling log files when DB is unreachable (default: "logs") */
+  fallbackLogDir?: string;
+  /** Maximum in-memory retry queue size before discarding to prevent memory leak (default: 10000) */
+  maxQueueSize?: number;
 }
 
 export class AuditLogger {
   private readonly batchSize: number;
   private readonly flushIntervalMs: number;
+  private readonly fallbackLogDir: string;
+  private readonly maxQueueSize: number;
   private queue: ToolAuditLogEntry[] = [];
   private timer?: NodeJS.Timeout | undefined;
   private isFlushing = false;
@@ -39,6 +47,8 @@ export class AuditLogger {
   ) {
     this.batchSize = options?.batchSize ?? 50;
     this.flushIntervalMs = options?.flushIntervalMs ?? 1000;
+    this.fallbackLogDir = options?.fallbackLogDir ?? "logs";
+    this.maxQueueSize = options?.maxQueueSize ?? 10_000;
     this.startTimer();
   }
 
@@ -118,11 +128,43 @@ export class AuditLogger {
         values,
       );
     } catch (error) {
-      console.error("[AuditLogger] Failed to write batch tool usage logs:", error);
-      // Re-queue failed batch at the beginning of the queue for retry
-      this.queue.unshift(...toProcess);
+      console.error("[AuditLogger] Failed to write batch tool usage logs to database:", error);
+      this.writeFallbackFile(toProcess);
+
+      // Re-queue failed batch at the beginning of the queue for retry if under maxQueueSize
+      if (this.queue.length + toProcess.length <= this.maxQueueSize) {
+        this.queue.unshift(...toProcess);
+      } else {
+        console.warn(`[AuditLogger] Queue limit reached (${this.maxQueueSize}). Evicting entries to fallback file only.`);
+      }
     } finally {
       this.isFlushing = false;
+    }
+  }
+
+  private writeFallbackFile(entries: ToolAuditLogEntry[]): void {
+    try {
+      if (!fs.existsSync(this.fallbackLogDir)) {
+        fs.mkdirSync(this.fallbackLogDir, { recursive: true });
+      }
+
+      // Rolling daily file: audit-fallback-YYYY-MM-DD.jsonl
+      const today = new Date().toISOString().slice(0, 10);
+      const filePath = path.join(this.fallbackLogDir, `audit-fallback-${today}.jsonl`);
+
+      const lines = entries
+        .map((entry) =>
+          JSON.stringify({
+            ...entry,
+            arguments: entry.arguments ? maskSensitiveArguments(entry.arguments) : undefined,
+            failed_at: new Date().toISOString(),
+          }),
+        )
+        .join("\n") + "\n";
+
+      fs.appendFileSync(filePath, lines, "utf8");
+    } catch (fallbackErr) {
+      console.error("[AuditLogger] Failed to write fallback audit log file:", fallbackErr);
     }
   }
 }

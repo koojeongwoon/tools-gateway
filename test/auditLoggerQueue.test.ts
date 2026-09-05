@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { AuditLogger, type ToolAuditLogEntry } from "../src/audit/auditLogger.js";
 import type { Pool } from "pg";
@@ -115,5 +117,49 @@ describe("AuditLogger (In-Memory Queue Buffer, Traceability & Graceful Flush)", 
     );
 
     logger.stop();
+  });
+
+  it("should write to local fallback file when DB insert fails", async () => {
+    const tmpLogDir = path.join(process.cwd(), "scratch", "test-audit-logs");
+    if (fs.existsSync(tmpLogDir)) {
+      fs.rmSync(tmpLogDir, { recursive: true, force: true });
+    }
+
+    mockPool.query.mockRejectedValueOnce(new Error("Database connection lost"));
+
+    const logger = new AuditLogger(mockPool as Pool, {
+      batchSize: 1,
+      flushIntervalMs: 10_000,
+      fallbackLogDir: tmpLogDir,
+    });
+
+    logger.log({
+      requestId: "req-db-fail-1",
+      userId: "user-fallback",
+      toolName: "github.create_issue",
+      status: "SUCCESS",
+      statusCode: 200,
+      durationMs: 45,
+      arguments: { title: "DB is down", token: "super-secret" },
+    });
+
+    // Wait for async flush
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    // Verify fallback file was created
+    const today = new Date().toISOString().slice(0, 10);
+    const expectedFile = path.join(tmpLogDir, `audit-fallback-${today}.jsonl`);
+    expect(fs.existsSync(expectedFile)).toBe(true);
+
+    const content = fs.readFileSync(expectedFile, "utf8");
+    expect(content).toContain("req-db-fail-1");
+    expect(content).toContain("user-fallback");
+    expect(content).toContain("github.create_issue");
+    // Sensitive argument should be masked even in fallback file
+    expect(content).toContain('"token":"********"');
+    expect(content).not.toContain("super-secret");
+
+    logger.stop();
+    fs.rmSync(tmpLogDir, { recursive: true, force: true });
   });
 });

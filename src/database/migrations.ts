@@ -185,7 +185,20 @@ CREATE INDEX idx_tool_usage_logs_request_id
   WHERE request_id IS NOT NULL;
 `,
   },
+  {
+    version: 7,
+    name: "add_security_violation_status_to_tool_usage_logs",
+    sql: `
+ALTER TABLE tool_usage_logs
+  DROP CONSTRAINT IF EXISTS tool_usage_logs_status_check;
+
+ALTER TABLE tool_usage_logs
+  ADD CONSTRAINT tool_usage_logs_status_check
+  CHECK (status IN ('SUCCESS', 'FORBIDDEN', 'ERROR', 'SECURITY_VIOLATION'));
+`,
+  },
 ];
+
 
 
 
