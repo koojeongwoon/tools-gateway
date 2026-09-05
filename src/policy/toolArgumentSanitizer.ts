@@ -74,6 +74,8 @@ export interface SanitizerOptions {
   strict?: boolean;
 }
 
+export const MAX_ARGUMENT_STRING_LENGTH = 64 * 1024; // 64KB per string argument
+
 export class ToolArgumentSanitizer {
   constructor(private readonly options: SanitizerOptions = { strict: true }) {}
 
@@ -99,6 +101,15 @@ export class ToolArgumentSanitizer {
   }
 
   private checkStringValue(val: string, path: string): void {
+    // 0. ReDoS and Memory Exhaustion Check
+    if (val.length > MAX_ARGUMENT_STRING_LENGTH) {
+      throw new SanitizationViolationError(
+        `Argument string length (${val.length}) exceeds maximum limit (${MAX_ARGUMENT_STRING_LENGTH})`,
+        path,
+        "MAX_ARGUMENT_STRING_LENGTH",
+      );
+    }
+
     // Defense-in-depth: Normalize unicode and strip zero-width evasion characters before inspecting
     const normalized = normalizeUnicodeAndWhitespace(val);
 

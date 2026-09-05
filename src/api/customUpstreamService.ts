@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { Pool } from "pg";
 import type { EnvelopeCrypto } from "../crypto/envelopeCrypto.js";
+import { validateSafeEndpointUrl } from "../policy/urlValidator.js";
 
 export interface CustomMcpUpstream {
   id: string;
@@ -33,6 +34,8 @@ export class CustomUpstreamService {
   ) {}
 
   async create(userId: string, dto: CreateCustomUpstreamDto): Promise<CustomMcpUpstream> {
+    await validateSafeEndpointUrl(dto.endpointUrl);
+
     const id = `tg_ups_${randomUUID()}`;
     const transport = dto.transport ?? "streamable-http";
     const authType = dto.authType ?? (dto.authValue ? "bearer" : "none");

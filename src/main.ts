@@ -73,7 +73,12 @@ const apiKeyAuthEnabled = process.env.API_KEY_AUTH_ENABLED === "true";
 if (apiKeyAuthEnabled && !keyVerifier) {
   throw new Error("API key authentication requires database and Redis");
 }
-const masterSecret = process.env.ENCRYPTION_MASTER_KEY || "tools-gateway-default-encryption-key-2026";
+const isProduction = process.env.NODE_ENV === "production";
+const defaultKey = "tools-gateway-default-encryption-key-2026";
+if (isProduction && (!process.env.ENCRYPTION_MASTER_KEY || process.env.ENCRYPTION_MASTER_KEY === defaultKey)) {
+  throw new Error("CRITICAL SECURITY VIOLATION: ENCRYPTION_MASTER_KEY must be securely configured in production!");
+}
+const masterSecret = process.env.ENCRYPTION_MASTER_KEY || defaultKey;
 const envelopeCrypto = new EnvelopeCrypto(masterSecret);
 const customUpstreamService = databasePool ? new CustomUpstreamService(databasePool, envelopeCrypto) : undefined;
 const auditLogger = databasePool ? new AuditLogger(databasePool) : undefined;

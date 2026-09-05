@@ -144,4 +144,13 @@ describe("ToolArgumentSanitizer (Security Guardrails & Invariants)", () => {
       expect((masked.nested as any).safeNote).toBe("hello");
     });
   });
+
+  describe("ReDoS and Argument Size Quota Protection", () => {
+    it("should reject excessively large argument strings exceeding MAX_ARGUMENT_STRING_LENGTH", () => {
+      const hugeString = "A".repeat(65 * 1024); // 65KB
+      expect(() =>
+        sanitizer.validate({ content: hugeString }),
+      ).toThrow(SanitizationViolationError);
+    });
+  });
 });
