@@ -8,7 +8,7 @@ const r2EnvironmentSchema = z.object({
   R2_BUCKET_NAME: z.string().trim().default("backup"),
   APP_NAME: z.string().trim().default("tools-gateway"),
   R2_AUDIT_BATCH_SIZE: z.coerce.number().int().min(1).max(5000).default(500),
-  R2_AUDIT_INTERVAL_MS: z.coerce.number().int().min(1000).default(60_000), // 1 minute default
+  R2_AUDIT_INTERVAL_MS: z.coerce.number().int().min(1000).default(3_600_000), // 1 hour default (3,600,000 ms)
 });
 
 export interface R2AuditConfig {

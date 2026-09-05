@@ -35,7 +35,7 @@ export class R2AuditArchiver {
 
   start(): void {
     if (!this.config.enabled || this.timer) return;
-    const interval = this.config.intervalMs ?? 60_000;
+    const interval = this.config.intervalMs ?? 3_600_000;
     this.timer = setInterval(() => {
       void this.archivePendingLogs().catch((error) => {
         console.error("[R2AuditArchiver] Background archive cycle failed:", error);
