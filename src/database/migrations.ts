@@ -160,5 +160,19 @@ CREATE INDEX idx_tool_embeddings_bm25
   WITH (key_field='id');
 `,
   },
+  {
+    version: 5,
+    name: "add_r2_audit_archive_tracking",
+    sql: `
+ALTER TABLE tool_usage_logs
+  ADD COLUMN r2_archived_at TIMESTAMPTZ,
+  ADD COLUMN r2_archive_key VARCHAR(255);
+
+CREATE INDEX idx_tool_usage_logs_r2_pending
+  ON tool_usage_logs (id)
+  WHERE r2_archived_at IS NULL;
+`,
+  },
 ];
+
 

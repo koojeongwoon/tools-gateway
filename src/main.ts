@@ -23,6 +23,8 @@ import { AuditLogger } from "./audit/auditLogger.js";
 import { registerManagementRoutes } from "./api/managementRoutes.js";
 import { registerSecurityPlugins } from "./server/registerSecurityPlugins.js";
 import { IamAiCredentialClient } from "./credential/iamAiCredentialClient.js";
+import { loadR2AuditConfig } from "./config/r2.js";
+import { R2AuditArchiver } from "./audit/r2AuditArchiver.js";
 
 const configPath = process.env.UPSTREAM_CONFIG ?? "config/upstreams.yaml";
 const config = await loadGatewayConfig(configPath);
@@ -82,6 +84,13 @@ const masterSecret = process.env.ENCRYPTION_MASTER_KEY || defaultKey;
 const envelopeCrypto = new EnvelopeCrypto(masterSecret);
 const customUpstreamService = databasePool ? new CustomUpstreamService(databasePool, envelopeCrypto) : undefined;
 const auditLogger = databasePool ? new AuditLogger(databasePool) : undefined;
+const r2AuditConfig = loadR2AuditConfig();
+const r2AuditArchiver = databasePool && r2AuditConfig.enabled
+  ? new R2AuditArchiver(r2AuditConfig, databasePool)
+  : undefined;
+if (r2AuditArchiver) {
+  r2AuditArchiver.start();
+}
 
 const oauthConfig = loadOAuthConfig();
 if (oauthConfig) {
@@ -212,6 +221,7 @@ for (const method of ["GET", "DELETE"] as const) {
 const shutdown = async () => {
   await app.close();
   await registry.close();
+  r2AuditArchiver?.stop();
   userSyncConsumer?.stop();
   await eventRedis?.quit();
   await redis?.quit();
