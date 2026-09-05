@@ -180,6 +180,7 @@ app.post("/mcp", async (request, reply) => {
 
   const requestContext = principal
     ? {
+        requestId: request.id,
         userId: principal.userId,
         apiKeyId: principal.apiKeyId,
         ipAddress: request.ip,
@@ -221,8 +222,20 @@ for (const method of ["GET", "DELETE"] as const) {
 const shutdown = async () => {
   await app.close();
   await registry.close();
-  r2AuditArchiver?.stop();
   userSyncConsumer?.stop();
+  r2AuditArchiver?.stop();
+
+  // Graceful Audit Flush: Flush in-memory queue to PostgreSQL, then trigger final R2 upload
+  try {
+    await auditLogger?.flush();
+    if (r2AuditArchiver) {
+      await r2AuditArchiver.archivePendingLogs();
+    }
+  } catch (err) {
+    console.error("Error during graceful audit log flush:", err);
+  }
+
+  auditLogger?.stop();
   await eventRedis?.quit();
   await redis?.quit();
   await databasePool?.end();

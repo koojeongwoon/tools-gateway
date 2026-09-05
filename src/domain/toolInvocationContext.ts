@@ -5,6 +5,7 @@ import {
 } from "../audit/auditLogger.js";
 
 export interface GatewayRequestContext {
+  readonly requestId?: string | undefined;
   readonly userId?: string | undefined;
   readonly apiKeyId?: string | undefined;
   readonly ipAddress?: string | undefined;
@@ -31,6 +32,7 @@ export class ToolInvocationContext {
     operation: () => Promise<T>,
   ): Promise<T> {
     const start = performance.now();
+    const requestId = this.requestContext?.requestId;
     const userId = this.requestContext?.userId ?? "anonymous";
     const apiKeyId = this.requestContext?.apiKeyId;
     const ipAddress = this.requestContext?.ipAddress;
@@ -52,6 +54,7 @@ export class ToolInvocationContext {
         const creditsUsed = calculateCredits(toolName, requestBytes, responseBytes);
 
         void this.auditLogger.log({
+          requestId,
           userId,
           apiKeyId,
           toolName,
@@ -84,6 +87,7 @@ export class ToolInvocationContext {
         const creditsUsed = calculateCredits(toolName, requestBytes, responseBytes);
 
         void this.auditLogger.log({
+          requestId,
           userId,
           apiKeyId,
           toolName,

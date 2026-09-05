@@ -142,6 +142,10 @@ describe("MCP gateway server", () => {
     expect(loggedEntry?.outputTokens).toBeGreaterThan(0);
     expect(loggedEntry?.creditsUsed).toBeGreaterThan(0);
 
+    // Flush in-memory queue to PostgreSQL mock
+    await auditLogger.flush();
+    auditLogger.stop();
+
     expect(mockPool.query).toHaveBeenCalledWith(
       expect.stringContaining("INSERT INTO tool_usage_logs"),
       expect.arrayContaining(["user-123", "key-456", "github.get_file", "SUCCESS", 200]),
@@ -202,6 +206,7 @@ describe("MCP gateway server", () => {
       }),
     );
 
+    auditLogger.stop();
     await client.close();
     await server.close();
   });

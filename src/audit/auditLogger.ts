@@ -2,6 +2,7 @@ import type { Pool } from "pg";
 import { maskSensitiveArguments } from "../policy/toolArgumentSanitizer.js";
 
 export interface ToolAuditLogEntry {
+  requestId?: string | undefined;
   userId: string;
   apiKeyId?: string | undefined;
   toolName: string;
@@ -18,20 +19,78 @@ export interface ToolAuditLogEntry {
   userAgent?: string | undefined;
 }
 
+export interface AuditLoggerOptions {
+  /** Maximum number of logs to buffer before triggering a batch DB write (default: 50) */
+  batchSize?: number;
+  /** Maximum time in ms before buffered logs are written to DB (default: 1000ms) */
+  flushIntervalMs?: number;
+}
+
 export class AuditLogger {
-  constructor(private readonly pool: Pool) {}
+  private readonly batchSize: number;
+  private readonly flushIntervalMs: number;
+  private queue: ToolAuditLogEntry[] = [];
+  private timer?: NodeJS.Timeout | undefined;
+  private isFlushing = false;
 
-  async log(entry: ToolAuditLogEntry): Promise<void> {
+  constructor(
+    private readonly pool: Pool,
+    options?: AuditLoggerOptions,
+  ) {
+    this.batchSize = options?.batchSize ?? 50;
+    this.flushIntervalMs = options?.flushIntervalMs ?? 1000;
+    this.startTimer();
+  }
+
+  private startTimer(): void {
+    if (this.timer) return;
+    this.timer = setInterval(() => {
+      void this.flush();
+    }, this.flushIntervalMs);
+    this.timer.unref();
+  }
+
+  stop(): void {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = undefined;
+    }
+  }
+
+  /**
+   * Non-blocking log submission.
+   * Immediately buffers entry into memory and flushes if batch threshold is reached.
+   */
+  log(entry: ToolAuditLogEntry): void {
+    this.queue.push(entry);
+    if (this.queue.length >= this.batchSize) {
+      void this.flush();
+    }
+  }
+
+  /**
+   * Flushes all in-memory queued audit logs to the PostgreSQL database in a single batch.
+   */
+  async flush(): Promise<void> {
+    if (this.queue.length === 0 || this.isFlushing) return;
+    this.isFlushing = true;
+
+    const toProcess = this.queue;
+    this.queue = [];
+
     try {
-      const maskedArgs = entry.arguments ? maskSensitiveArguments(entry.arguments) : null;
+      // Build dynamic multi-row INSERT query for batch efficiency
+      const valueRows: string[] = [];
+      const values: unknown[] = [];
+      let paramIndex = 1;
 
-      await this.pool.query(
-        `INSERT INTO tool_usage_logs (
-          user_id, api_key_id, tool_name, status, status_code, duration_ms,
-          request_bytes, response_bytes, input_tokens, output_tokens, credits_used, arguments,
-          ip_address, user_agent
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
-        [
+      for (const entry of toProcess) {
+        const maskedArgs = entry.arguments ? maskSensitiveArguments(entry.arguments) : null;
+        valueRows.push(
+          `($${paramIndex}, $${paramIndex + 1}, $${paramIndex + 2}, $${paramIndex + 3}, $${paramIndex + 4}, $${paramIndex + 5}, $${paramIndex + 6}, $${paramIndex + 7}, $${paramIndex + 8}, $${paramIndex + 9}, $${paramIndex + 10}, $${paramIndex + 11}, $${paramIndex + 12}, $${paramIndex + 13}, $${paramIndex + 14})`,
+        );
+        values.push(
+          entry.requestId ?? null,
           entry.userId,
           entry.apiKeyId ?? null,
           entry.toolName,
@@ -46,11 +105,24 @@ export class AuditLogger {
           maskedArgs ? JSON.stringify(maskedArgs) : null,
           isValidIp(entry.ipAddress) ? entry.ipAddress : null,
           entry.userAgent ?? null,
-        ],
+        );
+        paramIndex += 15;
+      }
+
+      await this.pool.query(
+        `INSERT INTO tool_usage_logs (
+          request_id, user_id, api_key_id, tool_name, status, status_code, duration_ms,
+          request_bytes, response_bytes, input_tokens, output_tokens, credits_used, arguments,
+          ip_address, user_agent
+        ) VALUES ${valueRows.join(", ")}`,
+        values,
       );
     } catch (error) {
-      // Audit logging should never break tool execution pipeline
-      console.error("[AuditLogger] Failed to write tool usage log:", error);
+      console.error("[AuditLogger] Failed to write batch tool usage logs:", error);
+      // Re-queue failed batch at the beginning of the queue for retry
+      this.queue.unshift(...toProcess);
+    } finally {
+      this.isFlushing = false;
     }
   }
 }
@@ -63,13 +135,11 @@ export function estimateTokens(textOrObject: unknown): number {
   if (textOrObject === undefined || textOrObject === null) return 0;
   const text = typeof textOrObject === "string" ? textOrObject : JSON.stringify(textOrObject);
   if (!text) return 0;
-  
-  // Approximate BPE: split CJK and Latin characters
+
   let cjkCount = 0;
   let otherCount = 0;
   for (let i = 0; i < text.length; i++) {
     const code = text.charCodeAt(i);
-    // CJK Unified Ideographs, Hangul, Hiragana/Katakana
     if ((code >= 0x4e00 && code <= 0x9fff) || (code >= 0xac00 && code <= 0xd7af) || (code >= 0x3040 && code <= 0x30ff)) {
       cjkCount++;
     } else {
@@ -83,15 +153,13 @@ export function estimateTokens(textOrObject: unknown): number {
  * Calculates credit cost based on payload size and tool tier
  */
 export function calculateCredits(toolName: string, requestBytes: number, responseBytes: number): number {
-  // Base fixed cost per tool invocation (1.0 default)
   let baseCredit = 1.0;
   if (toolName.startsWith("hermes.")) {
-    baseCredit = 5.0; // heavy browser execution
+    baseCredit = 5.0;
   } else if (toolName.startsWith("knowledge.")) {
-    baseCredit = 2.0; // RAG / semantic search
+    baseCredit = 2.0;
   }
 
-  // Variable cost: 0.0001 credit per KB
   const totalKb = (requestBytes + responseBytes) / 1024;
   const variableCredit = totalKb * 0.0001;
 
@@ -100,7 +168,6 @@ export function calculateCredits(toolName: string, requestBytes: number, respons
 
 function isValidIp(ip: string | undefined): boolean {
   if (!ip) return false;
-  // Basic validation for IPv4 and IPv6 to prevent invalid INET casting in Postgres
   const ipv4Regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
   const ipv6Regex = /^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$/;
   return ipv4Regex.test(ip) || ipv6Regex.test(ip);

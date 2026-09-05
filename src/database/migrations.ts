@@ -173,6 +173,19 @@ CREATE INDEX idx_tool_usage_logs_r2_pending
   WHERE r2_archived_at IS NULL;
 `,
   },
+  {
+    version: 6,
+    name: "add_request_id_tracing_to_tool_usage_logs",
+    sql: `
+ALTER TABLE tool_usage_logs
+  ADD COLUMN request_id VARCHAR(128);
+
+CREATE INDEX idx_tool_usage_logs_request_id
+  ON tool_usage_logs (request_id)
+  WHERE request_id IS NOT NULL;
+`,
+  },
 ];
+
 
 

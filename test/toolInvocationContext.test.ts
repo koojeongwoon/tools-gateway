@@ -31,6 +31,7 @@ describe("ToolInvocationContext (Domain Context)", () => {
         statusCode: 200,
       }),
     );
+    auditLogger.stop();
   });
 
   it("handles error in operation, logs ERROR audit entry and rethrows error", async () => {
@@ -57,5 +58,6 @@ describe("ToolInvocationContext (Domain Context)", () => {
         statusCode: 500,
       }),
     );
+    auditLogger.stop();
   });
 });
