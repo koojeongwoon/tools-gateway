@@ -144,7 +144,7 @@ export class OAuthSessionStore {
         })).payload as JWTPayload & { email?: string; name?: string }
       : undefined;
     const claims = { ...accessClaims, email: idClaims?.email ?? accessClaims.email, name: idClaims?.name ?? accessClaims.name };
-    if (claims.client_id !== this.config.clientId || claims.tenant_id !== this.config.tenantId || !claims.sub || !claims.exp) {
+    if (claims.client_id !== this.config.clientId || !claims.tenant_id || !claims.sub || !claims.exp) {
       throw new Error("OAuth token claims do not belong to Tools Gateway");
     }
     return {
