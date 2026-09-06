@@ -40,10 +40,27 @@ export interface DeviceAuthInitResponse {
 export class IamAiCredentialClient {
   private readonly baseUrl: string;
   private readonly timeoutMs: number;
+  private readonly clientId?: string;
+  private readonly clientSecret?: string;
 
-  constructor(baseUrl?: string, timeoutMs: number = 5000) {
+  constructor(
+    baseUrl?: string,
+    timeoutMs: number = 5000,
+    clientId?: string,
+    clientSecret?: string
+  ) {
     this.baseUrl = (baseUrl || process.env.IAM_SERVER_URL || "http://localhost:8080").replace(/\/$/, "");
     this.timeoutMs = timeoutMs;
+    this.clientId = clientId || process.env.TOOLS_GATEWAY_CLIENT_ID;
+    this.clientSecret = clientSecret || process.env.TOOLS_GATEWAY_CLIENT_SECRET;
+  }
+
+  private getAuthHeaders(): Record<string, string> {
+    if (this.clientId && this.clientSecret) {
+      const basic = Buffer.from(`${this.clientId}:${this.clientSecret}`).toString("base64");
+      return { Authorization: `Basic ${basic}` };
+    }
+    return {};
   }
 
   /**
@@ -59,6 +76,9 @@ export class IamAiCredentialClient {
     try {
       const response = await fetch(url, {
         method: "GET",
+        headers: {
+          ...this.getAuthHeaders(),
+        },
         signal: AbortSignal.timeout(this.timeoutMs),
       });
 
@@ -164,7 +184,10 @@ export class IamAiCredentialClient {
     const url = `${this.baseUrl}/api/v1/credentials/ai-keys`;
     const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...this.getAuthHeaders(),
+      },
       body: JSON.stringify({
         userId,
         orgId,
@@ -193,7 +216,10 @@ export class IamAiCredentialClient {
     const url = `${this.baseUrl}/api/v1/credentials/ai-keys`;
     const response = await fetch(url, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...this.getAuthHeaders(),
+      },
       body: JSON.stringify({
         userId,
         orgId,
