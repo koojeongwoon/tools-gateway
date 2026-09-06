@@ -40,8 +40,8 @@ export interface DeviceAuthInitResponse {
 export class IamAiCredentialClient {
   private readonly baseUrl: string;
   private readonly timeoutMs: number;
-  private readonly clientId?: string;
-  private readonly clientSecret?: string;
+  private readonly clientId: string | undefined;
+  private readonly clientSecret: string | undefined;
 
   constructor(
     baseUrl?: string,
@@ -51,8 +51,8 @@ export class IamAiCredentialClient {
   ) {
     this.baseUrl = (baseUrl || process.env.IAM_SERVER_URL || "http://localhost:8080").replace(/\/$/, "");
     this.timeoutMs = timeoutMs;
-    this.clientId = clientId || process.env.TOOLS_GATEWAY_CLIENT_ID;
-    this.clientSecret = clientSecret || process.env.TOOLS_GATEWAY_CLIENT_SECRET;
+    this.clientId = clientId ?? process.env.TOOLS_GATEWAY_CLIENT_ID ?? undefined;
+    this.clientSecret = clientSecret ?? process.env.TOOLS_GATEWAY_CLIENT_SECRET ?? undefined;
   }
 
   private getAuthHeaders(): Record<string, string> {
