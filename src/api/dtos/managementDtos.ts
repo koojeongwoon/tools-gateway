@@ -6,6 +6,9 @@ import { z } from "zod";
 export const CreateKeyRequestDto = z.object({
   name: z.string().trim().min(1).max(100),
   expiresAt: z.string().datetime({ offset: true }).optional(),
+  toolPatterns: z.array(
+    z.string().regex(/^[A-Za-z0-9_-]+\.(\*|[A-Za-z0-9_.-]+\*?)$/),
+  ).min(1).max(100).optional(),
 });
 export type CreateKeyRequestDto = z.infer<typeof CreateKeyRequestDto>;
 

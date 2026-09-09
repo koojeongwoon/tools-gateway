@@ -29,4 +29,26 @@ describe("ApiKeyService", () => {
     expect(query.mock.calls[0]![1]).toEqual(["key-1", "user-1"]);
     expect(invalidateUser).toHaveBeenCalledWith("user-1");
   });
+
+  it("limits a key to the requested subset of the user's granted tool patterns", async () => {
+    const query = vi.fn()
+      .mockResolvedValueOnce({ rows: [{ tool_pattern: "knowledge.*" }, { tool_pattern: "context7.*" }] })
+      .mockImplementationOnce(async (_sql: string, values: unknown[]) => ({
+        rows: [{ id: values[0], allowed_scopes: ["tool:knowledge.*"] }],
+      }));
+    const service = new ApiKeyService({ query } as never, { invalidateUser: vi.fn() } as never);
+
+    await service.create("user-1", "knowledge-only", undefined, ["knowledge.*"]);
+
+    expect(JSON.parse(query.mock.calls[1]![1][5] as string)).toEqual(["tool:knowledge.*"]);
+  });
+
+  it("rejects a requested tool pattern the user is not granted", async () => {
+    const query = vi.fn().mockResolvedValueOnce({ rows: [{ tool_pattern: "knowledge.*" }] });
+    const service = new ApiKeyService({ query } as never, { invalidateUser: vi.fn() } as never);
+
+    await expect(service.create("user-1", "invalid", undefined, ["context7.*"]))
+      .rejects.toThrow("Requested API key scope is not granted to this user");
+    expect(query).toHaveBeenCalledTimes(1);
+  });
 });

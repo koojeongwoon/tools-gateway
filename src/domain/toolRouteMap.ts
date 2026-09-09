@@ -50,8 +50,13 @@ export class ToolRouteMap {
   }
 
   list(): readonly ToolRoute[] {
-    return deepFreeze(
-      [...this.routes.values()].sort((a, b) => a.publicName.localeCompare(b.publicName)),
+    // A route refers to a live connection (and, possibly, a mutable circuit
+    // breaker). Freeze only the response snapshot; recursively freezing the
+    // connection would prevent its runtime state from recording failures.
+    return Object.freeze(
+      [...this.routes.values()]
+        .sort((a, b) => a.publicName.localeCompare(b.publicName))
+        .map((route) => Object.freeze({ ...route, schema: deepFreeze(route.schema) })),
     );
   }
 
@@ -84,7 +89,7 @@ export class ToolRouteMap {
         publicName,
         upstreamId: connection.id,
         upstreamToolName: tool.name,
-        schema: tool,
+        schema: deepFreeze(tool),
         connection,
       });
     }

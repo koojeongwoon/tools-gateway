@@ -171,6 +171,11 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           <label for="key-name">키 이름 / 용도</label>
           <input type="text" id="key-name" placeholder="예: Cursor Mac Mini용, Slackbot용" required>
         </div>
+        <div class="input-group">
+          <label>이 키에 허용할 도구</label>
+          <p style="font-size: 0.8rem; color: #8b949e; margin: 0.25rem 0 0.5rem;">선택한 도구만 이 키로 호출할 수 있습니다. 내 권한 밖의 도구는 선택할 수 없습니다.</p>
+          <div id="key-tool-patterns" style="display: grid; gap: 0.4rem;"></div>
+        </div>
         <div id="created-secret-area" style="display: none;">
           <div class="secret-box">
             <p>⚠️ <strong>키가 생성되었습니다!</strong> 이 키는 다시 표시되지 않으니 지금 복사해두세요:</p>
@@ -484,6 +489,32 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
       document.getElementById('created-secret-area').style.display = 'none';
       document.getElementById('submit-key-btn').style.display = 'inline-block';
       document.getElementById('key-modal').style.display = 'flex';
+      loadKeyToolPatterns();
+    }
+
+    async function loadKeyToolPatterns() {
+      const patternsDiv = document.getElementById('key-tool-patterns');
+      const submitButton = document.getElementById('submit-key-btn');
+      patternsDiv.innerHTML = '<span style="color: #8b949e; font-size: 0.85rem;">허용 도구를 불러오는 중...</span>';
+      submitButton.disabled = true;
+      try {
+        const res = await fetch('/api/v1/permissions');
+        if (!res.ok) throw new Error('Permissions request failed');
+        const { tools } = await res.json();
+        if (!tools || tools.length === 0) {
+          patternsDiv.innerHTML = '<span style="color: var(--danger); font-size: 0.85rem;">발급 가능한 도구 권한이 없습니다.</span>';
+          return;
+        }
+        patternsDiv.innerHTML = tools.map(pattern => \`
+          <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+            <input type="checkbox" name="key-tool-pattern" value="\${pattern}" checked>
+            <code>\${pattern}</code>
+          </label>
+        \`).join('');
+        submitButton.disabled = false;
+      } catch (e) {
+        patternsDiv.innerHTML = '<span style="color: var(--danger); font-size: 0.85rem;">도구 권한을 불러오지 못했습니다.</span>';
+      }
     }
 
     function closeKeyModal() {
@@ -495,11 +526,17 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
       e.preventDefault();
       const name = document.getElementById('key-name').value.trim();
       if (!name) return;
+      const toolPatterns = Array.from(document.querySelectorAll('input[name="key-tool-pattern"]:checked'))
+        .map(input => input.value);
+      if (toolPatterns.length === 0) {
+        alert('이 키에 허용할 도구를 하나 이상 선택하세요.');
+        return;
+      }
       try {
         const res = await fetch('/api/v1/keys', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ name }),
+          body: JSON.stringify({ name, toolPatterns }),
         });
         if (res.ok) {
           const data = await res.json();

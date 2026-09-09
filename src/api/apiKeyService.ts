@@ -3,6 +3,8 @@ import type { Pool } from "pg";
 import type { KeyVerifier } from "../auth/keyVerifier.js";
 import type { GatewaySession } from "../auth/oauthSession.js";
 
+export class ApiKeyScopeError extends Error {}
+
 export class ApiKeyService {
   constructor(private readonly pool: Pool, private readonly keyVerifier: KeyVerifier) {}
 
@@ -49,14 +51,26 @@ export class ApiKeyService {
     }
   }
 
-  async create(userId: string, name: string, expiresAt?: string): Promise<Record<string, unknown>> {
+  async create(
+    userId: string,
+    name: string,
+    expiresAt?: string,
+    requestedToolPatterns?: readonly string[],
+  ): Promise<Record<string, unknown>> {
     const rawKey = `tg_live_${randomBytes(32).toString("base64url")}`;
     const id = `tg_key_${randomUUID()}`;
     const permissions = await this.pool.query<{ tool_pattern: string }>(
       "SELECT tool_pattern FROM user_tool_permissions WHERE user_id = $1 ORDER BY tool_pattern",
       [userId],
     );
-    const scopes = permissions.rows.map(({ tool_pattern }) => `tool:${tool_pattern}`);
+    const grantedPatterns = permissions.rows.map(({ tool_pattern }) => tool_pattern);
+    const selectedPatterns = requestedToolPatterns
+      ? [...new Set(requestedToolPatterns)]
+      : grantedPatterns;
+    if (selectedPatterns.some((pattern) => !grantedPatterns.includes(pattern))) {
+      throw new ApiKeyScopeError("Requested API key scope is not granted to this user");
+    }
+    const scopes = selectedPatterns.map((pattern) => `tool:${pattern}`);
     const result = await this.pool.query(
       `INSERT INTO api_keys (id, user_id, name, key_prefix, key_hash, allowed_scopes, expires_at)
        VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7)

@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
-import type { ApiKeyService } from "./apiKeyService.js";
+import { ApiKeyScopeError, type ApiKeyService } from "./apiKeyService.js";
 import type { CustomUpstreamService } from "./customUpstreamService.js";
 import type { OAuthSessionStore, GatewaySession } from "../auth/oauthSession.js";
 import { DASHBOARD_HTML } from "../ui/dashboardHtml.js";
@@ -84,7 +84,19 @@ export function registerManagementRoutes(
     if (!userId) return reply.code(401).send({ error: "Unauthorized" });
     const parsed = CreateKeyRequestDto.safeParse(request.body);
     if (!parsed.success) return reply.code(400).send({ error: "Invalid API key request" });
-    return reply.code(201).send(await apiKeys.create(userId, parsed.data.name, parsed.data.expiresAt));
+    try {
+      return reply.code(201).send(await apiKeys.create(
+        userId,
+        parsed.data.name,
+        parsed.data.expiresAt,
+        parsed.data.toolPatterns,
+      ));
+    } catch (error) {
+      if (error instanceof ApiKeyScopeError) {
+        return reply.code(403).send({ error: "Requested tool scope is not permitted" });
+      }
+      throw error;
+    }
   });
 
   app.get("/api/v1/keys", async (request, reply) => {

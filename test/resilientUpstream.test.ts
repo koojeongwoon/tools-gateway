@@ -35,6 +35,26 @@ describe("Resilient Upstream Connection (TDD Circuit Breaker & Resilience)", () 
     expect(failingCallTool).toHaveBeenCalledTimes(2); // didn't increase!
   });
 
+  it("keeps the circuit breaker mutable after a route-list snapshot is returned", async () => {
+    const failingCallTool = vi.fn().mockRejectedValue(new Error("ETIMEDOUT: Connection timed out"));
+    const rawUpstream: UpstreamConnection = {
+      id: "listed-slow-service",
+      toolPrefix: "listed_slow",
+      listTools: async () => [{ name: "query", inputSchema: { type: "object" } }],
+      callTool: failingCallTool,
+      close: async () => undefined,
+    };
+    const resilientUpstream = new ResilientUpstreamConnection(rawUpstream);
+    const routeMap = await ToolRouteMap.fromConnections([resilientUpstream]);
+
+    const routes = routeMap.list();
+
+    expect(Object.isFrozen(routes)).toBe(true);
+    expect(Object.isFrozen(resilientUpstream)).toBe(false);
+    await expect(routeMap.call("listed_slow.query", {})).rejects.toThrow("ETIMEDOUT");
+    expect(resilientUpstream.breaker.getStats().totalFailures).toBe(1);
+  });
+
   it("recovers and closes circuit when downstream MCP server comes back online", async () => {
     let shouldFail = true;
     const callTool = vi.fn().mockImplementation(async () => {
