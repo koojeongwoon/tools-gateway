@@ -75,7 +75,7 @@ export function registerManagementRoutes(
     const sessionId = cookieValue(request, "tg_session");
     if (sessionId) await sessions.revoke(sessionId);
     reply.header("set-cookie", "tg_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax");
-    return reply.code(204).send();
+    return { signoutUrl: sessions.getSignoutUrl() };
   });
 
   // API Key Routes

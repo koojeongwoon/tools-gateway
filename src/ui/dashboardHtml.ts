@@ -256,9 +256,9 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     }
 
     async function logout() {
-      await fetch('/api/v1/auth/logout', { method: 'POST' });
-      // IAM 표준 테넌트 로그아웃(/portal/tenants/{tenantId}/signout?clientId={clientId}) 호출 -> 세션 파기 후 테넌트 포털로 자동 복귀
-      location.href = 'https://auth.snappytory.com/portal/tenants/tools-gateway/signout?clientId=tools-gateway';
+      const response = await fetch('/api/v1/auth/logout', { method: 'POST' });
+      const { signoutUrl } = await response.json();
+      location.href = signoutUrl;
     }
 
         // ================= AI Credentials Functions =================

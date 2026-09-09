@@ -8,6 +8,10 @@ import type { RedisClientType } from "redis";
 export interface OAuthConfig {
   authServerUrl: string;
   issuer: string;
+  authorizationEndpoint: string;
+  tokenEndpoint: string;
+  jwksUri: string;
+  signoutUrl: string;
   clientId: string;
   clientSecret: string;
   tenantId: string;
@@ -37,12 +41,26 @@ export function loadOAuthConfig(environment: NodeJS.ProcessEnv = process.env): O
     if (!value) throw new Error(`${name} is required when SSO_ENABLED=true`);
     return value;
   };
+  const authServerUrl = (environment.AUTH_SERVER_URL ?? "https://auth.snappytory.com").replace(/\/$/, "");
+  const tenantId = environment.TOOLS_GATEWAY_TENANT_ID ?? "ten_9664c024babc4110";
+  const tenantIssuer = `${authServerUrl}/t/${tenantId}`;
+  const configuredIssuer = environment.AUTH_TOKEN_ISSUER?.replace(/\/$/, "");
+  if (configuredIssuer && configuredIssuer !== tenantIssuer) {
+    throw new Error("AUTH_TOKEN_ISSUER must match the configured Tools Gateway tenant issuer");
+  }
+  const clientId = required("TOOLS_GATEWAY_CLIENT_ID");
+  const signout = new URL(`/portal/tenants/${encodeURIComponent(tenantId)}/signout`, authServerUrl);
+  signout.searchParams.set("clientId", clientId);
   return {
-    authServerUrl: (environment.AUTH_SERVER_URL ?? "https://auth.snappytory.com").replace(/\/$/, ""),
-    issuer: environment.AUTH_TOKEN_ISSUER ?? "https://auth.snappytory.com",
-    clientId: required("TOOLS_GATEWAY_CLIENT_ID"),
+    authServerUrl,
+    issuer: tenantIssuer,
+    authorizationEndpoint: `${tenantIssuer}/oauth2/authorize`,
+    tokenEndpoint: `${tenantIssuer}/oauth2/token`,
+    jwksUri: `${tenantIssuer}/oauth2/jwks`,
+    signoutUrl: signout.toString(),
+    clientId,
     clientSecret: required("TOOLS_GATEWAY_CLIENT_SECRET"),
-    tenantId: environment.TOOLS_GATEWAY_TENANT_ID ?? "tools-gateway",
+    tenantId,
     redirectUri: environment.TOOLS_GATEWAY_REDIRECT_URI ?? "https://tools-gateway.lynply.com/api/v1/auth/sso-callback",
     scope: environment.TOOLS_GATEWAY_OAUTH_SCOPE ?? "openid profile email",
     sessionTtlSeconds: Number(environment.GATEWAY_SESSION_TTL_SECONDS ?? 2_592_000),
@@ -57,7 +75,7 @@ export class OAuthSessionStore {
     private readonly redis: RedisClientType,
     private readonly config: OAuthConfig,
   ) {
-    this.jwks = createRemoteJWKSet(new URL(`${config.authServerUrl}/oauth2/jwks`));
+    this.jwks = createRemoteJWKSet(new URL(config.jwksUri));
   }
 
   async beginLogin(): Promise<{ authorizationUrl: string }> {
@@ -70,12 +88,11 @@ export class OAuthSessionStore {
       client_id: this.config.clientId,
       redirect_uri: this.config.redirectUri,
       scope: this.config.scope,
-      tenant: this.config.tenantId,
       state,
       code_challenge: challenge,
       code_challenge_method: "S256",
     });
-    return { authorizationUrl: `${this.config.authServerUrl}/oauth2/authorize?${query}` };
+    return { authorizationUrl: `${this.config.authorizationEndpoint}?${query}` };
   }
 
   async completeLogin(code: string, state: string): Promise<{ sessionId: string; principal: GatewaySession }> {
@@ -88,7 +105,7 @@ export class OAuthSessionStore {
       code_verifier: verifier,
       client_id: this.config.clientId,
     });
-    const response = await fetch(`${this.config.authServerUrl}/oauth2/token`, {
+    const response = await fetch(this.config.tokenEndpoint, {
       method: "POST",
       headers: {
         authorization: `Basic ${Buffer.from(`${this.config.clientId}:${this.config.clientSecret}`).toString("base64")}`,
@@ -127,12 +144,17 @@ export class OAuthSessionStore {
     await this.redis.del(this.sessionKey(sessionId));
   }
 
+  getSignoutUrl(): string {
+    return this.config.signoutUrl;
+  }
+
   private async validateTokens(payload: Record<string, unknown>): Promise<SessionRecord> {
     if (typeof payload.access_token !== "string") {
       throw new Error("OAuth token response is incomplete");
     }
     const verified = await jwtVerify(payload.access_token, this.jwks, {
       issuer: this.config.issuer,
+      audience: this.config.clientId,
       algorithms: ["RS256"],
     });
     const accessClaims: JWTPayload & { client_id?: string; tenant_id?: string; email?: string; name?: string } = verified.payload;
@@ -144,7 +166,12 @@ export class OAuthSessionStore {
         })).payload as JWTPayload & { email?: string; name?: string }
       : undefined;
     const claims = { ...accessClaims, email: idClaims?.email ?? accessClaims.email, name: idClaims?.name ?? accessClaims.name };
-    if (claims.client_id !== this.config.clientId || !claims.tenant_id || !claims.sub || !claims.exp) {
+    if (
+      claims.client_id !== this.config.clientId
+      || claims.tenant_id !== this.config.tenantId
+      || !claims.sub
+      || !claims.exp
+    ) {
       throw new Error("OAuth token claims do not belong to Tools Gateway");
     }
     return {
