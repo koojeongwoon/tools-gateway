@@ -78,6 +78,7 @@ export class ToolInvocationContext {
       if (this.auditLogger && this.requestContext?.userId) {
         const isSecurityViolation =
           (error as any)?.code === "SECURITY_VIOLATION" ||
+          (error as any)?.code === "SECRET_EGRESS_BLOCKED" ||
           (error instanceof Error && error.name === "SanitizationViolationError");
         const isForbidden =
           !isSecurityViolation &&

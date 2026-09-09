@@ -1,6 +1,5 @@
 import { maskHighEntropyTokens } from "../crypto/entropy.js";
-
-const KOREAN_RRN_PATTERN = /\b(\d{6})[- ]?([1-8]\d{6})\b/g;
+import { maskPii } from "./piiMasker.js";
 
 /**
  * Maximum allowed single text output length from a tool (2MB = ~2,000,000 chars).
@@ -38,8 +37,8 @@ export function sanitizeToolResult(result: unknown): any {
         "\n... [TRUNCATED: Tool output exceeded maximum length]";
     }
 
-    // 2. Multilingual PII Masking
-    text = text.replace(KOREAN_RRN_PATTERN, "$1-*******");
+    // 2. Multilingual PII Masking (RRN, Phone, Email, Credit Cards)
+    text = maskPii(text);
 
     // 3. High-entropy Secret Redaction
     text = maskHighEntropyTokens(text);

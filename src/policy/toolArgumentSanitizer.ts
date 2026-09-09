@@ -1,4 +1,5 @@
 import { maskHighEntropyTokens } from "../crypto/entropy.js";
+import { maskPii } from "./piiMasker.js";
 
 export class SanitizationViolationError extends Error {
   readonly statusCode = 400;
@@ -165,8 +166,8 @@ function deepMask(val: unknown): unknown {
       } else if (typeof value === "object" && value !== null) {
         maskedObj[key] = deepMask(value);
       } else if (typeof value === "string") {
-        // Apply Multilingual PII Masking and High-Entropy Token Redaction
-        let processed = value.replace(KOREAN_RRN_PATTERN, "$1-*******");
+        // Apply Multilingual PII Masking (RRN, Phone, Email, Credit Cards) and High-Entropy Redaction
+        let processed = maskPii(value);
         processed = maskHighEntropyTokens(processed);
         maskedObj[key] = isSensitiveKey ? "********" : processed;
       } else {

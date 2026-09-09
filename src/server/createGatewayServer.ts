@@ -14,11 +14,13 @@ import {
   type GatewayRequestContext,
 } from "../domain/toolInvocationContext.js";
 import { ToolArgumentSanitizer } from "../policy/toolArgumentSanitizer.js";
+import { OutboundSecretLeakGuard } from "../policy/outboundSecretLeakGuard.js";
 import { sanitizeToolResult } from "../policy/toolOutputSanitizer.js";
 
 export type { GatewayRequestContext };
 
 const argumentSanitizer = new ToolArgumentSanitizer({ strict: true });
+const outboundSecretLeakGuard = new OutboundSecretLeakGuard();
 
 export function createGatewayServer(
   registry: ToolRegistry | ToolRouteMap,
@@ -92,6 +94,8 @@ export function createGatewayServer(
               throw err;
             }
           }
+
+          outboundSecretLeakGuard.validate(argsObj);
 
           try {
             const rawResult = await registry.call(tool.publicName, argsObj);

@@ -75,6 +75,37 @@ describe("MCP gateway server", () => {
     await server.close();
   });
 
+  it("blocks a secret-like argument before it reaches an upstream", async () => {
+    const callTool = vi.fn();
+    const upstream: UpstreamConnection = {
+      id: "git",
+      toolPrefix: "github",
+      listTools: async () => [{ name: "get_file", inputSchema: { type: "object" } }],
+      callTool,
+      close: async () => undefined,
+    };
+    const registry = new ToolRegistry([upstream]);
+    await registry.refresh();
+    const server = createGatewayServer(
+      registry,
+      new ToolPolicy({ default: "deny", allow: ["github.*"], deny: [] }),
+    );
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const result = await client.callTool({
+      name: "github.get_file",
+      arguments: { query: "p2Y9aK7qL3vX8nR4mT6cW1fH5sD0jB9uE2gI7oN" },
+    });
+
+    expect(result.isError).toBe(true);
+    expect(JSON.stringify(result)).toContain("SECRET_EGRESS_BLOCKED");
+    expect(callTool).not.toHaveBeenCalled();
+    await client.close();
+    await server.close();
+  });
+
   it("records SUCCESS audit log when tool call succeeds", async () => {
     const callTool = vi.fn(async (): Promise<CallToolResult> => ({
       content: [{ type: "text", text: "ok" }],

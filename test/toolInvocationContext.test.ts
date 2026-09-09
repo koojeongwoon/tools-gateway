@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { ToolInvocationContext } from "../src/domain/toolInvocationContext.js";
 import { AuditLogger } from "../src/audit/auditLogger.js";
+import { SecretEgressBlockedError } from "../src/policy/outboundSecretLeakGuard.js";
 
 describe("ToolInvocationContext (Domain Context)", () => {
   it("executes operation and logs SUCCESS audit metrics", async () => {
@@ -58,6 +59,28 @@ describe("ToolInvocationContext (Domain Context)", () => {
         statusCode: 500,
       }),
     );
+    auditLogger.stop();
+  });
+
+  it("records outbound secret blocking as a security violation", async () => {
+    const mockPool = { query: vi.fn().mockResolvedValue({ rowCount: 1 }) };
+    const auditLogger = new AuditLogger(mockPool as any);
+    const logSpy = vi.spyOn(auditLogger, "log");
+    const context = new ToolInvocationContext({
+      requestContext: { userId: "user-test" },
+      auditLogger,
+    });
+
+    await expect(context.invoke(
+      "github.get_file",
+      { query: "synthetic probe" },
+      async () => { throw new SecretEgressBlockedError("query"); },
+    )).rejects.toThrow("SECRET_EGRESS_BLOCKED");
+
+    expect(logSpy).toHaveBeenCalledWith(expect.objectContaining({
+      status: "SECURITY_VIOLATION",
+      statusCode: 400,
+    }));
     auditLogger.stop();
   });
 });
