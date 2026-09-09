@@ -2,6 +2,7 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type { Pool } from "pg";
 import type { KeyVerifier } from "../auth/keyVerifier.js";
 import type { GatewaySession } from "../auth/oauthSession.js";
+import { matchesToolPattern } from "../auth/scopeGuard.js";
 
 export class ApiKeyScopeError extends Error {}
 
@@ -67,7 +68,9 @@ export class ApiKeyService {
     const selectedPatterns = requestedToolPatterns
       ? [...new Set(requestedToolPatterns)]
       : grantedPatterns;
-    if (selectedPatterns.some((pattern) => !grantedPatterns.includes(pattern))) {
+    if (selectedPatterns.some((pattern) => !grantedPatterns.some(
+      (grantedPattern) => matchesToolPattern(grantedPattern, pattern),
+    ))) {
       throw new ApiKeyScopeError("Requested API key scope is not granted to this user");
     }
     const scopes = selectedPatterns.map((pattern) => `tool:${pattern}`);

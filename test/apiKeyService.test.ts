@@ -38,9 +38,9 @@ describe("ApiKeyService", () => {
       }));
     const service = new ApiKeyService({ query } as never, { invalidateUser: vi.fn() } as never);
 
-    await service.create("user-1", "knowledge-only", undefined, ["knowledge.*"]);
+    await service.create("user-1", "knowledge-only", undefined, ["knowledge.query"]);
 
-    expect(JSON.parse(query.mock.calls[1]![1][5] as string)).toEqual(["tool:knowledge.*"]);
+    expect(JSON.parse(query.mock.calls[1]![1][5] as string)).toEqual(["tool:knowledge.query"]);
   });
 
   it("rejects a requested tool pattern the user is not granted", async () => {

@@ -102,6 +102,7 @@ if (oauthConfig) {
     new OAuthSessionStore(redis, oauthConfig),
     new ApiKeyService(databasePool, keyVerifier),
     customUpstreamService,
+    () => registry.list().map((tool) => tool.publicName),
     new IamAiCredentialClient(oauthConfig.authServerUrl),
   );
 }

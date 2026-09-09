@@ -10,14 +10,14 @@ export class ScopeGuard {
   constructor(private readonly principal: AuthenticatedPrincipal) {}
 
   allows(toolName: string): boolean {
-    return this.principal.toolPatterns.some((pattern) => matches(pattern, toolName)) &&
+    return this.principal.toolPatterns.some((pattern) => matchesToolPattern(pattern, toolName)) &&
       this.principal.scopes.some((scope) =>
-        scope.startsWith("tool:") && matches(scope.slice(5), toolName),
+        scope.startsWith("tool:") && matchesToolPattern(scope.slice(5), toolName),
       );
   }
 }
 
-function matches(pattern: string, toolName: string): boolean {
+export function matchesToolPattern(pattern: string, toolName: string): boolean {
   return pattern.endsWith("*")
     ? toolName.startsWith(pattern.slice(0, -1))
     : pattern === toolName;

@@ -4,6 +4,7 @@ import type { CustomUpstreamService } from "./customUpstreamService.js";
 import type { OAuthSessionStore, GatewaySession } from "../auth/oauthSession.js";
 import { DASHBOARD_HTML } from "../ui/dashboardHtml.js";
 import { IamAiCredentialClient } from "../credential/iamAiCredentialClient.js";
+import { matchesToolPattern } from "../auth/scopeGuard.js";
 import {
   CreateKeyRequestDto,
   CreateUpstreamRequestDto,
@@ -16,6 +17,7 @@ export function registerManagementRoutes(
   sessions: OAuthSessionStore,
   apiKeys: ApiKeyService,
   upstreams: CustomUpstreamService,
+  toolCatalog: () => readonly string[],
   iamAiClient: IamAiCredentialClient = new IamAiCredentialClient(),
 ): void {
   // 메인 접속 시 비로그인 상태면 테넌트 SSO 로그인 화면으로 즉시 리다이렉트
@@ -116,7 +118,17 @@ export function registerManagementRoutes(
   app.get("/api/v1/permissions", async (request, reply) => {
     const userId = await authenticatedUserId(request, sessions, apiKeys);
     if (!userId) return reply.code(401).send({ error: "Unauthorized" });
-    return apiKeys.permissions(userId);
+    const permissions = await apiKeys.permissions(userId) as {
+      services: unknown[];
+      tools: string[];
+    };
+    return {
+      ...permissions,
+      toolPatterns: permissions.tools,
+      tools: toolCatalog().filter((toolName) =>
+        permissions.tools.some((pattern) => matchesToolPattern(pattern, toolName)),
+      ),
+    };
   });
 
   // Custom MCP Upstream Routes
