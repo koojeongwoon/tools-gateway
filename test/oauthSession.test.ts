@@ -52,4 +52,26 @@ describe("OAuth configuration", () => {
     expect(url.searchParams.get("client_id")).toBe("cli_ab3d5bb39f894dff");
     expect(url.searchParams.has("tenant")).toBe(false);
   });
+
+  it("makes a delegated IAM access token available only while it is unexpired", async () => {
+    const config = loadOAuthConfig({
+      SSO_ENABLED: "true",
+      TOOLS_GATEWAY_CLIENT_ID: "tools-gateway",
+      TOOLS_GATEWAY_CLIENT_SECRET: "secret",
+    });
+    const redis = {
+      get: vi.fn().mockResolvedValue(JSON.stringify({
+        subject: "iam-user-1",
+        iamAccessToken: "delegated-user-jwt",
+        iamAccessTokenExpiresAt: Math.floor(Date.now() / 1000) + 60,
+        expiresAt: Math.floor(Date.now() / 1000) + 3600,
+      })),
+    } as unknown as RedisClientType;
+    const sessionStore = new OAuthSessionStore(redis, config!);
+
+    await expect(sessionStore.resolve("opaque-session")).resolves.toEqual({
+      subject: "iam-user-1",
+      iamAccessToken: "delegated-user-jwt",
+    });
+  });
 });

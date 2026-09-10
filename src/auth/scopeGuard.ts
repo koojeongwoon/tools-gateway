@@ -17,8 +17,5 @@ export class ScopeGuard {
   }
 }
 
-export function matchesToolPattern(pattern: string, toolName: string): boolean {
-  return pattern.endsWith("*")
-    ? toolName.startsWith(pattern.slice(0, -1))
-    : pattern === toolName;
-}
+export { matchesToolPattern };
+import { matchesToolPattern } from "../domain/toolPattern.js";

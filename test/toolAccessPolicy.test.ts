@@ -54,7 +54,23 @@ describe("ToolAccessPolicy (Domain Policy)", () => {
     });
 
     const extendedPolicy = basePolicy.withAllowedPattern("custom.*");
+    expect(extendedPolicy.allows("github.get_file")).toBe(true);
     expect(basePolicy.allows("custom.my_tool")).toBe(false);
     expect(extendedPolicy.allows("custom.my_tool")).toBe(true);
+  });
+
+  it("requires an API key scope even when the owner is granted a custom upstream", () => {
+    const policy = new ToolAccessPolicy({
+      globalConfig: { default: "deny", allow: ["mygithub.*"], deny: [] },
+      principal: {
+        userId: "user-1",
+        apiKeyId: "key-1",
+        systemRole: "USER",
+        toolPatterns: ["mygithub.*"],
+        scopes: ["tool:knowledge.*"],
+      },
+    });
+
+    expect(policy.allows("mygithub.read_file")).toBe(false);
   });
 });

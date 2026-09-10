@@ -9,8 +9,8 @@ export class ToolPolicy {
   private readonly denied: RegExp[];
 
   constructor(config: ToolPolicyConfig) {
-    this.allowed = config.allow.map(toPattern);
-    this.denied = config.deny.map(toPattern);
+    this.allowed = config.allow.map(compileToolPattern);
+    this.denied = config.deny.map(compileToolPattern);
   }
 
   allows(toolName: string): boolean {
@@ -21,7 +21,7 @@ export class ToolPolicy {
   }
 
   allowPattern(glob: string): void {
-    this.allowed.push(toPattern(glob));
+    this.allowed.push(compileToolPattern(glob));
   }
 
   async enforce<T>(toolName: string, operation: () => Promise<T>): Promise<T> {
@@ -31,8 +31,4 @@ export class ToolPolicy {
     return operation();
   }
 }
-
-function toPattern(glob: string): RegExp {
-  const escaped = glob.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(`^${escaped.replaceAll("*", ".*")}$`);
-}
+import { compileToolPattern } from "../domain/toolPattern.js";

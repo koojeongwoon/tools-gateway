@@ -73,4 +73,19 @@ describe("ToolRouteMap (Domain Aggregate)", () => {
     expect(extendedMap.list()).toHaveLength(2);
     expect(extendedMap.has("git.commit")).toBe(true);
   });
+
+  it("rejects an added connection that would overwrite an existing public tool", async () => {
+    const baseMap = await ToolRouteMap.fromConnections([mockUpstream]);
+    const duplicateUpstream: UpstreamConnection = {
+      id: "fs-custom",
+      toolPrefix: "fs",
+      listTools: async () => [dummyTool],
+      callTool: vi.fn(),
+      close: vi.fn(),
+    };
+
+    await expect(baseMap.withConnection(duplicateUpstream))
+      .rejects.toThrow("duplicate public tool name: fs.read_file");
+    expect(baseMap.list()).toHaveLength(1);
+  });
 });

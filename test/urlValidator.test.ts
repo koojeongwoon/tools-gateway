@@ -2,15 +2,21 @@ import { describe, it, expect } from "vitest";
 import { validateSafeEndpointUrl, SsrFViolationError } from "../src/policy/urlValidator.js";
 
 describe("SSRF URL Validator (Zero-cost Network Guardrail)", () => {
-  it("should allow valid public HTTPS and HTTP URLs", async () => {
-    await expect(validateSafeEndpointUrl("https://api.github.com/mcp")).resolves.not.toThrow();
-    await expect(validateSafeEndpointUrl("https://raw.githubusercontent.com/repo/spec.json")).resolves.not.toThrow();
+  it("should allow valid public HTTPS URLs", async () => {
+    const publicResolver = async () => ({ address: "140.82.112.6" });
+    await expect(validateSafeEndpointUrl("https://api.github.com/mcp", publicResolver)).resolves.not.toThrow();
+    await expect(validateSafeEndpointUrl("https://raw.githubusercontent.com/repo/spec.json", publicResolver)).resolves.not.toThrow();
   });
 
   it("should reject non-HTTP protocols (e.g. file:, ftp:, gopher:)", async () => {
     await expect(validateSafeEndpointUrl("file:///etc/passwd")).rejects.toThrow(SsrFViolationError);
     await expect(validateSafeEndpointUrl("ftp://ftp.example.com/file")).rejects.toThrow(SsrFViolationError);
     await expect(validateSafeEndpointUrl("gopher://127.0.0.1:70/")).rejects.toThrow(SsrFViolationError);
+  });
+
+  it("should reject unencrypted HTTP endpoints", async () => {
+    await expect(validateSafeEndpointUrl("http://172.32.0.1:8000/mcp"))
+      .rejects.toThrow(SsrFViolationError);
   });
 
   it("should reject localhost, loopback, and zero-addresses", async () => {
@@ -32,8 +38,8 @@ describe("SSRF URL Validator (Zero-cost Network Guardrail)", () => {
     await expect(validateSafeEndpointUrl("http://172.31.255.255:8000/mcp")).rejects.toThrow(SsrFViolationError);
   });
 
-  it("should allow safe public class B 172.x subnets outside 172.16-31", async () => {
+  it("should allow safe public class B 172.x subnets outside 172.16-31 over HTTPS", async () => {
     // 172.32.0.1 is a public IP
-    await expect(validateSafeEndpointUrl("http://172.32.0.1:8000/mcp")).resolves.not.toThrow();
+    await expect(validateSafeEndpointUrl("https://172.32.0.1:8000/mcp")).resolves.not.toThrow();
   });
 });

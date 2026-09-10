@@ -28,11 +28,14 @@ export class KeyVerifier {
     }>(
       `SELECT k.id AS api_key_id, u.id AS user_id, u.system_role,
               k.allowed_scopes,
-              COALESCE(array_agg(p.tool_pattern)
-                FILTER (WHERE p.tool_pattern IS NOT NULL), ARRAY[]::text[]) AS tool_patterns
+              COALESCE(array_agg(DISTINCT p.tool_pattern)
+                FILTER (WHERE p.tool_pattern IS NOT NULL), ARRAY[]::text[])
+              || COALESCE(array_agg(DISTINCT cu.tool_prefix || '.*')
+                FILTER (WHERE cu.tool_prefix IS NOT NULL), ARRAY[]::text[]) AS tool_patterns
          FROM api_keys k
          JOIN users u ON u.id = k.user_id
          LEFT JOIN user_tool_permissions p ON p.user_id = u.id
+         LEFT JOIN user_mcp_upstreams cu ON cu.user_id = u.id AND cu.is_enabled
         WHERE k.key_prefix = $1 AND k.key_hash = $2
           AND k.is_active AND u.is_active
           AND (k.expires_at IS NULL OR k.expires_at > NOW())

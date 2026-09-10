@@ -3,14 +3,9 @@ import { ApiKeyScopeError, type ApiKeyService } from "./apiKeyService.js";
 import type { CustomUpstreamService } from "./customUpstreamService.js";
 import type { OAuthSessionStore, GatewaySession } from "../auth/oauthSession.js";
 import { DASHBOARD_HTML } from "../ui/dashboardHtml.js";
+import { registerAiCredentialRoutes } from "./aiCredentialRoutes.js";
+import { registerGatewayResourceRoutes } from "./gatewayResourceRoutes.js";
 import { IamAiCredentialClient } from "../credential/iamAiCredentialClient.js";
-import { matchesToolPattern } from "../auth/scopeGuard.js";
-import {
-  CreateKeyRequestDto,
-  CreateUpstreamRequestDto,
-  SaveAiKeyRequestDto,
-  CheckDeviceRequestDto,
-} from "./dtos/managementDtos.js";
 
 export function registerManagementRoutes(
   app: FastifyInstance,
@@ -19,6 +14,7 @@ export function registerManagementRoutes(
   upstreams: CustomUpstreamService,
   toolCatalog: () => readonly string[],
   iamAiClient: IamAiCredentialClient = new IamAiCredentialClient(),
+  iamTenantId: string,
 ): void {
   // 메인 접속 시 비로그인 상태면 테넌트 SSO 로그인 화면으로 즉시 리다이렉트
   app.get("/", async (request, reply) => {
@@ -80,163 +76,13 @@ export function registerManagementRoutes(
     return { signoutUrl: sessions.getSignoutUrl() };
   });
 
-  // API Key Routes
-  app.post("/api/v1/keys", async (request, reply) => {
-    const userId = await authenticatedUserId(request, sessions, apiKeys);
-    if (!userId) return reply.code(401).send({ error: "Unauthorized" });
-    const parsed = CreateKeyRequestDto.safeParse(request.body);
-    if (!parsed.success) return reply.code(400).send({ error: "Invalid API key request" });
-    try {
-      return reply.code(201).send(await apiKeys.create(
-        userId,
-        parsed.data.name,
-        parsed.data.expiresAt,
-        parsed.data.toolPatterns,
-      ));
-    } catch (error) {
-      if (error instanceof ApiKeyScopeError) {
-        return reply.code(403).send({ error: "Requested tool scope is not permitted" });
-      }
-      throw error;
-    }
+  registerGatewayResourceRoutes(app, {
+    apiKeys,
+    upstreams,
+    toolCatalog,
+    authenticatedUserId: (request) => authenticatedUserId(request, sessions, apiKeys),
   });
-
-  app.get("/api/v1/keys", async (request, reply) => {
-    const userId = await authenticatedUserId(request, sessions, apiKeys);
-    if (!userId) return reply.code(401).send({ error: "Unauthorized" });
-    return apiKeys.list(userId);
-  });
-
-  app.delete("/api/v1/keys/:keyId", async (request, reply) => {
-    const userId = await authenticatedUserId(request, sessions, apiKeys);
-    if (!userId) return reply.code(401).send({ error: "Unauthorized" });
-    const { keyId } = request.params as { keyId: string };
-    if (!await apiKeys.revoke(userId, keyId)) return reply.code(404).send({ error: "API key not found" });
-    return reply.code(204).send();
-  });
-
-  app.get("/api/v1/permissions", async (request, reply) => {
-    const userId = await authenticatedUserId(request, sessions, apiKeys);
-    if (!userId) return reply.code(401).send({ error: "Unauthorized" });
-    const permissions = await apiKeys.permissions(userId) as {
-      services: unknown[];
-      tools: string[];
-    };
-    return {
-      ...permissions,
-      toolPatterns: permissions.tools,
-      tools: toolCatalog().filter((toolName) =>
-        permissions.tools.some((pattern) => matchesToolPattern(pattern, toolName)),
-      ),
-    };
-  });
-
-  // Custom MCP Upstream Routes
-  app.post("/api/v1/upstreams", async (request, reply) => {
-    const userId = await authenticatedUserId(request, sessions, apiKeys);
-    if (!userId) return reply.code(401).send({ error: "Unauthorized" });
-    const parsed = CreateUpstreamRequestDto.safeParse(request.body);
-    if (!parsed.success) {
-      return reply.code(400).send({ error: "Invalid MCP upstream request", details: parsed.error.issues });
-    }
-    try {
-      const created = await upstreams.create(userId, parsed.data);
-      return reply.code(201).send(created);
-    } catch (error) {
-      return reply.code(400).send({ error: error instanceof Error ? error.message : "Failed to create upstream" });
-    }
-  });
-
-  app.get("/api/v1/upstreams", async (request, reply) => {
-    const userId = await authenticatedUserId(request, sessions, apiKeys);
-    if (!userId) return reply.code(401).send({ error: "Unauthorized" });
-    return upstreams.list(userId);
-  });
-
-  app.delete("/api/v1/upstreams/:id", async (request, reply) => {
-    const userId = await authenticatedUserId(request, sessions, apiKeys);
-    if (!userId) return reply.code(401).send({ error: "Unauthorized" });
-    const { id } = request.params as { id: string };
-    if (!await upstreams.delete(userId, id)) {
-      return reply.code(404).send({ error: "Custom MCP upstream not found" });
-    }
-    return reply.code(204).send();
-  });
-
-  // ==========================================
-  // AI 자격증명 (Codex OAuth & API Keys) Routes
-  // ==========================================
-  app.get("/api/v1/ai-credentials/bundle", async (request, reply) => {
-    const session = await authenticatedUserSession(request, sessions);
-    if (!session) return reply.code(401).send({ error: "Unauthorized" });
-    const localUserId = await apiKeys.provisionUser(session);
-    // IAM 서버는 통합인증 sub(auth_id)를 키로 저장하므로 session.subject를 전달
-    const bundle = await iamAiClient.getAiBundle(session.subject);
-    return reply.send(bundle || {
-      user_id: localUserId,
-      codex: { linked: false },
-      openai_api_key: { configured: false },
-      embedding_api_key: { configured: false },
-    });
-  });
-
-  app.post("/api/v1/ai-credentials/codex/device/start", async (request, reply) => {
-    const session = await authenticatedUserSession(request, sessions);
-    if (!session) return reply.code(401).send({ error: "Unauthorized" });
-    try {
-      const init = await iamAiClient.startCodexDeviceFlow();
-      return reply.send(init);
-    } catch (err) {
-      return reply.code(502).send({ error: "Failed to start Codex Device Flow", message: String(err) });
-    }
-  });
-
-  app.post("/api/v1/ai-credentials/codex/device/check", async (request, reply) => {
-    const session = await authenticatedUserSession(request, sessions);
-    if (!session) return reply.code(401).send({ error: "Unauthorized" });
-    const parsed = CheckDeviceRequestDto.safeParse(request.body);
-    if (!parsed.success) return reply.code(400).send({ error: "Invalid check request" });
-    try {
-      const res = await iamAiClient.checkCodexDeviceFlow(
-        parsed.data.deviceAuthId,
-        parsed.data.userCode,
-        session.subject,
-        undefined,
-        parsed.data.accountType
-      );
-      return reply.send(res);
-    } catch (err) {
-      return reply.code(400).send({ error: "Pending or failed", message: String(err) });
-    }
-  });
-
-  app.post("/api/v1/ai-credentials/keys", async (request, reply) => {
-    const session = await authenticatedUserSession(request, sessions);
-    if (!session) return reply.code(401).send({ error: "Unauthorized" });
-    const parsed = SaveAiKeyRequestDto.safeParse(request.body);
-    if (!parsed.success) return reply.code(400).send({ error: "Invalid key request", details: parsed.error.issues });
-    try {
-      const res = await iamAiClient.saveApiKey(
-        parsed.data.provider,
-        parsed.data.apiKey,
-        session.subject,
-        undefined,
-        parsed.data.accountType
-      );
-      return reply.send(res);
-    } catch (err) {
-      return reply.code(500).send({ error: "Failed to save AI key", message: String(err) });
-    }
-  });
-
-  app.delete("/api/v1/ai-credentials/keys/:provider", async (request, reply) => {
-    const session = await authenticatedUserSession(request, sessions);
-    if (!session) return reply.code(401).send({ error: "Unauthorized" });
-    const { provider } = request.params as { provider: string };
-    const validProvider = provider.toUpperCase() as "OPENAI_API_KEY" | "EMBEDDING_API_KEY" | "CODEX_OAUTH";
-    const ok = await iamAiClient.deleteApiKey(validProvider, session.subject);
-    return ok ? reply.code(204).send() : reply.code(404).send({ error: "Credential not found" });
-  });
+  registerAiCredentialRoutes(app, { sessions, iamAiClient, iamTenantId });
 }
 
 async function authenticatedUserSession(

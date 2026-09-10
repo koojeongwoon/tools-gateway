@@ -1,11 +1,9 @@
 /**
- * IAM 중앙 인증 서버로부터 유저/조직의 AI 자격증명(Codex Token, OpenAI API Key, Embedding API Key)을
- * 조회하고 등록/수정/Device Flow를 수행하는 클라이언트.
+ * IAM 중앙 인증 서버의 테넌트 공용 AI 자격증명과 Codex Device Flow를 호출하는 클라이언트.
  */
 
-export interface AiBundle {
-  user_id?: string;
-  org_id?: string;
+interface ServiceAiBundle {
+  tenant_id?: string;
   codex?: {
     linked: boolean;
     access_token?: string;
@@ -25,6 +23,12 @@ export interface AiBundle {
     masked_hint?: string;
     source?: string;
   };
+}
+
+export interface AiCredentialStatus {
+  codex: { linked: boolean; source?: string };
+  openai_api_key: { configured: boolean; masked_hint?: string; source?: string };
+  embedding_api_key: { configured: boolean; masked_hint?: string; source?: string };
 }
 
 export interface DeviceAuthInitResponse {
@@ -64,14 +68,13 @@ export class IamAiCredentialClient {
   }
 
   /**
-   * IAM 서버에서 AI 자격증명 번들을 조회합니다.
+   * IAM service contract: a registered service may obtain a tenant-scoped
+   * bundle with its client credentials. Callers must not forward this raw
+   * bundle to a browser.
    */
-  async getAiBundle(userId?: string, orgId?: string): Promise<AiBundle | null> {
-    const params = new URLSearchParams();
-    if (userId) params.set("user_id", userId);
-    if (orgId) params.set("org_id", orgId);
-
-    const url = `${this.baseUrl}/api/v1/credentials/ai-bundle?${params.toString()}`;
+  async getServiceAiBundle(tenantId: string): Promise<ServiceAiBundle | null> {
+    const query = new URLSearchParams({ tenant_id: tenantId });
+    const url = `${this.baseUrl}/api/v1/credentials/ai-bundle?${query}`;
 
     try {
       const response = await fetch(url, {
@@ -86,53 +89,46 @@ export class IamAiCredentialClient {
         return null;
       }
 
-      return (await response.json()) as AiBundle;
+      return (await response.json()) as ServiceAiBundle;
     } catch (err) {
       console.warn(`[IamAiCredentialClient] Failed to fetch AI bundle from ${this.baseUrl}:`, err);
       return null;
     }
   }
 
-  /**
-   * 유효한 OpenAI API Key를 단일 획득합니다 (없을 경우 환경변수 fallback)
-   */
-  async getOpenAiApiKey(userId?: string, orgId?: string): Promise<string | undefined> {
-    const bundle = await this.getAiBundle(userId, orgId);
-    if (bundle?.openai_api_key?.configured && bundle.openai_api_key.api_key) {
-      return bundle.openai_api_key.api_key;
-    }
-    return process.env.OPENAI_API_KEY;
-  }
-
-  /**
-   * 유효한 Embedding API Key를 단일 획득합니다 (없을 경우 OpenAI Key fallback)
-   */
-  async getEmbeddingApiKey(userId?: string, orgId?: string): Promise<string | undefined> {
-    const bundle = await this.getAiBundle(userId, orgId);
-    if (bundle?.embedding_api_key?.configured && bundle.embedding_api_key.api_key) {
-      return bundle.embedding_api_key.api_key;
-    }
-    return this.getOpenAiApiKey(userId, orgId);
-  }
-
-  /**
-   * 유효한 Codex Access Token을 단일 획득합니다.
-   */
-  async getCodexAccessToken(userId?: string, orgId?: string): Promise<string | undefined> {
-    const bundle = await this.getAiBundle(userId, orgId);
-    if (bundle?.codex?.linked && bundle.codex.access_token) {
-      return bundle.codex.access_token;
-    }
-    return undefined;
+  async getCredentialStatus(tenantId: string): Promise<AiCredentialStatus | null> {
+    const bundle = await this.getServiceAiBundle(tenantId);
+    if (!bundle) return null;
+    return {
+      codex: {
+        linked: bundle.codex?.linked === true,
+        ...(bundle.codex?.source ? { source: bundle.codex.source } : {}),
+      },
+      openai_api_key: {
+        configured: bundle.openai_api_key?.configured === true,
+        ...(bundle.openai_api_key?.masked_hint
+          ? { masked_hint: bundle.openai_api_key.masked_hint }
+          : {}),
+        ...(bundle.openai_api_key?.source ? { source: bundle.openai_api_key.source } : {}),
+      },
+      embedding_api_key: {
+        configured: bundle.embedding_api_key?.configured === true,
+        ...(bundle.embedding_api_key?.masked_hint
+          ? { masked_hint: bundle.embedding_api_key.masked_hint }
+          : {}),
+        ...(bundle.embedding_api_key?.source ? { source: bundle.embedding_api_key.source } : {}),
+      },
+    };
   }
 
   /**
    * OpenAI Codex Device Flow 인증 시작
    */
-  async startCodexDeviceFlow(): Promise<DeviceAuthInitResponse> {
+  async startCodexDeviceFlow(userAccessToken: string): Promise<DeviceAuthInitResponse> {
     const url = `${this.baseUrl}/api/v1/codex/device/start`;
     const response = await fetch(url, {
       method: "POST",
+      headers: { Authorization: `Bearer ${userAccessToken}` },
       signal: AbortSignal.timeout(this.timeoutMs),
     });
     if (!response.ok) {
@@ -145,22 +141,20 @@ export class IamAiCredentialClient {
    * OpenAI Codex Device Flow 완료 확인 및 토큰 저장
    */
   async checkCodexDeviceFlow(
+    userAccessToken: string,
     deviceAuthId: string,
     userCode: string,
-    userId?: string,
-    orgId?: string,
-    accountType: "USER" | "ORGANIZATION" = "USER"
   ): Promise<any> {
     const url = `${this.baseUrl}/api/v1/codex/device/check`;
     const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${userAccessToken}`,
+      },
       body: JSON.stringify({
         deviceAuthId,
         userCode,
-        userId,
-        orgId,
-        accountType,
       }),
       signal: AbortSignal.timeout(this.timeoutMs),
     });
@@ -171,27 +165,20 @@ export class IamAiCredentialClient {
     return response.json();
   }
 
-  /**
-   * AI API Key (OpenAI / Embedding) 저장
-   */
+  /** IAM derives the tenant from this delegated user JWT. */
   async saveApiKey(
+    userAccessToken: string,
     provider: "OPENAI_API_KEY" | "EMBEDDING_API_KEY",
     apiKey: string,
-    userId?: string,
-    orgId?: string,
-    accountType: "USER" | "ORGANIZATION" = "USER"
   ): Promise<any> {
     const url = `${this.baseUrl}/api/v1/credentials/ai-keys`;
     const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...this.getAuthHeaders(),
+        Authorization: `Bearer ${userAccessToken}`,
       },
       body: JSON.stringify({
-        userId,
-        orgId,
-        accountType,
         provider,
         apiKey,
       }),
@@ -204,26 +191,19 @@ export class IamAiCredentialClient {
     return response.json();
   }
 
-  /**
-   * AI API Key 또는 자격증명 삭제
-   */
+  /** IAM derives the tenant from this delegated user JWT. */
   async deleteApiKey(
+    userAccessToken: string,
     provider: "OPENAI_API_KEY" | "EMBEDDING_API_KEY" | "CODEX_OAUTH",
-    userId?: string,
-    orgId?: string,
-    accountType: "USER" | "ORGANIZATION" = "USER"
   ): Promise<boolean> {
     const url = `${this.baseUrl}/api/v1/credentials/ai-keys`;
     const response = await fetch(url, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
-        ...this.getAuthHeaders(),
+        Authorization: `Bearer ${userAccessToken}`,
       },
       body: JSON.stringify({
-        userId,
-        orgId,
-        accountType,
         provider,
       }),
       signal: AbortSignal.timeout(this.timeoutMs),

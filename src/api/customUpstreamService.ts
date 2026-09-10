@@ -8,7 +8,7 @@ export interface CustomMcpUpstream {
   userId: string;
   toolPrefix: string;
   endpointUrl: string;
-  transport: "streamable-http" | "sse";
+  transport: "streamable-http";
   authType: "bearer" | "api_key" | "custom_header" | "none";
   authHeaderName: string;
   isEnabled: boolean;
@@ -20,7 +20,7 @@ export interface CustomMcpUpstream {
 export interface CreateCustomUpstreamDto {
   toolPrefix: string;
   endpointUrl: string;
-  transport?: "streamable-http" | "sse" | undefined;
+  transport?: "streamable-http" | undefined;
   authType?: "bearer" | "api_key" | "custom_header" | "none" | undefined;
   authHeaderName?: string | undefined;
   authValue?: string | undefined;

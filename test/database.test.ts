@@ -52,5 +52,8 @@ describe("database migrations", () => {
     }
     expect(sql).toContain("key_hash VARCHAR(64) UNIQUE NOT NULL");
     expect(sql).toContain("ip_address INET");
+    expect(migrations.map(({ name }) => name)).toContain("retire_legacy_sse_custom_upstreams");
+    expect(sql).toContain("[Disabled legacy SSE upstream]");
+    expect(sql).toContain("CHECK (transport = 'streamable-http')");
   });
 });

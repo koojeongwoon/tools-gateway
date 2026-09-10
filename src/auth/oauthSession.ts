@@ -25,6 +25,13 @@ interface SessionRecord {
   subject: string;
   email?: string;
   name?: string;
+  /**
+   * IAM delegated token for server-side calls made on behalf of this session.
+   * It is retained only in the opaque Redis session and is never returned by
+   * the Gateway HTTP API.
+   */
+  iamAccessToken: string;
+  iamAccessTokenExpiresAt: number;
   expiresAt: number;
 }
 
@@ -32,6 +39,8 @@ export interface GatewaySession {
   subject: string;
   email?: string;
   name?: string;
+  /** Server-internal delegated IAM credential; never serialize this to clients. */
+  iamAccessToken?: string;
 }
 
 export function loadOAuthConfig(environment: NodeJS.ProcessEnv = process.env): OAuthConfig | undefined {
@@ -178,6 +187,8 @@ export class OAuthSessionStore {
       subject: claims.sub,
       ...(claims.email ? { email: claims.email } : {}),
       ...(claims.name ? { name: claims.name } : {}),
+      iamAccessToken: payload.access_token,
+      iamAccessTokenExpiresAt: claims.exp,
       expiresAt: Math.floor(Date.now() / 1000) + this.config.sessionTtlSeconds,
     };
   }
@@ -187,6 +198,9 @@ export class OAuthSessionStore {
       subject: session.subject,
       ...(session.email ? { email: session.email } : {}),
       ...(session.name ? { name: session.name } : {}),
+      ...(session.iamAccessTokenExpiresAt > Math.floor(Date.now() / 1000)
+        ? { iamAccessToken: session.iamAccessToken }
+        : {}),
     };
   }
 

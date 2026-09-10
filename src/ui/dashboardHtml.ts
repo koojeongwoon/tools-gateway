@@ -73,7 +73,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             <!-- 🤖 AI Credentials (Codex OAuth / OpenAI / Embedding Keys) -->
       <section class="card">
         <h2>
-          <span>🤖 AI 자격증명 & Codex OAuth 연동 (마이페이지)</span>
+          <span>🤖 테넌트 공용 AI 자격증명 & Codex OAuth 연동</span>
           <button class="btn btn-outline" onclick="loadAiCredentials()">🔄 새로고침</button>
         </h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-top: 1rem;">
@@ -99,7 +99,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
                 <h4 style="font-size: 0.95rem; color: var(--text-bright);">OpenAI API Key (벡터 임베딩 & 완성)</h4>
                 <span id="openai-status" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 12px; font-weight: bold; background: rgba(248, 81, 73, 0.15); color: var(--danger); border: 1px solid rgba(248, 81, 73, 0.4);">미등록</span>
               </div>
-              <p id="openai-hint" style="font-size: 0.8rem; color: #8b949e; margin-top: 0.4rem;">지식베이스/도구 벡터 임베딩 및 인덱싱 처리용 API 키 (sk-...)</p>
+              <p id="openai-hint" style="font-size: 0.8rem; color: #8b949e; margin-top: 0.4rem;">테넌트 공용: 지식베이스/도구 벡터 임베딩 및 인덱싱 처리용 API 키 (sk-...)</p>
             </div>
             <button class="btn btn-outline" style="width: 100%;" onclick="openKeyInputModal('OPENAI_API_KEY', 'OpenAI API Key')">🔑 API Key 설정</button>
           </div>
@@ -299,7 +299,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         } else {
           openaiStatus.textContent = "🔴 미등록";
           openaiStatus.className = "status-badge unlinked";
-          openaiHint.textContent = "범용 LLM 완성 API 키 (sk-...)";
+          openaiHint.textContent = "테넌트 공용 범용 LLM 완성 API 키 (sk-...)";
         }
 
         // Sync embedding key automatically if openai key is set

@@ -1,5 +1,6 @@
 import type { AuthenticatedPrincipal } from "../auth/scopeGuard.js";
 import type { ToolPolicyConfig } from "../policy/toolPolicy.js";
+import { compileToolPattern, matchesToolPattern } from "./toolPattern.js";
 
 export interface ToolAccessPolicyOptions {
   globalConfig: ToolPolicyConfig;
@@ -9,11 +10,15 @@ export interface ToolAccessPolicyOptions {
 export class ToolAccessPolicy {
   private readonly allowedPatterns: readonly RegExp[];
   private readonly deniedPatterns: readonly RegExp[];
+  private readonly allowedGlobs: readonly string[];
+  private readonly deniedGlobs: readonly string[];
   private readonly principal: AuthenticatedPrincipal | undefined;
 
   constructor(options: ToolAccessPolicyOptions) {
-    this.allowedPatterns = Object.freeze(options.globalConfig.allow.map(toPattern));
-    this.deniedPatterns = Object.freeze(options.globalConfig.deny.map(toPattern));
+    this.allowedGlobs = Object.freeze([...options.globalConfig.allow]);
+    this.deniedGlobs = Object.freeze([...options.globalConfig.deny]);
+    this.allowedPatterns = Object.freeze(this.allowedGlobs.map(compileToolPattern));
+    this.deniedPatterns = Object.freeze(this.deniedGlobs.map(compileToolPattern));
     this.principal = options.principal;
   }
 
@@ -32,10 +37,10 @@ export class ToolAccessPolicy {
     // 3. Principal이 존재할 경우 스코프 및 패턴 검사
     if (this.principal) {
       const matchesPrincipalPattern = this.principal.toolPatterns.some((pattern) =>
-        matchesGlob(pattern, toolName),
+        matchesToolPattern(pattern, toolName),
       );
       const matchesPrincipalScope = this.principal.scopes.some((scope) =>
-        scope.startsWith("tool:") && matchesGlob(scope.slice(5), toolName),
+        scope.startsWith("tool:") && matchesToolPattern(scope.slice(5), toolName),
       );
       return matchesPrincipalPattern && matchesPrincipalScope;
     }
@@ -55,32 +60,10 @@ export class ToolAccessPolicy {
     return new ToolAccessPolicy({
       globalConfig: {
         default: "deny",
-        allow: [...this.allowedPatterns.map((p) => p.source), glob],
-        deny: this.deniedPatterns.map((p) => p.source),
+        allow: [...this.allowedGlobs, glob],
+        deny: [...this.deniedGlobs],
       },
       principal: this.principal,
     });
   }
-}
-
-function validatePatternString(glob: string): void {
-  if (typeof glob !== "string" || glob.trim().length === 0) {
-    throw new Error("Tool policy pattern must be a non-empty string");
-  }
-  if (/[\r\n\0]/.test(glob)) {
-    throw new Error(`Invalid characters in tool policy pattern: ${JSON.stringify(glob)}`);
-  }
-}
-
-function toPattern(glob: string): RegExp {
-  validatePatternString(glob);
-  const escaped = glob.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(`^${escaped.replaceAll("*", ".*")}$`);
-}
-
-function matchesGlob(pattern: string, toolName: string): boolean {
-  validatePatternString(pattern);
-  return pattern.endsWith("*")
-    ? toolName.startsWith(pattern.slice(0, -1))
-    : pattern === toolName;
 }

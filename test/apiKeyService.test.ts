@@ -51,4 +51,36 @@ describe("ApiKeyService", () => {
       .rejects.toThrow("Requested API key scope is not granted to this user");
     expect(query).toHaveBeenCalledTimes(1);
   });
+
+  it("does not add a custom upstream to a scope-less new key", async () => {
+    const query = vi.fn()
+      .mockResolvedValueOnce({ rows: [
+        { tool_pattern: "knowledge.*", is_custom: false },
+        { tool_pattern: "mygithub.*", is_custom: true },
+      ] })
+      .mockImplementationOnce(async (_sql: string, values: unknown[]) => ({
+        rows: [{ id: values[0], allowed_scopes: ["tool:knowledge.*"] }],
+      }));
+    const service = new ApiKeyService({ query } as never, { invalidateUser: vi.fn() } as never);
+
+    await service.create("user-1", "default-key");
+
+    expect(JSON.parse(query.mock.calls[1]![1][5] as string)).toEqual(["tool:knowledge.*"]);
+  });
+
+  it("permits a custom upstream only when it is explicitly selected for the key", async () => {
+    const query = vi.fn()
+      .mockResolvedValueOnce({ rows: [
+        { tool_pattern: "knowledge.*", is_custom: false },
+        { tool_pattern: "mygithub.*", is_custom: true },
+      ] })
+      .mockImplementationOnce(async (_sql: string, values: unknown[]) => ({
+        rows: [{ id: values[0], allowed_scopes: ["tool:mygithub.*"] }],
+      }));
+    const service = new ApiKeyService({ query } as never, { invalidateUser: vi.fn() } as never);
+
+    await service.create("user-1", "custom-key", undefined, ["mygithub.*"]);
+
+    expect(JSON.parse(query.mock.calls[1]![1][5] as string)).toEqual(["tool:mygithub.*"]);
+  });
 });

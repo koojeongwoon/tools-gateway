@@ -1,6 +1,8 @@
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 
+export type HostResolver = (hostname: string) => Promise<{ address: string }>;
+
 export class SsrFViolationError extends Error {
   readonly statusCode = 400;
   readonly code = "SSRF_VIOLATION";
@@ -51,7 +53,10 @@ export function isPrivateOrReservedIp(ip: string): boolean {
 /**
  * Validates that an endpoint URL is safe from SSRF attacks before registration or invocation.
  */
-export async function validateSafeEndpointUrl(rawUrl: string): Promise<void> {
+export async function validateSafeEndpointUrl(
+  rawUrl: string,
+  resolveHost: HostResolver = lookup,
+): Promise<void> {
   let parsed: URL;
   try {
     parsed = new URL(rawUrl);
@@ -59,8 +64,8 @@ export async function validateSafeEndpointUrl(rawUrl: string): Promise<void> {
     throw new SsrFViolationError(`Invalid URL format: '${rawUrl}'`);
   }
 
-  if (!["http:", "https:"].includes(parsed.protocol)) {
-    throw new SsrFViolationError(`Forbidden protocol '${parsed.protocol}'. Only http: and https: are allowed.`);
+  if (parsed.protocol !== "https:") {
+    throw new SsrFViolationError(`Forbidden protocol '${parsed.protocol}'. Only https: is allowed for external upstreams.`);
   }
 
   const hostname = parsed.hostname.toLowerCase();
@@ -86,7 +91,7 @@ export async function validateSafeEndpointUrl(rawUrl: string): Promise<void> {
 
   // Otherwise resolve domain via DNS
   try {
-    const { address } = await lookup(hostname);
+    const { address } = await resolveHost(hostname);
     if (isPrivateOrReservedIp(address)) {
       throw new SsrFViolationError(
         `Hostname '${hostname}' resolves to private or internal IP '${address}'`,

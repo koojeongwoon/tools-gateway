@@ -63,7 +63,7 @@ CREATE TABLE user_mcp_upstreams (
     CHECK (tool_prefix ~ '^[a-z][a-z0-9_]{0,49}$'),
   endpoint_url VARCHAR(500) NOT NULL,
   transport VARCHAR(20) NOT NULL DEFAULT 'streamable-http'
-    CHECK (transport IN ('streamable-http', 'sse')),
+    CHECK (transport = 'streamable-http'),
   auth_type VARCHAR(20) NOT NULL DEFAULT 'bearer'
     CHECK (auth_type IN ('bearer', 'api_key', 'custom_header', 'none')),
   auth_header_name VARCHAR(100) NOT NULL DEFAULT 'Authorization',
@@ -197,8 +197,29 @@ ALTER TABLE tool_usage_logs
   CHECK (status IN ('SUCCESS', 'FORBIDDEN', 'ERROR', 'SECURITY_VIOLATION'));
 `,
   },
-];
+  {
+    version: 8,
+    name: "retire_legacy_sse_custom_upstreams",
+    sql: `
+UPDATE user_mcp_upstreams
+   SET is_enabled = FALSE,
+       transport = 'streamable-http',
+       description = CASE
+         WHEN description IS NULL OR description = '' THEN '[Disabled legacy SSE upstream]'
+         ELSE '[Disabled legacy SSE upstream] ' || description
+       END,
+       updated_at = NOW()
+ WHERE transport = 'sse';
 
+ALTER TABLE user_mcp_upstreams
+  DROP CONSTRAINT IF EXISTS user_mcp_upstreams_transport_check;
+
+ALTER TABLE user_mcp_upstreams
+  ADD CONSTRAINT user_mcp_upstreams_transport_check
+  CHECK (transport = 'streamable-http');
+`,
+  },
+];
 
 
 

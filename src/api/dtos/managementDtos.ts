@@ -15,7 +15,8 @@ export type CreateKeyRequestDto = z.infer<typeof CreateKeyRequestDto>;
 export const CreateUpstreamRequestDto = z.object({
   toolPrefix: z.string().trim().min(1).max(50).regex(/^[a-z][a-z0-9_]{0,49}$/),
   endpointUrl: z.string().trim().url(),
-  transport: z.enum(["streamable-http", "sse"]).default("streamable-http"),
+  // Custom upstreams support Streamable HTTP only.
+  transport: z.literal("streamable-http").default("streamable-http"),
   authType: z.enum(["bearer", "api_key", "custom_header", "none"]).default("bearer"),
   authHeaderName: z.string().trim().min(1).max(100).default("Authorization"),
   authValue: z.string().trim().optional(),
@@ -26,14 +27,12 @@ export type CreateUpstreamRequestDto = z.infer<typeof CreateUpstreamRequestDto>;
 export const SaveAiKeyRequestDto = z.object({
   provider: z.enum(["OPENAI_API_KEY", "EMBEDDING_API_KEY"]),
   apiKey: z.string().trim().min(1),
-  accountType: z.enum(["USER", "ORGANIZATION"]).default("USER"),
 });
 export type SaveAiKeyRequestDto = z.infer<typeof SaveAiKeyRequestDto>;
 
 export const CheckDeviceRequestDto = z.object({
   deviceAuthId: z.string().trim().min(1),
   userCode: z.string().trim().min(1),
-  accountType: z.enum(["USER", "ORGANIZATION"]).default("USER"),
 });
 export type CheckDeviceRequestDto = z.infer<typeof CheckDeviceRequestDto>;
 

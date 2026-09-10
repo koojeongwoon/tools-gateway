@@ -85,6 +85,9 @@ export class ToolRouteMap {
 
     for (const tool of tools) {
       const publicName = `${connection.toolPrefix}.${tool.name}`;
+      if (newRoutes.has(publicName)) {
+        throw new Error(`duplicate public tool name: ${publicName}`);
+      }
       newRoutes.set(publicName, {
         publicName,
         upstreamId: connection.id,

@@ -60,14 +60,27 @@ export class ApiKeyService {
   ): Promise<Record<string, unknown>> {
     const rawKey = `tg_live_${randomBytes(32).toString("base64url")}`;
     const id = `tg_key_${randomUUID()}`;
-    const permissions = await this.pool.query<{ tool_pattern: string }>(
-      "SELECT tool_pattern FROM user_tool_permissions WHERE user_id = $1 ORDER BY tool_pattern",
+    const permissions = await this.pool.query<{ tool_pattern: string; is_custom: boolean }>(
+      `SELECT tool_pattern, FALSE AS is_custom
+         FROM user_tool_permissions
+        WHERE user_id = $1
+       UNION ALL
+       SELECT tool_prefix || '.*' AS tool_pattern, TRUE AS is_custom
+         FROM user_mcp_upstreams
+        WHERE user_id = $1 AND is_enabled
+       ORDER BY tool_pattern`,
       [userId],
     );
     const grantedPatterns = permissions.rows.map(({ tool_pattern }) => tool_pattern);
+    // A custom upstream is eligible only when the caller explicitly selects
+    // it for this key. Existing keys and scope-less new keys retain their
+    // original user-granted tool set.
+    const defaultPatterns = permissions.rows
+      .filter(({ is_custom }) => !is_custom)
+      .map(({ tool_pattern }) => tool_pattern);
     const selectedPatterns = requestedToolPatterns
       ? [...new Set(requestedToolPatterns)]
-      : grantedPatterns;
+      : defaultPatterns;
     if (selectedPatterns.some((pattern) => !grantedPatterns.some(
       (grantedPattern) => matchesToolPattern(grantedPattern, pattern),
     ))) {
@@ -104,10 +117,15 @@ export class ApiKeyService {
   }
 
   async permissions(userId: string): Promise<unknown> {
-    const [services, tools] = await Promise.all([
+    const [services, tools, customUpstreams] = await Promise.all([
       this.pool.query("SELECT service_name, allowed_actions FROM user_service_permissions WHERE user_id = $1 ORDER BY service_name", [userId]),
       this.pool.query("SELECT tool_pattern FROM user_tool_permissions WHERE user_id = $1 ORDER BY tool_pattern", [userId]),
+      this.pool.query("SELECT tool_prefix FROM user_mcp_upstreams WHERE user_id = $1 AND is_enabled ORDER BY tool_prefix", [userId]),
     ]);
-    return { services: services.rows, tools: tools.rows.map(({ tool_pattern }) => tool_pattern) };
+    return {
+      services: services.rows,
+      tools: tools.rows.map(({ tool_pattern }) => tool_pattern),
+      customToolPatterns: customUpstreams.rows.map(({ tool_prefix }) => `${tool_prefix as string}.*`),
+    };
   }
 }

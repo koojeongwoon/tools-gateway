@@ -1,19 +1,17 @@
 import Fastify from "fastify";
-import { NodeStreamableHTTPServerTransport } from "@modelcontextprotocol/node";
 import { loadGatewayConfig } from "./config/upstreamConfig.js";
 import {
   createDatabasePool,
   loadDatabaseConfig,
 } from "./config/database.js";
 import { initializeDatabase } from "./database/initializeDatabase.js";
-import { createGatewayServer } from "./server/createGatewayServer.js";
 import { RemoteMcpConnection } from "./upstream/remoteMcpConnection.js";
 import { ResilientUpstreamConnection } from "./upstream/resilientUpstreamConnection.js";
 import { ToolRegistry } from "./upstream/toolRegistry.js";
+import { RequestToolRegistryBuilder } from "./application/requestToolRegistryBuilder.js";
 import { createClient } from "redis";
 import { loadRedisConfig } from "./config/redis.js";
-import { bearerToken, KeyVerifier } from "./auth/keyVerifier.js";
-import { ToolAccessPolicy } from "./domain/toolAccessPolicy.js";
+import { KeyVerifier } from "./auth/keyVerifier.js";
 import { UserSyncConsumer } from "./events/userSyncConsumer.js";
 import { loadOAuthConfig, OAuthSessionStore } from "./auth/oauthSession.js";
 import { ApiKeyService } from "./api/apiKeyService.js";
@@ -25,6 +23,7 @@ import { registerSecurityPlugins } from "./server/registerSecurityPlugins.js";
 import { IamAiCredentialClient } from "./credential/iamAiCredentialClient.js";
 import { loadR2AuditConfig } from "./config/r2.js";
 import { R2AuditArchiver } from "./audit/r2AuditArchiver.js";
+import { registerMcpRoutes } from "./api/mcpRoutes.js";
 
 const configPath = process.env.UPSTREAM_CONFIG ?? "config/upstreams.yaml";
 const config = await loadGatewayConfig(configPath);
@@ -83,6 +82,7 @@ if (isProduction && (!process.env.ENCRYPTION_MASTER_KEY || process.env.ENCRYPTIO
 const masterSecret = process.env.ENCRYPTION_MASTER_KEY || defaultKey;
 const envelopeCrypto = new EnvelopeCrypto(masterSecret);
 const customUpstreamService = databasePool ? new CustomUpstreamService(databasePool, envelopeCrypto) : undefined;
+const requestToolRegistryBuilder = new RequestToolRegistryBuilder(registry, customUpstreamService);
 const auditLogger = databasePool ? new AuditLogger(databasePool) : undefined;
 const r2AuditConfig = loadR2AuditConfig();
 const r2AuditArchiver = databasePool && r2AuditConfig.enabled
@@ -103,7 +103,13 @@ if (oauthConfig) {
     new ApiKeyService(databasePool, keyVerifier),
     customUpstreamService,
     () => registry.list().map((tool) => tool.publicName),
-    new IamAiCredentialClient(oauthConfig.authServerUrl),
+    new IamAiCredentialClient(
+      oauthConfig.authServerUrl,
+      5000,
+      oauthConfig.clientId,
+      oauthConfig.clientSecret,
+    ),
+    oauthConfig.tenantId,
   );
 }
 
@@ -113,112 +119,13 @@ app.get("/readyz", async () => ({
   tools: registry.list().length,
 }));
 
-app.post("/mcp", async (request, reply) => {
-  const token = bearerToken(request.headers.authorization);
-  const principal = token && keyVerifier ? await keyVerifier.verify(token) : undefined;
-  if (apiKeyAuthEnabled && !principal) {
-    return reply.code(401).send({ error: "Unauthorized" });
-  }
-
-  let requestRegistry = registry;
-  const customConnections: ResilientUpstreamConnection[] = [];
-  const activeCustomPrefixes: string[] = [];
-
-  if (principal && customUpstreamService) {
-    const customUpstreams = await customUpstreamService.list(principal.userId);
-    const activeCustom = customUpstreams.filter((u) => u.isEnabled);
-    if (activeCustom.length > 0) {
-      requestRegistry = registry.clone();
-      for (const custom of activeCustom) {
-        try {
-          const authInfo = await customUpstreamService.getDecryptedAuthValue(principal.userId, custom.toolPrefix);
-          const headers: Record<string, string> = {};
-          if (authInfo?.authValue) {
-            headers[authInfo.authHeaderName] = authInfo.authType === "bearer" && !authInfo.authValue.startsWith("Bearer ")
-              ? `Bearer ${authInfo.authValue}`
-              : authInfo.authValue;
-          }
-          const rawConn = await RemoteMcpConnection.connect({
-            id: custom.id,
-            toolPrefix: custom.toolPrefix,
-            networkScope: "external",
-            endpoint: custom.endpointUrl,
-            transport: "streamable-http",
-            enabled: true,
-            timeoutMs: 30000,
-            headers: {},
-          }, headers);
-          const resilientConn = new ResilientUpstreamConnection(rawConn, {
-            failureThreshold: 3,
-            resetTimeoutMs: 15000,
-          });
-          customConnections.push(resilientConn);
-          await requestRegistry.addRoute(resilientConn);
-          activeCustomPrefixes.push(custom.toolPrefix);
-        } catch (err) {
-          request.log.error({ err, prefix: custom.toolPrefix }, "Failed to connect custom upstream");
-        }
-      }
-    }
-  }
-
-  const effectivePrincipal = principal
-    ? {
-        ...principal,
-        scopes: [...principal.scopes, ...activeCustomPrefixes.map((p) => `tool:${p}.*`)],
-        toolPatterns: [...principal.toolPatterns, ...activeCustomPrefixes.map((p) => `${p}.*`)],
-      }
-    : undefined;
-
-  const accessPolicy = new ToolAccessPolicy({
-    globalConfig: {
-      default: "deny",
-      allow: [...config.toolPolicy.allow, ...activeCustomPrefixes.map((p) => `${p}.*`)],
-      deny: config.toolPolicy.deny,
-    },
-    principal: apiKeyAuthEnabled ? effectivePrincipal : undefined,
-  });
-
-  const requestContext = principal
-    ? {
-        requestId: request.id,
-        userId: principal.userId,
-        apiKeyId: principal.apiKeyId,
-        ipAddress: request.ip,
-        userAgent: request.headers["user-agent"],
-      }
-    : undefined;
-
-  const server = createGatewayServer(
-    requestRegistry,
-    accessPolicy,
-    undefined,
-    auditLogger,
-    requestContext,
-  );
-  const transport = new NodeStreamableHTTPServerTransport({
-    sessionIdGenerator: undefined,
-  });
-  await server.connect(transport);
-
-  reply.raw.on("close", () => {
-    void transport.close();
-    void server.close();
-    void Promise.all(customConnections.map((c) => c.close()));
-  });
-
-  await transport.handleRequest(request.raw, reply.raw, request.body);
+registerMcpRoutes(app, {
+  config,
+  keyVerifier,
+  apiKeyAuthEnabled,
+  requestToolRegistryBuilder,
+  auditLogger,
 });
-
-for (const method of ["GET", "DELETE"] as const) {
-  app.route({
-    method,
-    url: "/mcp",
-    handler: async (_request, reply) => {
-      await reply.code(405).send({ error: "Method Not Allowed" });
-    },
-  });
-}
 
 const shutdown = async () => {
   await app.close();
