@@ -25,6 +25,7 @@ import { loadR2AuditConfig } from "./config/r2.js";
 import { R2AuditArchiver } from "./audit/r2AuditArchiver.js";
 import { registerMcpRoutes } from "./api/mcpRoutes.js";
 import { CredentialBrokerClient } from "./credential/credentialBrokerClient.js";
+import { loadMcpOAuthConfig, McpOAuthVerifier } from "./auth/mcpOAuthVerifier.js";
 
 const configPath = process.env.UPSTREAM_CONFIG ?? "config/upstreams.yaml";
 const config = await loadGatewayConfig(configPath);
@@ -71,10 +72,6 @@ await registerSecurityPlugins(app, {
   rateLimitTimeWindow: process.env.RATE_LIMIT_WINDOW ?? "1 minute",
 });
 
-const apiKeyAuthEnabled = process.env.API_KEY_AUTH_ENABLED === "true";
-if (apiKeyAuthEnabled && !keyVerifier) {
-  throw new Error("API key authentication requires database and Redis");
-}
 const isProduction = process.env.NODE_ENV === "production";
 const defaultKey = "tools-gateway-default-encryption-key-2026";
 if (isProduction && (!process.env.ENCRYPTION_MASTER_KEY || process.env.ENCRYPTION_MASTER_KEY === defaultKey)) {
@@ -133,10 +130,14 @@ app.get("/readyz", async () => ({
   tools: registry.list().length,
 }));
 
+const mcpOAuthConfig = loadMcpOAuthConfig();
+if (!databasePool) {
+  throw new Error("MCP OAuth authentication requires database");
+}
 registerMcpRoutes(app, {
   config,
-  keyVerifier,
-  apiKeyAuthEnabled,
+  oauthConfig: mcpOAuthConfig,
+  oauthVerifier: new McpOAuthVerifier(databasePool, mcpOAuthConfig),
   requestToolRegistryBuilder,
   auditLogger,
 });
