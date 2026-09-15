@@ -19,7 +19,7 @@ const upstreamSchema = z
         targetTenantId: z.string().min(1),
         targetOrganizationId: z.string().min(1).optional(),
       }),
-    ]).default({ mode: "provider-credential" }),
+    ]),
     headers: z
       .record(
         z.string().regex(/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/),

@@ -22,9 +22,10 @@ Vault -> ESO -> Gateway environment -> upstream Authorization header
 
 - Skill과 작업 판단은 각 MCP client가 소유합니다.
 - Gateway는 MCP server이면서 upstream에 대해서는 MCP client입니다.
-- upstream 목록과 비민감 연결 정보는 Git에서 관리하는 YAML 파일로 선언합니다.
-- Gateway는 credential을 저장하거나 발급하지 않고 기존 Vault와 ESO로 주입받은 값을 upstream 요청 헤더에만 사용합니다.
-- Gateway는 Vault에 직접 접근하지 않으며 Credential Broker도 호출하지 않습니다.
+- 운영 카탈로그 upstream과 비민감 연결 정보는 Git에서 관리하는 YAML 파일로 선언합니다.
+- 운영 카탈로그는 MCP가 Gateway/IAM 신원을 검증하는 `gateway-delegation`과 MCP 자체 credential을 쓰는 `provider-credential` 중 하나를 반드시 선언합니다.
+- 사용자 임의 URL 등록은 소유자별 `provider-credential`만 지원하며 IAM 사용자 신원을 외부 URL에 위임하지 않습니다.
+- Gateway는 Vault에 직접 접근하지 않습니다.
 - Gateway Service는 `ClusterIP`를 유지하고 `/mcp`만 인증이 강제된 Traefik Ingress로 공개합니다.
 - 현재 범위는 `tools/list`와 `tools/call`입니다. prompts, resources, sampling, elicitation, tasks는 아직 중개하지 않습니다.
 
@@ -101,9 +102,11 @@ upstreams:
     transport: streamable-http
     enabled: true
     timeoutMs: 30000
-    headers:
-      Authorization:
-        env: KNOWLEDGE_AUTHORIZATION
+    auth:
+      mode: gateway-delegation
+      audience: knowledge-service
+      targetTenantId: ten_example
+      targetOrganizationId: org_knowledge
 
   - id: context7
     toolPrefix: context7
@@ -112,6 +115,8 @@ upstreams:
     transport: streamable-http
     enabled: true
     timeoutMs: 30000
+    auth:
+      mode: provider-credential
     headers:
       Authorization:
         env: CONTEXT7_AUTHORIZATION
@@ -126,6 +131,13 @@ toolPolicy:
 
 `deny`가 `allow`보다 우선합니다. 허용되지 않은 Tool은 `tools/list`에서 보이지 않으며, `tools/call` 실행 직전에도 같은 정책을 다시 검사합니다.
 
+`auth.mode`는 생략할 수 없습니다.
+
+- `gateway-delegation`: Gateway가 요청 사용자의 OAuth 토큰을 IAM에서 짧은 수명의 대상 MCP 토큰으로 교환합니다. `audience`는 MCP의 IAM client ID이며 대상 MCP는 IAM 서명, tenant, audience, scope와 사용자 subject를 검증해야 합니다. 정적 credential header와 함께 사용할 수 없습니다.
+- `provider-credential`: 대상 MCP가 발급한 API key 또는 OAuth credential로 호출합니다. 운영 공용 credential은 `headers.<name>.env`로 주입하고, 사용자 임의 URL credential은 등록 사용자에게만 연결합니다.
+
+`POST /api/v1/upstreams`로 등록하는 사용자 임의 URL은 요청에 `authMode: provider-credential`을 명시해야 합니다. `gateway-delegation` 등록은 운영 검토를 거쳐 GitOps 카탈로그에 추가합니다.
+
 `networkScope`는 endpoint의 네트워크 경계를 명시하고 기동 전에 검증합니다.
 
 - `cluster`: `.svc` 또는 `.svc.cluster.local`로 끝나는 Kubernetes Service hostname만 허용합니다.
@@ -136,7 +148,6 @@ toolPolicy:
 `headers.<name>.env`에는 Secret 값이 아니라 환경변수 이름만 기록합니다. Gateway는 시작할 때 해당 환경변수를 읽어 upstream HTTP 요청에 헤더를 추가합니다. 참조한 환경변수가 없거나 빈 값이면 credential 없이 연결을 시도하지 않고 기동에 실패합니다.
 
 ```text
-KNOWLEDGE_AUTHORIZATION=Bearer <Knowledge API key>
 CONTEXT7_AUTHORIZATION=Bearer <Context7 API key>
 ```
 

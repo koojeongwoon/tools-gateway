@@ -9,6 +9,7 @@ export interface CustomMcpUpstream {
   toolPrefix: string;
   endpointUrl: string;
   transport: "streamable-http";
+  authMode: "provider-credential";
   authType: "bearer" | "api_key" | "custom_header" | "none";
   authHeaderName: string;
   isEnabled: boolean;
@@ -20,6 +21,7 @@ export interface CustomMcpUpstream {
 export interface CreateCustomUpstreamDto {
   toolPrefix: string;
   endpointUrl: string;
+  authMode: "provider-credential";
   transport?: "streamable-http" | undefined;
   authType?: "bearer" | "api_key" | "custom_header" | "none" | undefined;
   authHeaderName?: string | undefined;
@@ -62,6 +64,7 @@ export class CustomUpstreamService {
        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING id, user_id as "userId", tool_prefix as "toolPrefix",
                  endpoint_url as "endpointUrl", transport, auth_type as "authType",
+                 'provider-credential' as "authMode",
                  auth_header_name as "authHeaderName", is_enabled as "isEnabled",
                  description, created_at as "createdAt", updated_at as "updatedAt"`,
       [
@@ -90,6 +93,7 @@ export class CustomUpstreamService {
     const result = await this.pool.query<CustomMcpUpstream>(
       `SELECT id, user_id as "userId", tool_prefix as "toolPrefix",
               endpoint_url as "endpointUrl", transport, auth_type as "authType",
+              'provider-credential' as "authMode",
               auth_header_name as "authHeaderName", is_enabled as "isEnabled",
               description, created_at as "createdAt", updated_at as "updatedAt"
          FROM user_mcp_upstreams

@@ -6,6 +6,8 @@ upstreams:
     transport: streamable-http
     enabled: true
     timeoutMs: 30000
+    auth:
+      mode: provider-credential
     headers:
       Authorization:
         env: EXAMPLE_AUTHORIZATION

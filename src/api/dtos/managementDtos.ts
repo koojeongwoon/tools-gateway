@@ -15,13 +15,15 @@ export type CreateKeyRequestDto = z.infer<typeof CreateKeyRequestDto>;
 export const CreateUpstreamRequestDto = z.object({
   toolPrefix: z.string().trim().min(1).max(50).regex(/^[a-z][a-z0-9_]{0,49}$/),
   endpointUrl: z.string().trim().url(),
+  // Self-service URLs never receive an IAM-delegated user identity.
+  authMode: z.literal("provider-credential"),
   // Custom upstreams support Streamable HTTP only.
   transport: z.literal("streamable-http").default("streamable-http"),
   authType: z.enum(["bearer", "api_key", "custom_header", "none"]).default("bearer"),
   authHeaderName: z.string().trim().min(1).max(100).default("Authorization"),
   authValue: z.string().trim().optional(),
   description: z.string().trim().max(255).optional(),
-});
+}).strict();
 export type CreateUpstreamRequestDto = z.infer<typeof CreateUpstreamRequestDto>;
 
 export const SaveAiKeyRequestDto = z.object({

@@ -5,7 +5,7 @@ import {
 } from "../src/config/upstreamConfig.js";
 
 describe("upstream config", () => {
-  it("applies safe defaults without accepting secrets", () => {
+  it("applies non-auth defaults when the auth mode is explicit", () => {
     const config = parseGatewayConfig({
       upstreams: [
         {
@@ -14,6 +14,7 @@ describe("upstream config", () => {
           networkScope: "cluster",
           endpoint: "http://github-mcp.tools.svc.cluster.local/mcp",
           transport: "streamable-http",
+          auth: { mode: "provider-credential" },
         },
       ],
       toolPolicy: { default: "deny", allow: ["github.*"] },
@@ -23,6 +24,19 @@ describe("upstream config", () => {
       enabled: true,
       timeoutMs: 30_000,
     });
+  });
+
+  it("rejects an upstream without an explicit auth mode", () => {
+    expect(() => parseGatewayConfig({
+      upstreams: [{
+        id: "github",
+        toolPrefix: "github",
+        networkScope: "external",
+        endpoint: "https://mcp.example.com/mcp",
+        transport: "streamable-http",
+      }],
+      toolPolicy: { default: "deny", allow: ["github.*"] },
+    })).toThrow();
   });
 
   it("rejects duplicate tool prefixes", () => {
@@ -35,6 +49,7 @@ describe("upstream config", () => {
             networkScope: "external",
             endpoint: "https://one.example/mcp",
             transport: "streamable-http",
+            auth: { mode: "provider-credential" },
           },
           {
             id: "two",
@@ -42,6 +57,7 @@ describe("upstream config", () => {
             networkScope: "external",
             endpoint: "https://two.example/mcp",
             transport: "streamable-http",
+            auth: { mode: "provider-credential" },
           },
         ],
         toolPolicy: { default: "deny", allow: ["shared.*"] },
@@ -58,6 +74,7 @@ describe("upstream config", () => {
           networkScope: "cluster",
           endpoint: "http://mcp-server.llm-wiki.svc.cluster.local/mcp",
           transport: "streamable-http",
+          auth: { mode: "provider-credential" },
           headers: {
             Authorization: { env: "KNOWLEDGE_AUTHORIZATION" },
           },
@@ -110,6 +127,7 @@ describe("upstream config", () => {
           networkScope: "external",
           endpoint: "https://mcp.context7.com/mcp",
           transport: "streamable-http",
+          auth: { mode: "provider-credential" },
           headers: {
             Authorization: { env: "CONTEXT7_AUTHORIZATION" },
           },
@@ -133,6 +151,7 @@ describe("upstream config", () => {
             networkScope: "cluster",
             endpoint: "https://mcp.context7.com/mcp",
             transport: "streamable-http",
+            auth: { mode: "provider-credential" },
           },
         ],
         toolPolicy: { default: "deny", allow: ["context7.*"] },
@@ -150,6 +169,7 @@ describe("upstream config", () => {
             networkScope: "external",
             endpoint: "http://mcp.vendor.example/mcp",
             transport: "streamable-http",
+            auth: { mode: "provider-credential" },
           },
         ],
         toolPolicy: { default: "deny", allow: ["vendor.*"] },
@@ -174,6 +194,7 @@ describe("upstream config", () => {
             networkScope: "external",
             endpoint,
             transport: "streamable-http",
+            auth: { mode: "provider-credential" },
           },
         ],
         toolPolicy: { default: "deny", allow: ["blocked.*"] },

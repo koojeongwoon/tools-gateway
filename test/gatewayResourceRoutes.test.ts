@@ -51,4 +51,73 @@ describe("Gateway resource routes", () => {
     expect(create).not.toHaveBeenCalled();
     await app.close();
   });
+
+  it("requires an explicit provider credential mode for self-service upstreams", async () => {
+    const app = Fastify();
+    const create = vi.fn();
+    registerGatewayResourceRoutes(app, {
+      apiKeys: {} as never,
+      upstreams: { create } as never,
+      toolCatalog: () => [],
+      authenticatedUserId: vi.fn().mockResolvedValue("user-1"),
+    });
+
+    const missingMode = await app.inject({
+      method: "POST",
+      url: "/api/v1/upstreams",
+      payload: {
+        toolPrefix: "private_mcp",
+        endpointUrl: "https://mcp.example.com/mcp",
+        authType: "none",
+      },
+    });
+    const delegatedMode = await app.inject({
+      method: "POST",
+      url: "/api/v1/upstreams",
+      payload: {
+        toolPrefix: "private_mcp",
+        endpointUrl: "https://mcp.example.com/mcp",
+        authMode: "gateway-delegation",
+        authType: "none",
+      },
+    });
+
+    expect(missingMode.statusCode).toBe(400);
+    expect(delegatedMode.statusCode).toBe(400);
+    expect(create).not.toHaveBeenCalled();
+    await app.close();
+  });
+
+  it("creates an owner-scoped upstream in provider credential mode", async () => {
+    const app = Fastify();
+    const create = vi.fn().mockResolvedValue({
+      id: "tg_ups_1",
+      userId: "user-1",
+      authMode: "provider-credential",
+    });
+    registerGatewayResourceRoutes(app, {
+      apiKeys: {} as never,
+      upstreams: { create } as never,
+      toolCatalog: () => [],
+      authenticatedUserId: vi.fn().mockResolvedValue("user-1"),
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/v1/upstreams",
+      payload: {
+        toolPrefix: "private_mcp",
+        endpointUrl: "https://mcp.example.com/mcp",
+        authMode: "provider-credential",
+        authType: "none",
+      },
+    });
+
+    expect(response.statusCode).toBe(201);
+    expect(create).toHaveBeenCalledWith("user-1", expect.objectContaining({
+      authMode: "provider-credential",
+    }));
+    expect(response.json()).toMatchObject({ authMode: "provider-credential" });
+    await app.close();
+  });
 });

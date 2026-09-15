@@ -21,6 +21,7 @@ function customUpstream(overrides: Partial<CustomMcpUpstream> = {}): CustomMcpUp
     toolPrefix: "github",
     endpointUrl: "https://mcp.example.com/mcp",
     transport: "streamable-http",
+    authMode: "provider-credential",
     authType: "bearer",
     authHeaderName: "Authorization",
     isEnabled: true,

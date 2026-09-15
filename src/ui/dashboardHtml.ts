@@ -451,7 +451,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           <div class="list-item">
             <div class="list-info">
               <h4>⚡ prefix: <span class="code-badge">\${u.toolPrefix}.*</span> \${u.description ? ' - ' + u.description : ''}</h4>
-              <p>엔드포인트: \${u.endpointUrl} | 인증: \${u.authType} | 등록일: \${new Date(u.createdAt).toLocaleDateString()}</p>
+              <p>엔드포인트: \${u.endpointUrl} | 모드: \${u.authMode} | 인증: \${u.authType} | 등록일: \${new Date(u.createdAt).toLocaleDateString()}</p>
             </div>
             <button class="btn btn-danger" onclick="deleteUpstream('\${u.id}')">삭제</button>
           </div>
@@ -596,6 +596,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           body: JSON.stringify({
             toolPrefix,
             endpointUrl,
+            authMode: 'provider-credential',
             authType,
             authValue: authType !== 'none' ? authValue : undefined,
             description: description || undefined,
