@@ -6,6 +6,8 @@ import { DASHBOARD_HTML } from "../ui/dashboardHtml.js";
 import { registerAiCredentialRoutes } from "./aiCredentialRoutes.js";
 import { registerGatewayResourceRoutes } from "./gatewayResourceRoutes.js";
 import { IamAiCredentialClient } from "../credential/iamAiCredentialClient.js";
+import { CredentialBrokerClient } from "../credential/credentialBrokerClient.js";
+import { registerCredentialConnectionRoutes } from "./credentialConnectionRoutes.js";
 
 export function registerManagementRoutes(
   app: FastifyInstance,
@@ -15,6 +17,7 @@ export function registerManagementRoutes(
   toolCatalog: () => readonly string[],
   iamAiClient: IamAiCredentialClient = new IamAiCredentialClient(),
   iamTenantId: string,
+  credentialBrokerClient?: CredentialBrokerClient,
 ): void {
   // 메인 접속 시 비로그인 상태면 테넌트 SSO 로그인 화면으로 즉시 리다이렉트
   app.get("/", async (request, reply) => {
@@ -83,6 +86,9 @@ export function registerManagementRoutes(
     authenticatedUserId: (request) => authenticatedUserId(request, sessions, apiKeys),
   });
   registerAiCredentialRoutes(app, { sessions, iamAiClient, iamTenantId });
+  if (credentialBrokerClient) {
+    registerCredentialConnectionRoutes(app, sessions, credentialBrokerClient);
+  }
 }
 
 async function authenticatedUserSession(
