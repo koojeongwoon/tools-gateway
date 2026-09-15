@@ -1,6 +1,6 @@
 export interface AuthenticatedPrincipal {
   userId: string;
-  apiKeyId?: string | undefined;
+  apiKeyId: string;
   systemRole: string;
   scopes: string[];
   toolPatterns: string[];

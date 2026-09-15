@@ -2,24 +2,14 @@ import Fastify from "fastify";
 import { describe, expect, it, vi } from "vitest";
 import { registerMcpRoutes } from "../src/api/mcpRoutes.js";
 
-const oauthConfig = {
-  resource: "https://tools-gateway.lynply.com/mcp",
-  resourceMetadataUrl: "https://tools-gateway.lynply.com/.well-known/oauth-protected-resource/mcp",
-  authorizationServer: "https://auth.snappytory.com/t/tenant-a",
-  issuer: "https://auth.snappytory.com/t/tenant-a",
-  jwksUri: "https://auth.snappytory.com/t/tenant-a/oauth2/jwks",
-  tenantId: "tenant-a",
-  requiredScope: "mcp",
-};
-
 describe("MCP routes", () => {
   it("rejects an unauthenticated MCP request before building a tool registry", async () => {
     const app = Fastify();
     const build = vi.fn();
     registerMcpRoutes(app, {
       config: { upstreams: [], toolPolicy: { default: "deny", allow: [], deny: [] } },
-      oauthConfig,
-      oauthVerifier: { verify: vi.fn().mockResolvedValue(undefined) },
+      keyVerifier: { verify: vi.fn().mockResolvedValue(undefined) } as never,
+      apiKeyAuthEnabled: true,
       requestToolRegistryBuilder: { build } as never,
     });
 
@@ -30,9 +20,6 @@ describe("MCP routes", () => {
     });
 
     expect(response.statusCode).toBe(401);
-    expect(response.headers["www-authenticate"]).toBe(
-      'Bearer resource_metadata="https://tools-gateway.lynply.com/.well-known/oauth-protected-resource/mcp", scope="mcp"',
-    );
     expect(build).not.toHaveBeenCalled();
     await app.close();
   });
@@ -41,38 +28,13 @@ describe("MCP routes", () => {
     const app = Fastify();
     registerMcpRoutes(app, {
       config: { upstreams: [], toolPolicy: { default: "deny", allow: [], deny: [] } },
-      oauthConfig,
-      oauthVerifier: { verify: vi.fn() },
+      apiKeyAuthEnabled: false,
       requestToolRegistryBuilder: { build: vi.fn() } as never,
     });
 
     const response = await app.inject({ method: "GET", url: "/mcp" });
 
     expect(response.statusCode).toBe(405);
-    await app.close();
-  });
-
-  it("publishes OAuth protected resource metadata", async () => {
-    const app = Fastify();
-    registerMcpRoutes(app, {
-      config: { upstreams: [], toolPolicy: { default: "deny", allow: [], deny: [] } },
-      oauthConfig,
-      oauthVerifier: { verify: vi.fn() },
-      requestToolRegistryBuilder: { build: vi.fn() } as never,
-    });
-
-    const response = await app.inject({
-      method: "GET",
-      url: "/.well-known/oauth-protected-resource/mcp",
-    });
-
-    expect(response.statusCode).toBe(200);
-    expect(response.json()).toEqual({
-      resource: oauthConfig.resource,
-      authorization_servers: [oauthConfig.authorizationServer],
-      scopes_supported: ["mcp"],
-      bearer_methods_supported: ["header"],
-    });
     await app.close();
   });
 });
