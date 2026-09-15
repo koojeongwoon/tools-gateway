@@ -11,6 +11,15 @@ const upstreamSchema = z
     transport: z.literal("streamable-http"),
     enabled: z.boolean().default(true),
     timeoutMs: z.number().int().positive().default(30_000),
+    auth: z.discriminatedUnion("mode", [
+      z.object({ mode: z.literal("provider-credential") }),
+      z.object({
+        mode: z.literal("gateway-delegation"),
+        audience: z.string().min(1),
+        targetTenantId: z.string().min(1),
+        targetOrganizationId: z.string().min(1).optional(),
+      }),
+    ]).default({ mode: "provider-credential" }),
     headers: z
       .record(
         z.string().regex(/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/),
@@ -18,7 +27,14 @@ const upstreamSchema = z
       )
       .default({}),
   })
-  .superRefine(({ endpoint, networkScope }, ctx) => {
+  .superRefine(({ endpoint, networkScope, auth, headers }, ctx) => {
+    if (auth.mode === "gateway-delegation" && Object.keys(headers).length > 0) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["headers"],
+        message: "gateway-delegation upstreams must not use static credential headers",
+      });
+    }
     const url = new URL(endpoint);
 
     if (networkScope === "cluster") {

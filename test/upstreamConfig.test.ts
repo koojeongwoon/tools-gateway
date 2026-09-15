@@ -73,6 +73,34 @@ describe("upstream config", () => {
     ).toEqual({ Authorization: "Bearer test-value" });
   });
 
+  it("accepts gateway delegation only without static credential headers", () => {
+    const config = parseGatewayConfig({
+      upstreams: [{
+        id: "knowledge",
+        toolPrefix: "knowledge",
+        networkScope: "cluster",
+        endpoint: "http://mcp-server.llm-wiki.svc.cluster.local/mcp",
+        transport: "streamable-http",
+        auth: {
+          mode: "gateway-delegation",
+          audience: "knowledge-service",
+          targetTenantId: "tenant-1",
+          targetOrganizationId: "org-1",
+        },
+      }],
+      toolPolicy: { default: "deny", allow: ["knowledge.*"] },
+    });
+    expect(config.upstreams[0]?.auth.mode).toBe("gateway-delegation");
+
+    expect(() => parseGatewayConfig({
+      upstreams: [{
+        ...config.upstreams[0],
+        headers: { Authorization: { env: "KNOWLEDGE_AUTHORIZATION" } },
+      }],
+      toolPolicy: { default: "deny", allow: ["knowledge.*"] },
+    })).toThrow("must not use static credential headers");
+  });
+
   it("fails closed when a referenced header environment variable is missing", () => {
     const config = parseGatewayConfig({
       upstreams: [

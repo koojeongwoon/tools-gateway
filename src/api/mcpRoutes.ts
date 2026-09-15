@@ -39,7 +39,7 @@ export function registerMcpRoutes(app: FastifyInstance, options: McpRoutesOption
         .send({ error: "Unauthorized" });
     }
 
-    const requestToolRegistry = await options.requestToolRegistryBuilder.build(principal, request.log);
+    const requestToolRegistry = await options.requestToolRegistryBuilder.build(principal, request.log, token);
     const accessPolicy = new ToolAccessPolicy({
       globalConfig: {
         default: "deny",

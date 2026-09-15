@@ -26,6 +26,7 @@ import { R2AuditArchiver } from "./audit/r2AuditArchiver.js";
 import { registerMcpRoutes } from "./api/mcpRoutes.js";
 import { CredentialBrokerClient } from "./credential/credentialBrokerClient.js";
 import { loadMcpOAuthConfig, McpOAuthVerifier } from "./auth/mcpOAuthVerifier.js";
+import { IamDelegationClient } from "./auth/iamDelegationClient.js";
 
 const configPath = process.env.UPSTREAM_CONFIG ?? "config/upstreams.yaml";
 const config = await loadGatewayConfig(configPath);
@@ -48,7 +49,8 @@ if (userSyncConsumer) {
 }
 
 const connections = [];
-for (const upstream of config.upstreams.filter(({ enabled }) => enabled)) {
+for (const upstream of config.upstreams.filter(({ enabled, auth }) =>
+  enabled && auth.mode === "provider-credential")) {
   const rawConnection = await RemoteMcpConnection.connect(upstream);
   const resilientConnection = new ResilientUpstreamConnection(rawConnection, {
     failureThreshold: 5,
@@ -80,7 +82,27 @@ if (isProduction && (!process.env.ENCRYPTION_MASTER_KEY || process.env.ENCRYPTIO
 const masterSecret = process.env.ENCRYPTION_MASTER_KEY || defaultKey;
 const envelopeCrypto = new EnvelopeCrypto(masterSecret);
 const customUpstreamService = databasePool ? new CustomUpstreamService(databasePool, envelopeCrypto) : undefined;
-const requestToolRegistryBuilder = new RequestToolRegistryBuilder(registry, customUpstreamService);
+const delegatedUpstreams = config.upstreams.filter(({ enabled, auth }) =>
+  enabled && auth.mode === "gateway-delegation");
+const delegationClient = delegatedUpstreams.length > 0
+  ? new IamDelegationClient(
+      process.env.AUTH_SERVER_URL ?? "https://auth.snappytory.com",
+      process.env.TOOLS_GATEWAY_CLIENT_ID ?? "",
+      process.env.TOOLS_GATEWAY_CLIENT_SECRET ?? "",
+    )
+  : undefined;
+if (delegatedUpstreams.length > 0
+    && (!process.env.TOOLS_GATEWAY_CLIENT_ID || !process.env.TOOLS_GATEWAY_CLIENT_SECRET)) {
+  throw new Error("Gateway delegation requires Tools Gateway client credentials");
+}
+const requestToolRegistryBuilder = new RequestToolRegistryBuilder(
+  registry,
+  customUpstreamService,
+  undefined,
+  undefined,
+  delegatedUpstreams,
+  delegationClient,
+);
 const auditLogger = databasePool ? new AuditLogger(databasePool) : undefined;
 const r2AuditConfig = loadR2AuditConfig();
 const r2AuditArchiver = databasePool && r2AuditConfig.enabled

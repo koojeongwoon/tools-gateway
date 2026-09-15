@@ -6,6 +6,7 @@ import { RemoteMcpConnection } from "../upstream/remoteMcpConnection.js";
 import { ToolRegistry } from "../upstream/toolRegistry.js";
 import type { UpstreamConnection } from "../upstream/upstreamConnection.js";
 import { validateSafeEndpointUrl } from "../policy/urlValidator.js";
+import type { IamDelegationClient } from "../auth/iamDelegationClient.js";
 
 export interface RequestLogger {
   warn(context: Record<string, unknown>, message: string): void;
@@ -24,6 +25,7 @@ type ConnectionFactory = (
   headers: Record<string, string>,
 ) => Promise<UpstreamConnection>;
 type EndpointValidator = (endpointUrl: string) => Promise<void>;
+type DelegationClient = Pick<IamDelegationClient, "exchange">;
 
 const defaultConnectionFactory: ConnectionFactory = async (config, headers) => {
   const connection = await RemoteMcpConnection.connect(config, headers);
@@ -43,25 +45,49 @@ export class RequestToolRegistryBuilder {
     private readonly customUpstreams?: CustomUpstreamSource,
     private readonly connectionFactory: ConnectionFactory = defaultConnectionFactory,
     private readonly endpointValidator: EndpointValidator = validateSafeEndpointUrl,
+    private readonly delegatedUpstreams: readonly UpstreamConfig[] = [],
+    private readonly delegationClient?: DelegationClient,
   ) {}
 
   async build(
     principal: AuthenticatedPrincipal | undefined,
     logger: RequestLogger,
+    subjectToken?: string,
   ): Promise<RequestToolRegistry> {
-    if (!principal || !this.customUpstreams) {
+    if (!principal) {
       return sharedRegistry(this.baseRegistry);
     }
 
-    const upstreams = await this.customUpstreams.list(principal.userId);
-    const enabled = upstreams.filter((upstream) => upstream.isEnabled);
-    if (enabled.length === 0) {
+    if (this.delegatedUpstreams.length > 0 && (!subjectToken || !this.delegationClient)) {
+      throw new Error("Gateway delegation is not configured for this authenticated request");
+    }
+
+    const customUpstreams = this.customUpstreams
+      ? await this.customUpstreams.list(principal.userId)
+      : [];
+    const enabled = customUpstreams.filter((upstream) => upstream.isEnabled);
+    if (this.delegatedUpstreams.length === 0 && enabled.length === 0) {
       return sharedRegistry(this.baseRegistry);
     }
 
     const registry = this.baseRegistry.clone();
     const connections: UpstreamConnection[] = [];
     const activeCustomPrefixes: string[] = [];
+
+    try {
+      for (const upstream of this.delegatedUpstreams) {
+        if (upstream.auth.mode !== "gateway-delegation") continue;
+        const accessToken = await this.delegationClient!.exchange(subjectToken!, upstream.auth);
+        const connection = await this.connectionFactory(upstream, {
+          Authorization: `Bearer ${accessToken}`,
+        });
+        await registry.addRoute(connection);
+        connections.push(connection);
+      }
+    } catch (error) {
+      await Promise.all(connections.map((connection) => connection.close()));
+      throw error;
+    }
 
     for (const upstream of enabled) {
       const connection = await this.addCustomUpstream(
@@ -106,6 +132,7 @@ export class RequestToolRegistryBuilder {
           transport: "streamable-http",
           enabled: true,
           timeoutMs: 30000,
+          auth: { mode: "provider-credential" },
           headers: {},
         },
         authorizationHeaders(auth),
