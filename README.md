@@ -43,7 +43,8 @@ External Secrets Operator가 `PGUSER`, `PGPASSWORD`로 주입합니다. 관리�
 - `PGUSER`, `PGPASSWORD`: Secret으로만 주입
 - `PGPOOL_MAX`: 연결 풀 상한, 기본값 `10`
 - `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`: 인증 캐시 및 `auth:events` Stream
-- `API_KEY_AUTH_ENABLED`: 호출자 키 배포 전에는 `false`, 강제 인증 전환 시 `true`
+- `MCP_RESOURCE_URL`: IAM 토큰의 대상이 되는 공개 MCP URL (기본값 `https://tools-gateway.lynply.com/mcp`)
+- `MCP_OAUTH_SCOPE`: `/mcp` 접속에 필요한 OAuth 스코프 (기본값 `mcp`)
 
 첫 마이그레이션은 `users`, `user_service_permissions`, `api_keys`,
 `user_mcp_upstreams`, `tool_usage_logs`와 `schema_migrations`를 생성하고
