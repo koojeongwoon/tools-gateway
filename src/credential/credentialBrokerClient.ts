@@ -9,6 +9,8 @@ export interface CredentialConnection {
   allowed_actions: string[];
   granted_scopes: string[];
   status: "ACTIVE" | "EXPIRED" | "REVOKED";
+  credential_schema: string;
+  configuration: Record<string, unknown>;
   masked_hint?: string | null;
   credential_version: number;
   expires_at?: string | null | undefined;
@@ -17,18 +19,24 @@ export interface CredentialConnection {
   updated_at: string;
 }
 
+export interface CredentialDocument {
+  schema: string;
+  values: Record<string, unknown>;
+}
+
 export interface RegisterCredentialConnection {
   owner_type: CredentialOwnerType;
   provider: string;
   allowed_actions: string[];
   granted_scopes: string[];
-  secret: string;
+  configuration: Record<string, unknown>;
+  credential: CredentialDocument;
   expires_at?: string | null | undefined;
 }
 
 export interface RotateCredentialConnection {
   owner_type: CredentialOwnerType;
-  secret: string;
+  credential: CredentialDocument;
   expires_at?: string | null | undefined;
 }
 

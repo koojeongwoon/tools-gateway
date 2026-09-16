@@ -7,19 +7,29 @@ import {
 } from "../credential/credentialBrokerClient.js";
 
 const OwnerType = z.enum(["USER", "TENANT"]);
+const SchemaName = z.string().regex(/^[a-z0-9][a-z0-9-]{0,31}\/v[1-9][0-9]*$/);
+const DocumentObject = z.record(z.string().regex(/^[A-Za-z][A-Za-z0-9_]{0,63}$/), z.json())
+  .refine((value) => Object.keys(value).length > 0 && Object.keys(value).length <= 64);
+const Configuration = z.record(z.string(), z.json())
+  .refine((value) => Object.keys(value).length <= 64);
+const Credential = z.object({
+  schema: SchemaName,
+  values: DocumentObject,
+}).strict();
 const RegisterRequest = z.object({
   owner_type: OwnerType,
   provider: z.string().min(1).max(64),
   allowed_actions: z.array(z.string().min(1)).min(1),
   granted_scopes: z.array(z.string().min(1)).default([]),
-  secret: z.string().min(1),
+  configuration: Configuration.default({}),
+  credential: Credential,
   expires_at: z.string().datetime({ offset: true }).nullable().optional(),
-});
+}).strict();
 const RotateRequest = z.object({
   owner_type: OwnerType,
-  secret: z.string().min(1),
+  credential: Credential,
   expires_at: z.string().datetime({ offset: true }).nullable().optional(),
-});
+}).strict();
 const OwnerQuery = z.object({ owner_type: OwnerType });
 const ConnectionParams = z.object({ connectionId: z.string().uuid() });
 

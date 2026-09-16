@@ -8,6 +8,8 @@ const connection = {
   allowed_actions: ["embedding.create"],
   granted_scopes: [],
   status: "ACTIVE" as const,
+  credential_schema: "bearer/v1",
+  configuration: {},
   masked_hint: "****alue",
   credential_version: 1,
   expires_at: null,
@@ -44,7 +46,11 @@ describe("CredentialBrokerClient", () => {
       provider: "OPENAI",
       allowed_actions: ["embedding.create"],
       granted_scopes: [],
-      secret: "synthetic-secret-value",
+      configuration: {},
+      credential: {
+        schema: "bearer/v1",
+        values: { token: "synthetic-secret-value" },
+      },
     });
 
     expect(result).toEqual(connection);
