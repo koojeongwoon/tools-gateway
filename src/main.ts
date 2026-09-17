@@ -20,7 +20,6 @@ import { EnvelopeCrypto } from "./crypto/envelopeCrypto.js";
 import { AuditLogger } from "./audit/auditLogger.js";
 import { registerManagementRoutes } from "./api/managementRoutes.js";
 import { registerSecurityPlugins } from "./server/registerSecurityPlugins.js";
-import { IamAiCredentialClient } from "./credential/iamAiCredentialClient.js";
 import { loadR2AuditConfig } from "./config/r2.js";
 import { R2AuditArchiver } from "./audit/r2AuditArchiver.js";
 import { registerMcpRoutes } from "./api/mcpRoutes.js";
@@ -135,13 +134,6 @@ if (oauthConfig) {
     new ApiKeyService(databasePool, keyVerifier),
     customUpstreamService,
     () => registry.list().map((tool) => tool.publicName),
-    new IamAiCredentialClient(
-      oauthConfig.authServerUrl,
-      5000,
-      oauthConfig.clientId,
-      oauthConfig.clientSecret,
-    ),
-    oauthConfig.tenantId,
     credentialBrokerClient,
   );
 }

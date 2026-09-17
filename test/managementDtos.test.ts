@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CreateUpstreamRequestDto, SaveAiKeyRequestDto } from "../src/api/dtos/managementDtos.js";
+import { CreateUpstreamRequestDto } from "../src/api/dtos/managementDtos.js";
 
 describe("custom upstream request DTO", () => {
   it("accepts only the implemented Streamable HTTP transport", () => {
@@ -29,15 +29,5 @@ describe("custom upstream request DTO", () => {
       endpointUrl: "https://mcp.example.com/mcp",
       authMode: "gateway-delegation",
     }).success).toBe(false);
-  });
-
-  it("does not include caller-selected AI credential ownership", () => {
-    const parsed = SaveAiKeyRequestDto.parse({
-      provider: "OPENAI_API_KEY",
-      apiKey: "sk-test",
-      accountType: "USER",
-    });
-
-    expect(parsed).toEqual({ provider: "OPENAI_API_KEY", apiKey: "sk-test" });
   });
 });

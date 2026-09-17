@@ -26,18 +26,6 @@ export const CreateUpstreamRequestDto = z.object({
 }).strict();
 export type CreateUpstreamRequestDto = z.infer<typeof CreateUpstreamRequestDto>;
 
-export const SaveAiKeyRequestDto = z.object({
-  provider: z.enum(["OPENAI_API_KEY", "EMBEDDING_API_KEY"]),
-  apiKey: z.string().trim().min(1),
-});
-export type SaveAiKeyRequestDto = z.infer<typeof SaveAiKeyRequestDto>;
-
-export const CheckDeviceRequestDto = z.object({
-  deviceAuthId: z.string().trim().min(1),
-  userCode: z.string().trim().min(1),
-});
-export type CheckDeviceRequestDto = z.infer<typeof CheckDeviceRequestDto>;
-
 export class ManagementDtoAdapter {
   static parseCreateKey(input: unknown): CreateKeyRequestDto {
     return CreateKeyRequestDto.parse(input);
@@ -47,11 +35,4 @@ export class ManagementDtoAdapter {
     return CreateUpstreamRequestDto.parse(input);
   }
 
-  static parseSaveAiKey(input: unknown): SaveAiKeyRequestDto {
-    return SaveAiKeyRequestDto.parse(input);
-  }
-
-  static parseCheckDevice(input: unknown): CheckDeviceRequestDto {
-    return CheckDeviceRequestDto.parse(input);
-  }
 }

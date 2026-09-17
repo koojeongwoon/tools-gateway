@@ -70,46 +70,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     </header>
 
     <div id="dashboard-content" style="display: flex; flex-direction: column; gap: 1.5rem;">
-            <!-- 🤖 AI Credentials (Codex OAuth / OpenAI / Embedding Keys) -->
-      <section class="card">
-        <h2>
-          <span>🤖 테넌트 공용 AI 자격증명 & Codex OAuth 연동</span>
-          <button class="btn btn-outline" onclick="loadAiCredentials()">🔄 새로고침</button>
-        </h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-top: 1rem;">
-          
-          <!-- Codex OAuth Card -->
-          <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between; gap: 0.8rem;">
-            <div>
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h4 style="font-size: 0.95rem; color: var(--text-bright);">OpenAI Codex OAuth</h4>
-                <span id="codex-status" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 12px; font-weight: bold; background: rgba(248, 81, 73, 0.15); color: var(--danger); border: 1px solid rgba(248, 81, 73, 0.4);">확인 중...</span>
-              </div>
-              <p style="font-size: 0.8rem; color: #8b949e; margin-top: 0.4rem;">에이전트 코드 추론 및 도구 호출 전용 OAuth 세션</p>
-            </div>
-            <div id="codex-actions">
-              <button class="btn btn-primary" style="width: 100%;" onclick="startCodexLink()">🔗 OpenAI 계정 연동하기</button>
-            </div>
-          </div>
-
-          <!-- OpenAI API Key Card -->
-          <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between; gap: 0.8rem;">
-            <div>
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h4 style="font-size: 0.95rem; color: var(--text-bright);">OpenAI API Key (벡터 임베딩 & 완성)</h4>
-                <span id="openai-status" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 12px; font-weight: bold; background: rgba(248, 81, 73, 0.15); color: var(--danger); border: 1px solid rgba(248, 81, 73, 0.4);">미등록</span>
-              </div>
-              <p id="openai-hint" style="font-size: 0.8rem; color: #8b949e; margin-top: 0.4rem;">테넌트 공용: 지식베이스/도구 벡터 임베딩 및 인덱싱 처리용 API 키 (sk-...)</p>
-            </div>
-            <button class="btn btn-outline" style="width: 100%;" onclick="openKeyInputModal('OPENAI_API_KEY', 'OpenAI API Key')">🔑 API Key 설정</button>
-          </div>
-
-
-
-        </div>
-      </section>
-
-<!-- API Keys Section -->
+      <!-- API Keys Section -->
       <section class="card">
         <h2>
           🔑 내 API Key 목록
@@ -241,7 +202,6 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             loadKeys();
             loadUpstreams();
             loadPermissions();
-            loadAiCredentials();
             document.getElementById('dashboard-content').style.display = 'flex';
             return;
           }
@@ -264,153 +224,6 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
       const response = await fetch('/api/v1/auth/logout', { method: 'POST' });
       const { signoutUrl } = await response.json();
       location.href = signoutUrl;
-    }
-
-        // ================= AI Credentials Functions =================
-    let pollInterval = null;
-    let currentVerifyUrl = "";
-
-    async function loadAiCredentials() {
-      try {
-        const res = await fetch('/api/v1/ai-credentials/bundle');
-        if (!res.ok) return;
-        const bundle = await res.json();
-        
-        // Codex
-        const codexStatus = document.getElementById('codex-status');
-        const codexActions = document.getElementById('codex-actions');
-        if (bundle.codex && bundle.codex.linked) {
-          codexStatus.textContent = "🟢 연동됨";
-          codexStatus.className = "status-badge linked";
-          codexActions.innerHTML = '<button class="btn btn-danger" style="width: 100%;" onclick="unlinkCodex()">연동 해제</button>';
-        } else {
-          codexStatus.textContent = "🔴 미연동";
-          codexStatus.className = "status-badge unlinked";
-          codexActions.innerHTML = '<button class="btn btn-primary" style="width: 100%;" onclick="startCodexLink()">🔗 OpenAI 계정 연동하기</button>';
-        }
-
-        // OpenAI Key
-        const openaiStatus = document.getElementById('openai-status');
-        const openaiHint = document.getElementById('openai-hint');
-        if (bundle.openai_api_key && bundle.openai_api_key.configured) {
-          openaiStatus.textContent = "🟢 등록됨";
-          openaiStatus.className = "status-badge linked";
-          openaiHint.textContent = "등록된 키: " + (bundle.openai_api_key.masked_hint || "sk-***");
-        } else {
-          openaiStatus.textContent = "🔴 미등록";
-          openaiStatus.className = "status-badge unlinked";
-          openaiHint.textContent = "테넌트 공용 범용 LLM 완성 API 키 (sk-...)";
-        }
-
-        // Sync embedding key automatically if openai key is set
-        if (bundle.openai_api_key && bundle.openai_api_key.configured && (!bundle.embedding_api_key || !bundle.embedding_api_key.configured)) {
-          // Both share the same central OpenAI credential
-        }
-      } catch (e) {
-        console.error("Failed to load AI bundle", e);
-      }
-    }
-
-    async function startCodexLink() {
-      try {
-        const res = await fetch('/api/v1/ai-credentials/codex/device/start', { method: 'POST' });
-        if (!res.ok) {
-          alert("Device Flow 시작 실패");
-          return;
-        }
-        const initData = await res.json();
-        document.getElementById('device-user-code').textContent = initData.user_code;
-        currentVerifyUrl = initData.verification_uri_complete || initData.verification_uri;
-        document.getElementById('codex-modal').style.display = 'flex';
-        
-        if (pollInterval) clearInterval(pollInterval);
-        pollInterval = setInterval(async () => {
-          try {
-            const checkRes = await fetch('/api/v1/ai-credentials/codex/device/check', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                deviceAuthId: initData.device_auth_id || initData.device_code,
-                userCode: initData.user_code
-              })
-            });
-            if (checkRes.ok) {
-              clearInterval(pollInterval);
-              document.getElementById('device-polling-status').textContent = "🎉 연동 성공!";
-              document.getElementById('device-polling-status').style.color = "var(--success)";
-              setTimeout(() => {
-                closeCodexModal();
-                loadAiCredentials();
-              }, 1200);
-            }
-          } catch (e) {}
-        }, 3000);
-      } catch (err) {
-        alert("Codex 연동 시작 에러: " + err);
-      }
-    }
-
-    function copyUserCode() {
-      const code = document.getElementById('device-user-code').textContent;
-      navigator.clipboard.writeText(code);
-      alert("인증 코드 " + code + " 가 클립보드에 복사되었습니다!");
-    }
-
-    function openVerifyUri() {
-      if (currentVerifyUrl) {
-        window.open(currentVerifyUrl, '_blank');
-      }
-    }
-
-    function closeCodexModal() {
-      if (pollInterval) clearInterval(pollInterval);
-      document.getElementById('codex-modal').style.display = 'none';
-    }
-
-    async function unlinkCodex() {
-      if (!confirm("정말 Codex 연동을 해제하시겠습니까?")) return;
-      await fetch('/api/v1/ai-credentials/keys/CODEX_OAUTH', { method: 'DELETE' });
-      loadAiCredentials();
-    }
-
-    function openKeyInputModal(provider, title) {
-      document.getElementById('key-provider').value = provider;
-      document.getElementById('key-input-title').textContent = title + " 설정";
-      document.getElementById('key-val').value = "";
-      document.getElementById('key-input-modal').style.display = 'flex';
-    }
-
-    function closeKeyInputModal() {
-      document.getElementById('key-input-modal').style.display = 'none';
-    }
-
-    async function saveAiKey(e) {
-      e.preventDefault();
-      const provider = document.getElementById('key-provider').value;
-      const apiKey = document.getElementById('key-val').value;
-      try {
-        const res = await fetch('/api/v1/ai-credentials/keys', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ provider, apiKey })
-        });
-        if (res.ok) {
-          closeKeyInputModal();
-          loadAiCredentials();
-        } else {
-          alert("키 저장 실패");
-        }
-      } catch (err) {
-        alert("키 저장 에러: " + err);
-      }
-    }
-
-    async function deleteAiKey() {
-      const provider = document.getElementById('key-provider').value;
-      if (!confirm("정말 이 API Key를 삭제하시겠습니까?")) return;
-      await fetch('/api/v1/ai-credentials/keys/' + provider, { method: 'DELETE' });
-      closeKeyInputModal();
-      loadAiCredentials();
     }
 
     async function loadKeys() {
