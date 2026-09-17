@@ -4,23 +4,23 @@ import { IamAiCredentialClient } from "../src/credential/iamAiCredentialClient.j
 describe("IamAiCredentialClient contract", () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it("uses the tenant-scoped Basic-auth bundle contract and exposes only status", async () => {
+  it("uses the tenant-scoped status contract that cannot return provider credentials", async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
-      codex: { linked: true, access_token: "raw-codex-token", source: "USER" },
-      openai_api_key: { configured: true, api_key: "raw-openai-key", masked_hint: "sk-***1234" },
+      codex: { linked: false },
+      openai_api_key: { configured: true, masked_hint: "sk-***1234", source: "ORGANIZATION" },
       embedding_api_key: { configured: false },
     })));
     vi.stubGlobal("fetch", fetchMock);
     const client = new IamAiCredentialClient("https://iam.example", 5000, "gateway", "secret");
 
     await expect(client.getCredentialStatus("tenant-1")).resolves.toEqual({
-      codex: { linked: true, source: "USER" },
-      openai_api_key: { configured: true, masked_hint: "sk-***1234" },
+      codex: { linked: false },
+      openai_api_key: { configured: true, masked_hint: "sk-***1234", source: "ORGANIZATION" },
       embedding_api_key: { configured: false },
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://iam.example/api/v1/credentials/ai-bundle?tenant_id=tenant-1",
+      "https://iam.example/api/v1/credentials/ai-status?tenant_id=tenant-1",
       expect.objectContaining({
         headers: { Authorization: "Basic Z2F0ZXdheTpzZWNyZXQ=" },
       }),

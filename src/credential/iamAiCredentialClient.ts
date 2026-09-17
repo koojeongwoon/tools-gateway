@@ -2,24 +2,19 @@
  * IAM 중앙 인증 서버의 테넌트 공용 AI 자격증명과 Codex Device Flow를 호출하는 클라이언트.
  */
 
-interface ServiceAiBundle {
+interface ServiceAiCredentialStatus {
   tenant_id?: string;
   codex?: {
     linked: boolean;
-    access_token?: string;
-    token_type?: string;
-    expires_in?: number;
     source?: string;
   };
   openai_api_key?: {
     configured: boolean;
-    api_key?: string;
     masked_hint?: string;
     source?: string;
   };
   embedding_api_key?: {
     configured: boolean;
-    api_key?: string;
     masked_hint?: string;
     source?: string;
   };
@@ -68,13 +63,12 @@ export class IamAiCredentialClient {
   }
 
   /**
-   * IAM service contract: a registered service may obtain a tenant-scoped
-   * bundle with its client credentials. Callers must not forward this raw
-   * bundle to a browser.
+   * IAM service contract: a registered service obtains tenant-scoped status
+   * metadata only. Provider credentials never enter the Gateway process.
    */
-  async getServiceAiBundle(tenantId: string): Promise<ServiceAiBundle | null> {
+  async getServiceCredentialStatus(tenantId: string): Promise<ServiceAiCredentialStatus | null> {
     const query = new URLSearchParams({ tenant_id: tenantId });
-    const url = `${this.baseUrl}/api/v1/credentials/ai-bundle?${query}`;
+    const url = `${this.baseUrl}/api/v1/credentials/ai-status?${query}`;
 
     try {
       const response = await fetch(url, {
@@ -89,34 +83,34 @@ export class IamAiCredentialClient {
         return null;
       }
 
-      return (await response.json()) as ServiceAiBundle;
+      return (await response.json()) as ServiceAiCredentialStatus;
     } catch (err) {
-      console.warn(`[IamAiCredentialClient] Failed to fetch AI bundle from ${this.baseUrl}:`, err);
+      console.warn(`[IamAiCredentialClient] Failed to fetch AI credential status from ${this.baseUrl}:`, err);
       return null;
     }
   }
 
   async getCredentialStatus(tenantId: string): Promise<AiCredentialStatus | null> {
-    const bundle = await this.getServiceAiBundle(tenantId);
-    if (!bundle) return null;
+    const status = await this.getServiceCredentialStatus(tenantId);
+    if (!status) return null;
     return {
       codex: {
-        linked: bundle.codex?.linked === true,
-        ...(bundle.codex?.source ? { source: bundle.codex.source } : {}),
+        linked: status.codex?.linked === true,
+        ...(status.codex?.source ? { source: status.codex.source } : {}),
       },
       openai_api_key: {
-        configured: bundle.openai_api_key?.configured === true,
-        ...(bundle.openai_api_key?.masked_hint
-          ? { masked_hint: bundle.openai_api_key.masked_hint }
+        configured: status.openai_api_key?.configured === true,
+        ...(status.openai_api_key?.masked_hint
+          ? { masked_hint: status.openai_api_key.masked_hint }
           : {}),
-        ...(bundle.openai_api_key?.source ? { source: bundle.openai_api_key.source } : {}),
+        ...(status.openai_api_key?.source ? { source: status.openai_api_key.source } : {}),
       },
       embedding_api_key: {
-        configured: bundle.embedding_api_key?.configured === true,
-        ...(bundle.embedding_api_key?.masked_hint
-          ? { masked_hint: bundle.embedding_api_key.masked_hint }
+        configured: status.embedding_api_key?.configured === true,
+        ...(status.embedding_api_key?.masked_hint
+          ? { masked_hint: status.embedding_api_key.masked_hint }
           : {}),
-        ...(bundle.embedding_api_key?.source ? { source: bundle.embedding_api_key.source } : {}),
+        ...(status.embedding_api_key?.source ? { source: status.embedding_api_key.source } : {}),
       },
     };
   }
