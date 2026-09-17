@@ -4,8 +4,6 @@ import type { CustomUpstreamService } from "./customUpstreamService.js";
 import type { OAuthSessionStore, GatewaySession } from "../auth/oauthSession.js";
 import { DASHBOARD_HTML } from "../ui/dashboardHtml.js";
 import { registerGatewayResourceRoutes } from "./gatewayResourceRoutes.js";
-import { CredentialBrokerClient } from "../credential/credentialBrokerClient.js";
-import { registerCredentialConnectionRoutes } from "./credentialConnectionRoutes.js";
 
 export function registerManagementRoutes(
   app: FastifyInstance,
@@ -13,7 +11,6 @@ export function registerManagementRoutes(
   apiKeys: ApiKeyService,
   upstreams: CustomUpstreamService,
   toolCatalog: () => readonly string[],
-  credentialBrokerClient?: CredentialBrokerClient,
 ): void {
   // 메인 접속 시 비로그인 상태면 테넌트 SSO 로그인 화면으로 즉시 리다이렉트
   app.get("/", async (request, reply) => {
@@ -81,9 +78,6 @@ export function registerManagementRoutes(
     toolCatalog,
     authenticatedUserId: (request) => authenticatedUserId(request, sessions, apiKeys),
   });
-  if (credentialBrokerClient) {
-    registerCredentialConnectionRoutes(app, sessions, credentialBrokerClient);
-  }
 }
 
 async function authenticatedUserSession(

@@ -23,7 +23,6 @@ import { registerSecurityPlugins } from "./server/registerSecurityPlugins.js";
 import { loadR2AuditConfig } from "./config/r2.js";
 import { R2AuditArchiver } from "./audit/r2AuditArchiver.js";
 import { registerMcpRoutes } from "./api/mcpRoutes.js";
-import { CredentialBrokerClient } from "./credential/credentialBrokerClient.js";
 import { loadMcpOAuthConfig, McpOAuthVerifier } from "./auth/mcpOAuthVerifier.js";
 import { IamDelegationClient } from "./auth/iamDelegationClient.js";
 
@@ -116,25 +115,12 @@ if (oauthConfig) {
   if (!databasePool || !redis || !keyVerifier || !customUpstreamService) {
     throw new Error("SSO management API requires database, Redis and customUpstreamService");
   }
-  const credentialBrokerUrl = process.env.CREDENTIAL_BROKER_URL?.trim();
-  const credentialBrokerClient = credentialBrokerUrl
-    ? new CredentialBrokerClient(
-        credentialBrokerUrl,
-        oauthConfig.authServerUrl,
-        oauthConfig.tenantId,
-        process.env.CREDENTIAL_BROKER_CLIENT_ID ?? "credential-broker",
-        process.env.CREDENTIAL_BROKER_TARGET_ORG_ID?.trim() || undefined,
-        process.env.CREDENTIAL_BROKER_WORKLOAD_TOKEN_FILE
-          ?? "/var/run/secrets/credential-broker/token",
-      )
-    : undefined;
   registerManagementRoutes(
     app,
     new OAuthSessionStore(redis, oauthConfig),
     new ApiKeyService(databasePool, keyVerifier),
     customUpstreamService,
     () => registry.list().map((tool) => tool.publicName),
-    credentialBrokerClient,
   );
 }
 
