@@ -6,10 +6,19 @@ import type { AuthenticatedPrincipal } from "./scopeGuard.js";
 const cacheTtlSeconds = 60;
 
 export class KeyVerifier {
+  private readonly serviceAccessEnforcementEnabled: boolean;
+  private readonly clientId: string;
+
   constructor(
     private readonly pool: Pool,
     private readonly redis: RedisClientType,
-  ) {}
+    options?: { serviceAccessEnforcementEnabled?: boolean; clientId?: string },
+  ) {
+    this.serviceAccessEnforcementEnabled = options?.serviceAccessEnforcementEnabled
+      ?? (process.env.TOOLS_GATEWAY_SERVICE_ACCESS_ENFORCEMENT_ENABLED === "true");
+    this.clientId = options?.clientId
+      ?? (process.env.TOOLS_GATEWAY_CLIENT_ID ?? "tools-gateway-service");
+  }
 
   async verify(rawKey: string): Promise<AuthenticatedPrincipal | undefined> {
     if (!rawKey.startsWith("tg_live_") || rawKey.length < 32) return undefined;
@@ -40,9 +49,17 @@ export class KeyVerifier {
           AND k.is_active AND u.is_active AND u.lifecycle_status = 'ACTIVE'
           AND EXISTS (SELECT 1 FROM iam_user_lifecycle_health
                        WHERE singleton AND last_seen_at > NOW() - INTERVAL '60 seconds')
+          ${this.serviceAccessEnforcementEnabled ? `
+          AND EXISTS (SELECT 1 FROM iam_user_service_access_health
+                       WHERE singleton AND last_seen_at > NOW() - INTERVAL '60 seconds')
+          AND NOT EXISTS (SELECT 1 FROM iam_user_service_access_states s
+                           WHERE s.tenant_id = u.tenant_id
+                             AND s.subject_id = u.external_subject_id
+                             AND s.client_id = $3
+                             AND s.service_access_status <> 'ACTIVE')` : ""}
           AND (k.expires_at IS NULL OR k.expires_at > NOW())
         GROUP BY k.id, u.id, u.system_role, k.allowed_scopes`,
-      [prefix, hash],
+      this.serviceAccessEnforcementEnabled ? [prefix, hash, this.clientId] : [prefix, hash],
     );
     const row = result.rows[0];
     if (!row) return undefined;

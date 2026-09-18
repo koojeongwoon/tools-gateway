@@ -9,7 +9,9 @@ const oauthConfig = {
   issuer: "https://auth.snappytory.com/t/tenant-a",
   jwksUri: "https://auth.snappytory.com/t/tenant-a/oauth2/jwks",
   tenantId: "tenant-a",
+  clientId: "tools-gateway-service",
   requiredScope: "mcp",
+  serviceAccessEnforcementEnabled: false,
 };
 
 describe("MCP routes", () => {

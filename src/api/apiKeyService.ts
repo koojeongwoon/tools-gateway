@@ -18,6 +18,7 @@ export class ApiKeyService {
       email: session.email,
       ...(session.name ? { name: session.name } : {}),
       userVersion: session.userVersion,
+      ...(session.serviceAccessVersion !== undefined ? { serviceAccessVersion: session.serviceAccessVersion } : {}),
     });
   }
 

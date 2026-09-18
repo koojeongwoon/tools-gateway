@@ -19,6 +19,7 @@ export interface OAuthConfig {
   scope: string;
   sessionTtlSeconds: number;
   loginTtlSeconds: number;
+  serviceAccessEnforcementEnabled: boolean;
 }
 
 interface SessionRecord {
@@ -27,6 +28,7 @@ interface SessionRecord {
   email: string;
   name?: string;
   userVersion: number;
+  serviceAccessVersion?: number;
   /**
    * IAM delegated token for server-side calls made on behalf of this session.
    * It is retained only in the opaque Redis session and is never returned by
@@ -43,6 +45,7 @@ export interface GatewaySession {
   email: string;
   name?: string;
   userVersion: number;
+  serviceAccessVersion?: number;
   /** Server-internal delegated IAM credential; never serialize this to clients. */
   iamAccessToken?: string;
 }
@@ -78,6 +81,7 @@ export function loadOAuthConfig(environment: NodeJS.ProcessEnv = process.env): O
     scope: environment.TOOLS_GATEWAY_OAUTH_SCOPE ?? "openid profile email",
     sessionTtlSeconds: Number(environment.GATEWAY_SESSION_TTL_SECONDS ?? 2_592_000),
     loginTtlSeconds: Number(environment.OAUTH_LOGIN_TTL_SECONDS ?? 300),
+    serviceAccessEnforcementEnabled: environment.TOOLS_GATEWAY_SERVICE_ACCESS_ENFORCEMENT_ENABLED === "true",
   };
 }
 
@@ -156,6 +160,12 @@ export class OAuthSessionStore {
         await this.redis.del(this.sessionKey(sessionId));
         return undefined;
       }
+      if (this.config.serviceAccessEnforcementEnabled) {
+        if (!session.serviceAccessVersion || session.serviceAccessVersion < 1) {
+          await this.redis.del(this.sessionKey(sessionId));
+          return undefined;
+        }
+      }
       return this.principal(session);
     } catch {
       await this.redis.del(this.sessionKey(sessionId));
@@ -196,6 +206,7 @@ export class OAuthSessionStore {
       email?: string;
       name?: string;
       user_version?: string | number;
+      service_access_version?: string | number;
     } = verified.payload;
     const idClaims = typeof payload.id_token === "string"
       ? (await jwtVerify(payload.id_token, this.jwks, {
@@ -218,12 +229,20 @@ export class OAuthSessionStore {
     if (!Number.isSafeInteger(userVersion) || userVersion < 1) {
       throw new Error("OAuth token user_version is invalid");
     }
+    let serviceAccessVersion: number | undefined;
+    if (this.config.serviceAccessEnforcementEnabled) {
+      serviceAccessVersion = Number(claims.service_access_version);
+      if (!Number.isSafeInteger(serviceAccessVersion) || (serviceAccessVersion ?? 0) < 1) {
+        throw new Error("OAuth token service_access_version is invalid or missing");
+      }
+    }
     return {
       subject: claims.sub,
       tenantId: claims.tenant_id,
       email: claims.email,
       ...(claims.name ? { name: claims.name } : {}),
       userVersion,
+      ...(serviceAccessVersion !== undefined ? { serviceAccessVersion } : {}),
       iamAccessToken: payload.access_token,
       iamAccessTokenExpiresAt: claims.exp,
       expiresAt: Math.floor(Date.now() / 1000) + this.config.sessionTtlSeconds,
@@ -237,6 +256,7 @@ export class OAuthSessionStore {
       email: session.email,
       ...(session.name ? { name: session.name } : {}),
       userVersion: session.userVersion,
+      ...(session.serviceAccessVersion !== undefined ? { serviceAccessVersion: session.serviceAccessVersion } : {}),
       ...(session.iamAccessTokenExpiresAt > Math.floor(Date.now() / 1000)
         ? { iamAccessToken: session.iamAccessToken }
         : {}),

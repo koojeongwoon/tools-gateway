@@ -70,4 +70,97 @@ describe("MCP OAuth verifier", () => {
     )).resolves.toBeUndefined();
     expect(query).not.toHaveBeenCalled();
   });
+
+  describe("service access enforcement", () => {
+    const enforcedConfig = { ...config, serviceAccessEnforcementEnabled: true };
+
+    it("rejects token without service_access_version when enforcement is enabled", async () => {
+      const { publicKey, privateKey } = await generateKeyPair("RS256");
+      const token = await new SignJWT({
+        tenant_id: "tenant-a", scope: "openid mcp", email: "user@example.com", name: "User", user_version: 1,
+      })
+        .setProtectedHeader({ alg: "RS256" })
+        .setIssuer(enforcedConfig.issuer)
+        .setAudience(enforcedConfig.resource)
+        .setSubject("iam-user-1")
+        .setIssuedAt()
+        .setExpirationTime("5m")
+        .sign(privateKey);
+      const query = vi.fn();
+
+      const principal = await new McpOAuthVerifier({ query } as never, enforcedConfig, async () => publicKey).verify(token);
+      expect(principal).toBeUndefined();
+      expect(query).not.toHaveBeenCalled();
+    });
+
+    it("rejects token when service access consumer is stale", async () => {
+      const { publicKey, privateKey } = await generateKeyPair("RS256");
+      const token = await new SignJWT({
+        tenant_id: "tenant-a", scope: "openid mcp", email: "user@example.com", name: "User", user_version: 1, service_access_version: 1,
+      })
+        .setProtectedHeader({ alg: "RS256" })
+        .setIssuer(enforcedConfig.issuer)
+        .setAudience(enforcedConfig.resource)
+        .setSubject("iam-user-1")
+        .setIssuedAt()
+        .setExpirationTime("5m")
+        .sign(privateKey);
+      const query = vi.fn()
+        .mockResolvedValueOnce({ rowCount: 0 }); // health check fails
+
+      const principal = await new McpOAuthVerifier({ query } as never, enforcedConfig, async () => publicKey).verify(token);
+      expect(principal).toBeUndefined();
+    });
+
+    it("rejects token when user service access is inactive", async () => {
+      const { publicKey, privateKey } = await generateKeyPair("RS256");
+      const token = await new SignJWT({
+        tenant_id: "tenant-a", scope: "openid mcp", email: "user@example.com", name: "User", user_version: 1, service_access_version: 1,
+      })
+        .setProtectedHeader({ alg: "RS256" })
+        .setIssuer(enforcedConfig.issuer)
+        .setAudience(enforcedConfig.resource)
+        .setSubject("iam-user-1")
+        .setIssuedAt()
+        .setExpirationTime("5m")
+        .sign(privateKey);
+      const query = vi.fn()
+        .mockResolvedValueOnce({ rowCount: 1 }) // health check ok
+        .mockResolvedValueOnce({ rowCount: 1 }); // blocking state found
+
+      const principal = await new McpOAuthVerifier({ query } as never, enforcedConfig, async () => publicKey).verify(token);
+      expect(principal).toBeUndefined();
+    });
+
+    it("accepts token when service access is valid and ACTIVE", async () => {
+      const { publicKey, privateKey } = await generateKeyPair("RS256");
+      const token = await new SignJWT({
+        tenant_id: "tenant-a", scope: "openid mcp", email: "user@example.com", name: "User", user_version: 1, service_access_version: 2,
+      })
+        .setProtectedHeader({ alg: "RS256" })
+        .setIssuer(enforcedConfig.issuer)
+        .setAudience(enforcedConfig.resource)
+        .setSubject("iam-user-1")
+        .setIssuedAt()
+        .setExpirationTime("5m")
+        .sign(privateKey);
+      const query = vi.fn()
+        .mockResolvedValueOnce({ rowCount: 1 }) // health check ok
+        .mockResolvedValueOnce({ rowCount: 0 }) // no blocking state
+        .mockResolvedValueOnce({ rows: [{ id: "tg-user-1" }] }) // ensureLocalUser
+        .mockResolvedValueOnce({ rows: [{
+          user_id: "tg-user-1",
+          system_role: "USER",
+          tool_patterns: ["knowledge.*"],
+        }] }); // permissions
+
+      const principal = await new McpOAuthVerifier({ query } as never, enforcedConfig, async () => publicKey).verify(token);
+      expect(principal).toEqual({
+        userId: "tg-user-1",
+        systemRole: "USER",
+        toolPatterns: ["knowledge.*"],
+        scopes: ["tool:knowledge.*"],
+      });
+    });
+  });
 });

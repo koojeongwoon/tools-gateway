@@ -272,4 +272,37 @@ INSERT INTO iam_user_lifecycle_health(singleton, last_seen_at) VALUES (TRUE, NOW
 ON CONFLICT (singleton) DO NOTHING;
 `,
   },
+  {
+    version: 12,
+    name: "add_iam_user_service_access_inbox",
+    sql: `
+CREATE TABLE iam_user_service_access_states (
+  tenant_id VARCHAR(100) NOT NULL,
+  subject_id VARCHAR(255) NOT NULL,
+  client_id VARCHAR(100) NOT NULL,
+  service_access_status VARCHAR(20) NOT NULL
+    CHECK (service_access_status IN ('ACTIVE', 'DISABLED', 'WITHDRAWN')),
+  access_version BIGINT NOT NULL,
+  last_event_id VARCHAR(100) NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (tenant_id, subject_id, client_id)
+);
+
+CREATE TABLE iam_user_service_access_events (
+  event_id VARCHAR(100) PRIMARY KEY,
+  tenant_id VARCHAR(100) NOT NULL,
+  subject_id VARCHAR(255) NOT NULL,
+  client_id VARCHAR(100) NOT NULL,
+  access_version BIGINT NOT NULL,
+  processed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE iam_user_service_access_health (
+  singleton BOOLEAN PRIMARY KEY DEFAULT TRUE CHECK (singleton),
+  last_seen_at TIMESTAMPTZ NOT NULL
+);
+INSERT INTO iam_user_service_access_health(singleton, last_seen_at) VALUES (TRUE, NOW())
+ON CONFLICT (singleton) DO NOTHING;
+`,
+  },
 ];

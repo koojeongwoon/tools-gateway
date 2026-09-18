@@ -14,6 +14,7 @@ import { loadRedisConfig } from "./config/redis.js";
 import { KeyVerifier } from "./auth/keyVerifier.js";
 import { UserSyncConsumer } from "./events/userSyncConsumer.js";
 import { UserLifecycleConsumer } from "./events/userLifecycleConsumer.js";
+import { UserServiceAccessConsumer } from "./events/userServiceAccessConsumer.js";
 import { loadOAuthConfig, OAuthSessionStore } from "./auth/oauthSession.js";
 import { ApiKeyService } from "./api/apiKeyService.js";
 import { CustomUpstreamService } from "./api/customUpstreamService.js";
@@ -56,6 +57,17 @@ const userLifecycleConsumer = databasePool && lifecycleRedis && keyVerifier
     })
   : undefined;
 if (userLifecycleConsumer) await userLifecycleConsumer.start();
+
+const serviceAccessRedis = redis?.duplicate();
+if (serviceAccessRedis) await serviceAccessRedis.connect();
+const userServiceAccessConsumer = databasePool && serviceAccessRedis && keyVerifier
+  ? new UserServiceAccessConsumer(serviceAccessRedis, databasePool, keyVerifier, {
+      issuer: lifecycleConfig.issuer,
+      tenantId: lifecycleConfig.tenantId,
+      clientId: lifecycleConfig.clientId,
+    })
+  : undefined;
+if (userServiceAccessConsumer) await userServiceAccessConsumer.start();
 
 const connections = [];
 for (const upstream of config.upstreams.filter(({ enabled, auth }) =>
@@ -158,6 +170,7 @@ const shutdown = async () => {
   await registry.close();
   userSyncConsumer?.stop();
   userLifecycleConsumer?.stop();
+  userServiceAccessConsumer?.stop();
   r2AuditArchiver?.stop();
 
   // Graceful Audit Flush: Flush in-memory queue to PostgreSQL, then trigger final R2 upload
@@ -173,6 +186,7 @@ const shutdown = async () => {
   auditLogger?.stop();
   await eventRedis?.quit();
   await lifecycleRedis?.quit();
+  await serviceAccessRedis?.quit();
   await redis?.quit();
   await databasePool?.end();
 };
