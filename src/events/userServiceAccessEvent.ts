@@ -8,7 +8,7 @@ export const userServiceAccessEventSchema = z.object({
     "USER_SERVICE_DISABLED",
     "USER_SERVICE_WITHDRAWN",
   ]),
-  occurredAt: z.iso.datetime(),
+  occurredAt: z.iso.datetime({ offset: true }),
   issuer: z.url(),
   tenantId: z.string().min(1),
   subjectId: z.string().min(1),

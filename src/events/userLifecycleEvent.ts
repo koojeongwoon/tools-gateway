@@ -15,7 +15,7 @@ export const userLifecycleEventSchema = z.object({
     "USER_REENABLED",
     "USER_DELETED",
   ]),
-  occurredAt: z.iso.datetime(),
+  occurredAt: z.iso.datetime({ offset: true }),
   issuer: z.url(),
   tenantId: z.string().min(1),
   subjectId: z.string().min(1),

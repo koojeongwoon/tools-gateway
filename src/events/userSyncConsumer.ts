@@ -7,7 +7,7 @@ const eventSchema = z.object({
   schema: z.literal("auth.user.v1"),
   eventId: z.string().min(1),
   eventType: z.enum(["USER_CREATED", "USER_UPDATED", "USER_DISABLED", "USER_DELETED"]),
-  occurredAt: z.iso.datetime(),
+  occurredAt: z.iso.datetime({ offset: true }),
   subject: z.object({
     id: z.string().min(1),
     email: z.email(),
