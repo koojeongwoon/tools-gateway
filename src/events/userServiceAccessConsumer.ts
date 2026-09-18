@@ -16,7 +16,8 @@ export async function applyUserServiceAccessEvent(
   invalidateSessions: (subjectId: string) => Promise<void> = async () => undefined,
 ): Promise<boolean> {
   if (event.issuer !== expected.issuer || event.tenantId !== expected.tenantId) {
-    throw new Error("IAM service access event is outside the Gateway tenant boundary");
+    // Other tenant events are acknowledged without local state changes
+    return false;
   }
   if (event.clientId !== expected.clientId) {
     // Other client events are acknowledged without local state changes

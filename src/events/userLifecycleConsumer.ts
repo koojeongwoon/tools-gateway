@@ -16,7 +16,8 @@ export async function applyUserLifecycleEvent(
   invalidateSessions: (subjectId: string) => Promise<void> = async () => undefined,
 ): Promise<boolean> {
   if (event.issuer !== expected.issuer || event.tenantId !== expected.tenantId) {
-    throw new Error("IAM lifecycle event is outside the Gateway tenant boundary");
+    // Other tenant events are acknowledged without local state changes
+    return false;
   }
   const client = await pool.connect();
   let userId: string | undefined;
