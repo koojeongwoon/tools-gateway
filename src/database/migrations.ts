@@ -219,7 +219,57 @@ ALTER TABLE user_mcp_upstreams
   CHECK (transport = 'streamable-http');
 `,
   },
+  {
+    version: 9,
+    name: "add_tenant_user_lifecycle_identity",
+    sql: `
+ALTER TABLE users
+  ADD COLUMN tenant_id VARCHAR(100) NOT NULL DEFAULT 'ten_9664c024babc4110',
+  ADD COLUMN lifecycle_status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
+    CHECK (lifecycle_status IN ('ACTIVE', 'BLOCKED', 'WITHDRAWN')),
+  ADD COLUMN user_version BIGINT NOT NULL DEFAULT 1;
+
+DROP INDEX idx_users_external_identity;
+
+CREATE UNIQUE INDEX idx_users_tenant_external_identity
+  ON users (tenant_id, external_provider, external_subject_id)
+  WHERE external_provider IS NOT NULL AND external_subject_id IS NOT NULL;
+`,
+  },
+  {
+    version: 10,
+    name: "add_iam_user_lifecycle_inbox",
+    sql: `
+CREATE TABLE iam_user_lifecycle_states (
+  tenant_id VARCHAR(100) NOT NULL,
+  subject_id VARCHAR(255) NOT NULL,
+  lifecycle_status VARCHAR(20) NOT NULL
+    CHECK (lifecycle_status IN ('ACTIVE', 'BLOCKED', 'WITHDRAWN')),
+  user_version BIGINT NOT NULL,
+  last_event_id VARCHAR(100) NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (tenant_id, subject_id)
+);
+
+CREATE TABLE iam_user_lifecycle_events (
+  event_id VARCHAR(100) PRIMARY KEY,
+  tenant_id VARCHAR(100) NOT NULL,
+  subject_id VARCHAR(255) NOT NULL,
+  user_version BIGINT NOT NULL,
+  processed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+`,
+  },
+  {
+    version: 11,
+    name: "add_iam_lifecycle_consumer_health",
+    sql: `
+CREATE TABLE iam_user_lifecycle_health (
+  singleton BOOLEAN PRIMARY KEY DEFAULT TRUE CHECK (singleton),
+  last_seen_at TIMESTAMPTZ NOT NULL
+);
+INSERT INTO iam_user_lifecycle_health(singleton, last_seen_at) VALUES (TRUE, NOW())
+ON CONFLICT (singleton) DO NOTHING;
+`,
+  },
 ];
-
-
-

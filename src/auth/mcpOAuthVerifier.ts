@@ -5,6 +5,7 @@ import {
   type JWTVerifyGetKey,
 } from "jose";
 import type { AuthenticatedPrincipal } from "./scopeGuard.js";
+import { EnsureLocalUserService } from "../users/ensureLocalUser.js";
 
 export interface McpOAuthConfig {
   resource: string;
@@ -62,10 +63,21 @@ export class McpOAuthVerifier {
         payload.tenant_id !== this.config.tenantId
         || typeof payload.sub !== "string"
         || payload.sub.length === 0
+        || typeof payload.email !== "string"
+        || payload.email.length === 0
         || !hasScope(payload.scope, this.config.requiredScope)
       ) {
         return undefined;
       }
+      const userVersion = Number(payload.user_version ?? 1);
+      if (!Number.isSafeInteger(userVersion) || userVersion < 1) return undefined;
+      const userId = await new EnsureLocalUserService(this.pool, this.config.tenantId).ensureLocalUser({
+        tenantId: payload.tenant_id,
+        subject: payload.sub,
+        email: payload.email,
+        ...(typeof payload.name === "string" && payload.name ? { name: payload.name } : {}),
+        userVersion,
+      });
 
       const result = await this.pool.query<{
         user_id: string;
@@ -80,11 +92,11 @@ export class McpOAuthVerifier {
            FROM users u
            LEFT JOIN user_tool_permissions p ON p.user_id = u.id
            LEFT JOIN user_mcp_upstreams cu ON cu.user_id = u.id AND cu.is_enabled
-          WHERE u.external_provider = 'snappytory_auth'
-            AND u.external_subject_id = $1
+          WHERE u.id = $1
             AND u.is_active
+            AND u.lifecycle_status = 'ACTIVE'
           GROUP BY u.id, u.system_role`,
-        [payload.sub],
+        [userId],
       );
       const row = result.rows[0];
       if (!row) return undefined;

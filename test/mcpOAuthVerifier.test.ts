@@ -11,7 +11,9 @@ const config = loadMcpOAuthConfig({
 describe("MCP OAuth verifier", () => {
   it("maps a resource-bound IAM token to Gateway tool grants", async () => {
     const { publicKey, privateKey } = await generateKeyPair("RS256");
-    const token = await new SignJWT({ tenant_id: "tenant-a", scope: "openid mcp" })
+    const token = await new SignJWT({
+      tenant_id: "tenant-a", scope: "openid mcp", email: "user@example.com", name: "User", user_version: "2",
+    })
       .setProtectedHeader({ alg: "RS256" })
       .setIssuer(config.issuer)
       .setAudience(config.resource)
@@ -19,11 +21,13 @@ describe("MCP OAuth verifier", () => {
       .setIssuedAt()
       .setExpirationTime("5m")
       .sign(privateKey);
-    const query = vi.fn().mockResolvedValue({ rows: [{
-      user_id: "tg-user-1",
-      system_role: "USER",
-      tool_patterns: ["knowledge.*", "github.search"],
-    }] });
+    const query = vi.fn()
+      .mockResolvedValueOnce({ rows: [{ id: "tg-user-1" }] })
+      .mockResolvedValueOnce({ rows: [{
+        user_id: "tg-user-1",
+        system_role: "USER",
+        tool_patterns: ["knowledge.*", "github.search"],
+      }] });
 
     const principal = await new McpOAuthVerifier({ query } as never, config, async () => publicKey).verify(token);
 
@@ -33,7 +37,7 @@ describe("MCP OAuth verifier", () => {
       toolPatterns: ["knowledge.*", "github.search"],
       scopes: ["tool:knowledge.*", "tool:github.search"],
     });
-    expect(query).toHaveBeenCalledWith(expect.stringContaining("external_subject_id = $1"), ["iam-user-1"]);
+    expect(query).toHaveBeenNthCalledWith(2, expect.stringContaining("WHERE u.id = $1"), ["tg-user-1"]);
   });
 
   it.each([
@@ -42,7 +46,7 @@ describe("MCP OAuth verifier", () => {
     ["missing MCP scope", { audience: config.resource, tenantId: "tenant-a", scope: "openid" }],
   ])("rejects %s", async (_name, claims) => {
     const { publicKey, privateKey } = await generateKeyPair("RS256");
-    const token = await new SignJWT({ tenant_id: claims.tenantId, scope: claims.scope })
+    const token = await new SignJWT({ tenant_id: claims.tenantId, scope: claims.scope, email: "user@example.com" })
       .setProtectedHeader({ alg: "RS256" })
       .setIssuer(config.issuer)
       .setAudience(claims.audience)

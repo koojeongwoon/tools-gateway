@@ -26,17 +26,13 @@ export async function applyUserSyncEvent(
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
-    if (event.eventType === "USER_CREATED" || event.eventType === "USER_UPDATED") {
+    if (event.eventType === "USER_UPDATED") {
       await client.query(
-        `INSERT INTO users (id, email, name, external_provider, external_subject_id, is_active)
-         VALUES ($1, $2, $3, 'snappytory_auth', $4, TRUE)
-         ON CONFLICT (external_provider, external_subject_id)
-           WHERE external_provider IS NOT NULL AND external_subject_id IS NOT NULL
-         DO UPDATE SET email = EXCLUDED.email, name = EXCLUDED.name,
-                       is_active = TRUE, updated_at = NOW()`,
-        [`tg_usr_${event.subject.id}`, event.subject.email, event.subject.name, event.subject.id],
+        `UPDATE users SET email = $2, name = $3, updated_at = NOW()
+          WHERE external_provider = 'snappytory_auth' AND external_subject_id = $1`,
+        [event.subject.id, event.subject.email, event.subject.name],
       );
-    } else {
+    } else if (event.eventType === "USER_DISABLED" || event.eventType === "USER_DELETED") {
       await client.query(
         `UPDATE users SET is_active = FALSE, updated_at = NOW()
           WHERE external_provider = 'snappytory_auth' AND external_subject_id = $1`,

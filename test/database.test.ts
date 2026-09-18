@@ -55,5 +55,7 @@ describe("database migrations", () => {
     expect(migrations.map(({ name }) => name)).toContain("retire_legacy_sse_custom_upstreams");
     expect(sql).toContain("[Disabled legacy SSE upstream]");
     expect(sql).toContain("CHECK (transport = 'streamable-http')");
+    expect(migrations.map(({ name }) => name)).toContain("add_tenant_user_lifecycle_identity");
+    expect(sql).toContain("idx_users_tenant_external_identity");
   });
 });

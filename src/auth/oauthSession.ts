@@ -23,8 +23,10 @@ export interface OAuthConfig {
 
 interface SessionRecord {
   subject: string;
-  email?: string;
+  tenantId: string;
+  email: string;
   name?: string;
+  userVersion: number;
   /**
    * IAM delegated token for server-side calls made on behalf of this session.
    * It is retained only in the opaque Redis session and is never returned by
@@ -37,8 +39,10 @@ interface SessionRecord {
 
 export interface GatewaySession {
   subject: string;
-  email?: string;
+  tenantId: string;
+  email: string;
   name?: string;
+  userVersion: number;
   /** Server-internal delegated IAM credential; never serialize this to clients. */
   iamAccessToken?: string;
 }
@@ -127,9 +131,12 @@ export class OAuthSessionStore {
     const payload = await response.json() as Record<string, unknown>;
     const tokenSet = await this.validateTokens(payload);
     const sessionId = randomBytes(32).toString("base64url");
-    await this.redis.set(this.sessionKey(sessionId), JSON.stringify(tokenSet), {
+    const sessionKey = this.sessionKey(sessionId);
+    await this.redis.set(sessionKey, JSON.stringify(tokenSet), {
       EX: this.config.sessionTtlSeconds,
     });
+    await this.redis.sAdd(`tg:web:user:${tokenSet.subject}`, sessionKey);
+    await this.redis.expire(`tg:web:user:${tokenSet.subject}`, this.config.sessionTtlSeconds + 60);
     return { sessionId, principal: this.principal(tokenSet) };
   }
 
@@ -138,7 +145,14 @@ export class OAuthSessionStore {
     if (!encrypted) return undefined;
     try {
       const session = JSON.parse(encrypted) as SessionRecord;
-      if (session.expiresAt <= Math.floor(Date.now() / 1000)) {
+      if (
+        session.expiresAt <= Math.floor(Date.now() / 1000)
+        || !session.subject
+        || session.tenantId !== this.config.tenantId
+        || !session.email
+        || !Number.isSafeInteger(session.userVersion)
+        || session.userVersion < 1
+      ) {
         await this.redis.del(this.sessionKey(sessionId));
         return undefined;
       }
@@ -150,7 +164,17 @@ export class OAuthSessionStore {
   }
 
   async revoke(sessionId: string): Promise<void> {
-    await this.redis.del(this.sessionKey(sessionId));
+    const sessionKey = this.sessionKey(sessionId);
+    const raw = await this.redis.get(sessionKey);
+    await this.redis.del(sessionKey);
+    if (raw) {
+      try {
+        const session = JSON.parse(raw) as SessionRecord;
+        if (session.subject) await this.redis.sRem(`tg:web:user:${session.subject}`, sessionKey);
+      } catch {
+        // Invalid sessions are already removed.
+      }
+    }
   }
 
   getSignoutUrl(): string {
@@ -166,7 +190,13 @@ export class OAuthSessionStore {
       audience: this.config.clientId,
       algorithms: ["RS256"],
     });
-    const accessClaims: JWTPayload & { client_id?: string; tenant_id?: string; email?: string; name?: string } = verified.payload;
+    const accessClaims: JWTPayload & {
+      client_id?: string;
+      tenant_id?: string;
+      email?: string;
+      name?: string;
+      user_version?: string | number;
+    } = verified.payload;
     const idClaims = typeof payload.id_token === "string"
       ? (await jwtVerify(payload.id_token, this.jwks, {
           issuer: this.config.issuer,
@@ -179,14 +209,21 @@ export class OAuthSessionStore {
       claims.client_id !== this.config.clientId
       || claims.tenant_id !== this.config.tenantId
       || !claims.sub
+      || !claims.email
       || !claims.exp
     ) {
       throw new Error("OAuth token claims do not belong to Tools Gateway");
     }
+    const userVersion = Number(claims.user_version ?? 1);
+    if (!Number.isSafeInteger(userVersion) || userVersion < 1) {
+      throw new Error("OAuth token user_version is invalid");
+    }
     return {
       subject: claims.sub,
-      ...(claims.email ? { email: claims.email } : {}),
+      tenantId: claims.tenant_id,
+      email: claims.email,
       ...(claims.name ? { name: claims.name } : {}),
+      userVersion,
       iamAccessToken: payload.access_token,
       iamAccessTokenExpiresAt: claims.exp,
       expiresAt: Math.floor(Date.now() / 1000) + this.config.sessionTtlSeconds,
@@ -196,8 +233,10 @@ export class OAuthSessionStore {
   private principal(session: SessionRecord): GatewaySession {
     return {
       subject: session.subject,
-      ...(session.email ? { email: session.email } : {}),
+      tenantId: session.tenantId,
+      email: session.email,
       ...(session.name ? { name: session.name } : {}),
+      userVersion: session.userVersion,
       ...(session.iamAccessTokenExpiresAt > Math.floor(Date.now() / 1000)
         ? { iamAccessToken: session.iamAccessToken }
         : {}),

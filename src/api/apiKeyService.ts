@@ -3,53 +3,22 @@ import type { Pool } from "pg";
 import type { KeyVerifier } from "../auth/keyVerifier.js";
 import type { GatewaySession } from "../auth/oauthSession.js";
 import { matchesToolPattern } from "../auth/scopeGuard.js";
+import { EnsureLocalUserService } from "../users/ensureLocalUser.js";
 
 export class ApiKeyScopeError extends Error {}
 
 export class ApiKeyService {
   constructor(private readonly pool: Pool, private readonly keyVerifier: KeyVerifier) {}
 
-  async provisionUser(session: GatewaySession): Promise<string> {
-    const client = await this.pool.connect();
-    try {
-      await client.query("BEGIN");
-      const existing = await client.query<{ id: string; is_active: boolean }>(
-        `SELECT id, is_active FROM users
-          WHERE (external_provider = 'snappytory_auth' AND external_subject_id = $1)
-             OR ($2::text IS NOT NULL AND email = $2)
-          ORDER BY CASE WHEN external_subject_id = $1 THEN 0 ELSE 1 END
-          LIMIT 1 FOR UPDATE`,
-        [session.subject, session.email ?? null],
-      );
-      if (existing.rows[0] && !existing.rows[0].is_active) {
-        throw new Error("Tools Gateway user is inactive");
-      }
-      const id = existing.rows[0]?.id ?? `tg_usr_${randomUUID()}`;
-      if (existing.rowCount) {
-        await client.query(
-          `UPDATE users SET email = COALESCE($2, email), name = COALESCE($3, name), external_provider = 'snappytory_auth',
-                  external_subject_id = $4, updated_at = NOW()
-            WHERE id = $1`,
-          [id, session.email ?? null, session.name ?? null, session.subject],
-        );
-      } else {
-        if (!session.email) {
-          throw new Error("OIDC token is missing required 'email' claim");
-        }
-        await client.query(
-          `INSERT INTO users (id, email, name, external_provider, external_subject_id)
-           VALUES ($1, $2, $3, 'snappytory_auth', $4)`,
-          [id, session.email, session.name ?? session.email, session.subject],
-        );
-      }
-      await client.query("COMMIT");
-      return id;
-    } catch (error) {
-      await client.query("ROLLBACK");
-      throw error;
-    } finally {
-      client.release();
-    }
+  async ensureLocalUser(session: GatewaySession): Promise<string> {
+    const expectedTenantId = process.env.TOOLS_GATEWAY_TENANT_ID ?? "ten_9664c024babc4110";
+    return new EnsureLocalUserService(this.pool, expectedTenantId).ensureLocalUser({
+      tenantId: session.tenantId,
+      subject: session.subject,
+      email: session.email,
+      ...(session.name ? { name: session.name } : {}),
+      userVersion: session.userVersion,
+    });
   }
 
   async create(

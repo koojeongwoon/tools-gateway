@@ -62,6 +62,9 @@ describe("OAuth configuration", () => {
     const redis = {
       get: vi.fn().mockResolvedValue(JSON.stringify({
         subject: "iam-user-1",
+        tenantId: "ten_9664c024babc4110",
+        email: "user@example.com",
+        userVersion: 2,
         iamAccessToken: "delegated-user-jwt",
         iamAccessTokenExpiresAt: Math.floor(Date.now() / 1000) + 60,
         expiresAt: Math.floor(Date.now() / 1000) + 3600,
@@ -71,6 +74,9 @@ describe("OAuth configuration", () => {
 
     await expect(sessionStore.resolve("opaque-session")).resolves.toEqual({
       subject: "iam-user-1",
+      tenantId: "ten_9664c024babc4110",
+      email: "user@example.com",
+      userVersion: 2,
       iamAccessToken: "delegated-user-jwt",
     });
   });

@@ -37,7 +37,9 @@ export class KeyVerifier {
          LEFT JOIN user_tool_permissions p ON p.user_id = u.id
          LEFT JOIN user_mcp_upstreams cu ON cu.user_id = u.id AND cu.is_enabled
         WHERE k.key_prefix = $1 AND k.key_hash = $2
-          AND k.is_active AND u.is_active
+          AND k.is_active AND u.is_active AND u.lifecycle_status = 'ACTIVE'
+          AND EXISTS (SELECT 1 FROM iam_user_lifecycle_health
+                       WHERE singleton AND last_seen_at > NOW() - INTERVAL '60 seconds')
           AND (k.expires_at IS NULL OR k.expires_at > NOW())
         GROUP BY k.id, u.id, u.system_role, k.allowed_scopes`,
       [prefix, hash],

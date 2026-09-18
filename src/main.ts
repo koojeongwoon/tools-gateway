@@ -13,6 +13,7 @@ import { createClient } from "redis";
 import { loadRedisConfig } from "./config/redis.js";
 import { KeyVerifier } from "./auth/keyVerifier.js";
 import { UserSyncConsumer } from "./events/userSyncConsumer.js";
+import { UserLifecycleConsumer } from "./events/userLifecycleConsumer.js";
 import { loadOAuthConfig, OAuthSessionStore } from "./auth/oauthSession.js";
 import { ApiKeyService } from "./api/apiKeyService.js";
 import { CustomUpstreamService } from "./api/customUpstreamService.js";
@@ -45,6 +46,16 @@ const userSyncConsumer = databasePool && eventRedis && keyVerifier
 if (userSyncConsumer) {
   await userSyncConsumer.start();
 }
+const lifecycleRedis = redis?.duplicate();
+if (lifecycleRedis) await lifecycleRedis.connect();
+const lifecycleConfig = loadMcpOAuthConfig();
+const userLifecycleConsumer = databasePool && lifecycleRedis && keyVerifier
+  ? new UserLifecycleConsumer(lifecycleRedis, databasePool, keyVerifier, {
+      issuer: lifecycleConfig.issuer,
+      tenantId: lifecycleConfig.tenantId,
+    })
+  : undefined;
+if (userLifecycleConsumer) await userLifecycleConsumer.start();
 
 const connections = [];
 for (const upstream of config.upstreams.filter(({ enabled, auth }) =>
@@ -146,6 +157,7 @@ const shutdown = async () => {
   await app.close();
   await registry.close();
   userSyncConsumer?.stop();
+  userLifecycleConsumer?.stop();
   r2AuditArchiver?.stop();
 
   // Graceful Audit Flush: Flush in-memory queue to PostgreSQL, then trigger final R2 upload
@@ -160,6 +172,7 @@ const shutdown = async () => {
 
   auditLogger?.stop();
   await eventRedis?.quit();
+  await lifecycleRedis?.quit();
   await redis?.quit();
   await databasePool?.end();
 };

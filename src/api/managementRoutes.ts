@@ -40,7 +40,7 @@ export function registerManagementRoutes(
     }
     try {
       const { sessionId, principal } = await sessions.completeLogin(query.code, query.state);
-      await apiKeys.provisionUser(principal);
+      await apiKeys.ensureLocalUser(principal);
       reply.header("set-cookie", sessionCookie(sessionId));
       return reply.redirect("/");
     } catch (error) {
@@ -54,7 +54,7 @@ export function registerManagementRoutes(
     if (!sessionId) return reply.code(401).send({ authenticated: false });
     const principal = await sessions.resolve(sessionId);
     if (!principal) return reply.code(401).send({ authenticated: false });
-    const userId = await apiKeys.provisionUser(principal);
+    const userId = await apiKeys.ensureLocalUser(principal);
     return {
       authenticated: true,
       user: {
@@ -95,7 +95,7 @@ async function authenticatedUserId(
   apiKeys: ApiKeyService,
 ): Promise<string | undefined> {
   const principal = await authenticatedUserSession(request, sessions);
-  return principal ? apiKeys.provisionUser(principal) : undefined;
+  return principal ? apiKeys.ensureLocalUser(principal) : undefined;
 }
 
 function cookieValue(request: FastifyRequest, name: string): string | undefined {
