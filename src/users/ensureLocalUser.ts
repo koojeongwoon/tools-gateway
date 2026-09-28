@@ -48,7 +48,7 @@ export class EnsureLocalUserService {
       ? `INSERT INTO users (
            id, email, name, external_provider, external_subject_id,
            tenant_id, lifecycle_status, user_version
-         ) SELECT $1, $2, $3, 'snappytory_auth', $4, $5, 'ACTIVE', $6
+         ) SELECT $1::varchar, $2::varchar, $3::varchar, 'snappytory_auth', $4::varchar, $5::varchar, 'ACTIVE', $6::bigint
          WHERE NOT EXISTS (
            SELECT 1 FROM iam_user_lifecycle_states s
             WHERE s.tenant_id = $5 AND s.subject_id = $4
@@ -60,8 +60,8 @@ export class EnsureLocalUserService {
          )
          AND NOT EXISTS (
            SELECT 1 FROM iam_user_service_access_states a
-            WHERE a.tenant_id = $5 AND a.subject_id = $4 AND a.client_id = $7
-              AND (a.service_access_status <> 'ACTIVE' OR a.access_version > $8)
+            WHERE a.tenant_id = $5 AND a.subject_id = $4 AND a.client_id = $7::varchar
+              AND (a.service_access_status <> 'ACTIVE' OR a.access_version > $8::bigint)
          )
          AND EXISTS (
            SELECT 1 FROM iam_user_service_access_health
@@ -79,7 +79,7 @@ export class EnsureLocalUserService {
       : `INSERT INTO users (
            id, email, name, external_provider, external_subject_id,
            tenant_id, lifecycle_status, user_version
-         ) SELECT $1, $2, $3, 'snappytory_auth', $4, $5, 'ACTIVE', $6
+         ) SELECT $1::varchar, $2::varchar, $3::varchar, 'snappytory_auth', $4::varchar, $5::varchar, 'ACTIVE', $6::bigint
          WHERE NOT EXISTS (
            SELECT 1 FROM iam_user_lifecycle_states s
             WHERE s.tenant_id = $5 AND s.subject_id = $4
