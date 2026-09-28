@@ -39,10 +39,4 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Cleanup old tools-gateway image versions (Keep latest 3)
-        uses: actions/delete-package-versions@v5
-        continue-on-error: true
-        with:
-          package-name: 'tools-gateway'
-          package-type: 'container'
-          min-versions-to-keep: 3
+      # Retain OCI child manifests; package-version pruning can break tagged images.
