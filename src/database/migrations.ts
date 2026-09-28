@@ -305,4 +305,54 @@ INSERT INTO iam_user_service_access_health(singleton, last_seen_at) VALUES (TRUE
 ON CONFLICT (singleton) DO NOTHING;
 `,
   },
+  {
+    version: 13,
+    name: "daemon_management_reports",
+    sql: `
+CREATE TABLE daemon_management_nonces (key CHAR(64) PRIMARY KEY, expires_at TIMESTAMPTZ NOT NULL);
+CREATE INDEX daemon_management_nonces_expiry ON daemon_management_nonces(expires_at);
+CREATE TABLE daemon_management_proofs (key CHAR(64) PRIMARY KEY, expires_at TIMESTAMPTZ NOT NULL);
+CREATE INDEX daemon_management_proofs_expiry ON daemon_management_proofs(expires_at);
+CREATE TABLE daemon_management_heads (
+  key CHAR(64) PRIMARY KEY, issuer TEXT NOT NULL, tenant TEXT NOT NULL, subject TEXT NOT NULL,
+  sequence BIGINT NOT NULL CHECK (sequence >= 0), identity JSONB, report JSONB, receipt JSONB
+);
+CREATE INDEX daemon_management_owner ON daemon_management_heads(issuer, tenant, subject);
+CREATE TABLE daemon_management_reports (
+  device_key CHAR(64) NOT NULL REFERENCES daemon_management_heads(key),
+  report_id VARCHAR(255) NOT NULL, sequence BIGINT NOT NULL CHECK (sequence > 0),
+  payload_hash CHAR(64) NOT NULL, receipt JSONB NOT NULL,
+  PRIMARY KEY (device_key, report_id), UNIQUE (device_key, sequence)
+);
+`,
+  },
+  {
+    version: 14,
+    name: "daemon_management_jobs",
+    sql: `
+CREATE TABLE daemon_management_jobs (
+  issuer TEXT NOT NULL, tenant TEXT NOT NULL, organization TEXT NOT NULL,
+  request_id VARCHAR(128) NOT NULL, request_hash CHAR(64) NOT NULL,
+  job_id UUID NOT NULL UNIQUE, device_id VARCHAR(128) NOT NULL, kid VARCHAR(128) NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL, record JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+  PRIMARY KEY (issuer,tenant,organization,request_id)
+);
+CREATE INDEX daemon_management_jobs_pending ON daemon_management_jobs(issuer,tenant,organization,device_id,kid,expires_at);
+`,
+  },
+  {
+    version: 15,
+    name: "daemon_management_job_results",
+    sql: `
+CREATE TABLE daemon_management_job_results (
+  job_id UUID PRIMARY KEY REFERENCES daemon_management_jobs(job_id),
+  device_key CHAR(64) NOT NULL REFERENCES daemon_management_heads(key),
+  report_id VARCHAR(255) NOT NULL, sequence BIGINT NOT NULL CHECK (sequence > 0),
+  result JSONB NOT NULL, observed_at TIMESTAMPTZ NOT NULL, received_at TIMESTAMPTZ NOT NULL,
+  FOREIGN KEY (device_key, report_id) REFERENCES daemon_management_reports(device_key, report_id)
+);
+CREATE INDEX daemon_management_job_results_device ON daemon_management_job_results(device_key);
+`,
+  },
 ];

@@ -16,6 +16,8 @@ import {
 import { ToolArgumentSanitizer } from "../policy/toolArgumentSanitizer.js";
 import { OutboundSecretLeakGuard } from "../policy/outboundSecretLeakGuard.js";
 import { sanitizeToolResult } from "../policy/toolOutputSanitizer.js";
+import type { JevGuardrail } from "../policy/jevGuardrail.js";
+import type { JevVirtualRouter } from "../jev/jevVirtualRouter.js";
 
 export type { GatewayRequestContext };
 
@@ -28,6 +30,8 @@ export function createGatewayServer(
   scopeGuard?: ScopeGuard,
   auditLogger?: AuditLogger,
   requestContext?: GatewayRequestContext,
+  jevGuardrail?: JevGuardrail,
+  jevVirtualRouter?: JevVirtualRouter,
 ): McpServer {
   const server = new McpServer(
     { name: "tools-gateway", version: "0.1.0" },
@@ -51,6 +55,8 @@ export function createGatewayServer(
       }))
     : registry.list();
 
+  const allowedTools: Array<(typeof tools)[number]> = [];
+
   for (const tool of tools) {
     const isAllowed = policy instanceof ToolAccessPolicy
       ? policy.allows(tool.publicName)
@@ -59,6 +65,8 @@ export function createGatewayServer(
     if (!isAllowed) {
       continue;
     }
+
+    allowedTools.push(tool);
 
     server.registerTool(
       tool.publicName,
@@ -97,6 +105,10 @@ export function createGatewayServer(
 
           outboundSecretLeakGuard.validate(argsObj);
 
+          if (jevGuardrail) {
+            await jevGuardrail.validate(tool.publicName, argsObj);
+          }
+
           try {
             const rawResult = await registry.call(tool.publicName, argsObj);
             // AI Guardrail: Sanitize and redact high-entropy keys/PII from tool output
@@ -111,6 +123,78 @@ export function createGatewayServer(
         });
       },
     );
+  }
+
+  // Register Jev smart meta-dispatcher if enabled and there are callable tools
+  if (jevVirtualRouter && allowedTools.length > 0) {
+    const metaTool = jevVirtualRouter.getVirtualToolDefinition();
+    const isMetaAllowed = policy instanceof ToolAccessPolicy
+      ? policy.allows(metaTool.name)
+      : policy.allows(metaTool.name) && (!scopeGuard || scopeGuard.allows(metaTool.name));
+
+    if (isMetaAllowed) {
+      const candidateTools = allowedTools.map((t) => ({
+        publicName: t.publicName,
+        ...(t.description !== undefined ? { description: t.description } : {}),
+      }));
+
+      server.registerTool(
+        metaTool.name,
+        {
+          ...(metaTool.description !== undefined ? { description: metaTool.description } : {}),
+          inputSchema: fromJsonSchema(metaTool.inputSchema as JsonSchemaType),
+        },
+        async (arguments_) => {
+          const argsObj = isArgumentsObject(arguments_) ? arguments_ : {};
+          const intent = String(argsObj.intent || "");
+          const rawParams = isArgumentsObject(argsObj.parameters) ? argsObj.parameters : {};
+
+          return invocationContext.invoke(metaTool.name, argsObj, async () => {
+            argumentSanitizer.validate(rawParams);
+
+            if (jevGuardrail) {
+              await jevGuardrail.validate(metaTool.name, { intent, ...rawParams });
+            }
+
+            // Use Jev to decide target tool
+            const decision = await jevVirtualRouter.route(intent, candidateTools);
+            const targetToolName = decision.selectedTool;
+
+            // Validate target tool access policy
+            if (policy instanceof ToolAccessPolicy) {
+              policy.assertAllowed(targetToolName);
+            } else {
+              if (!policy.allows(targetToolName)) {
+                throw new Error(`Target tool is not allowed by gateway policy: ${targetToolName}`);
+              }
+            }
+
+            outboundSecretLeakGuard.validate(rawParams);
+
+            try {
+              const rawResult = await registry.call(targetToolName, rawParams);
+              const sanitizedResult = sanitizeToolResult(rawResult);
+
+              return {
+                content: [
+                  {
+                    type: "text" as const,
+                    text: `[Jev Dispatcher: routed to ${targetToolName} (confidence: ${(decision.confidence * 100).toFixed(1)}%)]`,
+                  },
+                  ...sanitizedResult.content,
+                ],
+                isError: sanitizedResult.isError,
+              };
+            } catch (upstreamError: any) {
+              const sanitizedMsg = maskInternalErrorDetails(upstreamError?.message || String(upstreamError));
+              const safeError = new Error(sanitizedMsg);
+              (safeError as any).statusCode = upstreamError?.statusCode ?? 502;
+              throw safeError;
+            }
+          });
+        },
+      );
+    }
   }
 
   return server;

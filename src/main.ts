@@ -1,3 +1,12 @@
+import { registerJobRoutes } from "./daemonManagement/jobs/routes.js";
+import { JobSigner } from "./daemonManagement/jobs/signer.js";
+import { JobService } from "./daemonManagement/jobs/service.js";
+import { PostgresJobStore } from "./daemonManagement/jobs/store.js";
+import { loadManagementConfig } from "./daemonManagement/config.js";
+import { PostgresManagementStore } from "./daemonManagement/postgresStore.js";
+import { ManagementVerifier } from "./daemonManagement/verifier.js";
+import { IamDeviceReader } from "./daemonManagement/iamReader.js";
+import { registerDaemonManagementRoutes } from "./daemonManagement/routes.js";
 import Fastify from "fastify";
 import { loadGatewayConfig } from "./config/upstreamConfig.js";
 import {
@@ -27,6 +36,10 @@ import { R2AuditArchiver } from "./audit/r2AuditArchiver.js";
 import { registerMcpRoutes } from "./api/mcpRoutes.js";
 import { loadMcpOAuthConfig, McpOAuthVerifier } from "./auth/mcpOAuthVerifier.js";
 import { IamDelegationClient } from "./auth/iamDelegationClient.js";
+import { loadJevConfig } from "./config/jev.js";
+import { JevClient } from "./jev/jevClient.js";
+import { JevGuardrail } from "./policy/jevGuardrail.js";
+import { JevVirtualRouter } from "./jev/jevVirtualRouter.js";
 
 const configPath = process.env.UPSTREAM_CONFIG ?? "config/upstreams.yaml";
 const config = await loadGatewayConfig(configPath);
@@ -86,6 +99,7 @@ await registry.refresh();
 const app = Fastify({
   logger: {
     level: process.env.LOG_LEVEL || "info",
+    redact: ["req.headers.authorization", "req.headers.dpop", "req.headers.cookie", "res.headers.set-cookie"],
   },
 });
 
@@ -134,17 +148,38 @@ if (r2AuditArchiver) {
 }
 
 const oauthConfig = loadOAuthConfig();
+const managementConfig = loadManagementConfig();
+if (process.env.DAEMON_JOBS_SIGNING_KEY_FILE && !managementConfig) {
+  throw new Error("Daemon jobs require daemon management");
+}
+if (managementConfig && (!oauthConfig || !databasePool || !redis)) {
+  throw new Error("Daemon management requires database, Redis and SSO management");
+}
 if (oauthConfig) {
   if (!databasePool || !redis || !keyVerifier || !customUpstreamService) {
     throw new Error("SSO management API requires database, Redis and customUpstreamService");
   }
+  const sessionStore = new OAuthSessionStore(redis, oauthConfig);
   registerManagementRoutes(
     app,
-    new OAuthSessionStore(redis, oauthConfig),
+    sessionStore,
     new ApiKeyService(databasePool, keyVerifier),
     customUpstreamService,
     () => registry.list().map((tool) => tool.publicName),
   );
+  if (managementConfig) {
+    const store = new PostgresManagementStore(databasePool);
+    registerDaemonManagementRoutes(app, managementConfig, new ManagementVerifier(managementConfig, store),
+      new IamDeviceReader(managementConfig), store, id => sessionStore.resolve(id));
+    if (process.env.DAEMON_JOBS_SIGNING_KEY_FILE) {
+      const signer = await JobSigner.fromFile(process.env.DAEMON_JOBS_SIGNING_KEY_FILE);
+      const onlineReader = new IamDeviceReader(managementConfig, undefined, undefined, 0);
+      const jobs = new JobService(managementConfig, new PostgresJobStore(databasePool), signer,
+        { authority: (subject, org) => onlineReader.authority(subject, org, oauthConfig.clientId) }, onlineReader);
+      registerJobRoutes(app, managementConfig, jobs, new ManagementVerifier(managementConfig, store),
+        id => sessionStore.resolve(id));
+    }
+  }
 }
 
 app.get("/healthz", async () => ({ status: "ok" }));
@@ -157,12 +192,29 @@ const mcpOAuthConfig = loadMcpOAuthConfig();
 if (!databasePool) {
   throw new Error("MCP OAuth authentication requires database");
 }
+const jevConfig = loadJevConfig();
+const jevClient = new JevClient(jevConfig);
+const jevGuardrail = jevConfig.guardrailEnabled
+  ? new JevGuardrail(jevClient, {
+      riskThreshold: jevConfig.riskThreshold,
+      timeoutMs: jevConfig.timeoutMs,
+      failOpen: true,
+    })
+  : undefined;
+const jevVirtualRouter = jevConfig.routerEnabled
+  ? new JevVirtualRouter(jevClient, {
+      timeoutMs: jevConfig.timeoutMs,
+    })
+  : undefined;
+
 registerMcpRoutes(app, {
   config,
   oauthConfig: mcpOAuthConfig,
   oauthVerifier: new McpOAuthVerifier(databasePool, mcpOAuthConfig),
   requestToolRegistryBuilder,
   auditLogger,
+  jevGuardrail,
+  jevVirtualRouter,
 });
 
 const shutdown = async () => {

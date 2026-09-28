@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["src/daemonManagement/**/*.ts", "src/ui/dashboardHtml.ts", "test/daemonManagement*.test.ts", "experiments/daemon-management/*.ts"],
+  "compilerOptions": { "outDir": "dist-daemon-management" }
+}

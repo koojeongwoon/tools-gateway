@@ -214,3 +214,7 @@ pnpm start
 운영용 `upstreams.yaml`, ConfigMap, ExternalSecret, Deployment, Service, NetworkPolicy 및 Argo CD Application은 GitOps 저장소인 `__dev/k3s`에서 관리합니다. 이 저장소에는 설정 스키마와 로컬 개발용 예제만 둡니다.
 
 다음 단계는 k3s 매니페스트에서 Vault에 등록된 두 값을 ESO로 Gateway Pod 환경변수에 연결한 뒤 Knowledge와 Context7에 대한 `tools/list`와 안전한 읽기 `tools/call` 실통신을 검증하는 것입니다.
+
+## Daemon management
+
+Optional IAM-bound device reporting and owner dashboard: [configuration and local validation](docs/daemon-management-v1.md).

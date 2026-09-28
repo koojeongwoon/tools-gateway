@@ -1,0 +1,157 @@
+{
+  "contract": "lynply.daemon-management-auth",
+  "version": 1,
+  "synthetic": true,
+  "now": 1790294400,
+  "trust": {
+    "issuer": "https://iam.example.invalid/t/tenant-fixture",
+    "resource": "https://gateway.example.invalid/api/v1/daemon-management",
+    "client_id": "tools-daemon-management",
+    "tenant_id": "tenant-fixture",
+    "jwks": {
+      "keys": [
+        {
+          "kty": "RSA",
+          "n": "x2EfEtajtAtQtvXBlVO8OPRVZqVIkeY2cjqdqY3onuHe3IICx8y88gCHHfZyYfNzfceUC35nvDjxODC1l8IlgFVOD-Qc58hjMGdeS4t1ownnW51ryP6ARQsV06zaL29XXzwNjP2ODMtLsY1ADeyNvFwYkMj8HKQ7-UQwEHcv4sMExPcNSImeC5DuZ9xv-1kiHBLrL8xD2zvbDVum1--kBlFTZYgnMecIGUXjuUw3EyqtCeA1wJ_43WwsKzh-qDHCo12yi3Qa78XzdQ1JOfP2sbVY63cJN0HmH-gq2iFkhMRlFEF52YPy2O5Ex0dCbL4KsxvYYK7o3ZKqnNHfTcDVYQ",
+          "e": "AQAB",
+          "kid": "fixture-iam-key",
+          "alg": "RS256",
+          "use": "sig"
+        }
+      ]
+    }
+  },
+  "enrollment": {
+    "challenge_request": {
+      "method": "POST",
+      "url": "https://iam.example.invalid/t/tenant-fixture/api/v1/device-enrollment/challenges",
+      "body": {}
+    },
+    "challenge_response": {
+      "status": 201,
+      "body": {
+        "challenge_id": "fixture-challenge-not-a-real-random-secret",
+        "expires_at": 1790294700
+      }
+    },
+    "complete_request": {
+      "method": "POST",
+      "url": "https://iam.example.invalid/t/tenant-fixture/api/v1/device-enrollment/challenges/fixture-challenge-not-a-real-random-secret/complete",
+      "body": {}
+    },
+    "complete_response": {
+      "status": 201,
+      "body": {
+        "device_id": "device-fixture",
+        "device_version": 1,
+        "status": "ACTIVE",
+        "key_jkt": "Q7M14mrZo-_bLXy6JrrGm5vj1qRJxfupIBVrZx5KsAQ"
+      }
+    }
+  },
+  "management": {
+    "token_header": {
+      "typ": "at+jwt",
+      "alg": "RS256",
+      "kid": "fixture-iam-key"
+    },
+    "token_claims": {
+      "iss": "https://iam.example.invalid/t/tenant-fixture",
+      "aud": [
+        "https://gateway.example.invalid/api/v1/daemon-management"
+      ],
+      "sub": "subject-fixture",
+      "client_id": "tools-daemon-management",
+      "tenant_id": "tenant-fixture",
+      "active_organization_id": "org-fixture",
+      "iat": 1790294400,
+      "exp": 1790294700,
+      "jti": "token-fixture-1",
+      "scope": "openid device:identity gateway:daemon:report",
+      "cnf": {
+        "jkt": "Q7M14mrZo-_bLXy6JrrGm5vj1qRJxfupIBVrZx5KsAQ"
+      },
+      "https://lynply.com/claims/device": {
+        "v": 1,
+        "id": "device-fixture",
+        "version": 1
+      },
+      "user_version": "1",
+      "service_access_version": "1"
+    },
+    "token_response": {
+      "token_type": "DPoP",
+      "expires_in": 300,
+      "access_token": "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImZpeHR1cmUtaWFtLWtleSJ9.eyJpc3MiOiJodHRwczovL2lhbS5leGFtcGxlLmludmFsaWQvdC90ZW5hbnQtZml4dHVyZSIsImF1ZCI6WyJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCJdLCJzdWIiOiJzdWJqZWN0LWZpeHR1cmUiLCJjbGllbnRfaWQiOiJ0b29scy1kYWVtb24tbWFuYWdlbWVudCIsInRlbmFudF9pZCI6InRlbmFudC1maXh0dXJlIiwiYWN0aXZlX29yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwiaWF0IjoxNzkwMjk0NDAwLCJleHAiOjE3OTAyOTQ3MDAsImp0aSI6InRva2VuLWZpeHR1cmUtMSIsInNjb3BlIjoib3BlbmlkIGRldmljZTppZGVudGl0eSBnYXRld2F5OmRhZW1vbjpyZXBvcnQiLCJjbmYiOnsiamt0IjoiUTdNMTRtclpvLV9iTFh5NkpyckdtNXZqMXFSSnhmdXBJQlZyWng1S3NBUSJ9LCJodHRwczovL2x5bnBseS5jb20vY2xhaW1zL2RldmljZSI6eyJ2IjoxLCJpZCI6ImRldmljZS1maXh0dXJlIiwidmVyc2lvbiI6MX0sInVzZXJfdmVyc2lvbiI6IjEiLCJzZXJ2aWNlX2FjY2Vzc192ZXJzaW9uIjoiMSJ9.OFzBDsa6YrUeLS52fzGBn2oYLsRMf2Y0Ri1TN3Mns8Yc2A2Q6hQlg0l90bmvXM54t_K_Zz99hTfodYwmQN6JBKHtMeJFpNDdoAUAXLyljMx9BR1qszhIXqEHYB_DdzC2CUNbQE4X26zlpUOqcQe9eaDJM8musMpZliMAdrtGNwZOyNRQIg1VVTG94-mXeVICkC2D_r5F6sD0KkX85lAz6iXjI_H2Ktsh1q4rUutwAMpg-qgH7Glcr9NUoRBFOJ556T7ZOIGUYJDYQd3ONFq_vbwAMi_qQIXRShMyeARFa69u1Up_WYs0Jv4Yv_pR2ohsGMzR1o3mbOaWK6tTYM9esQ",
+      "scope": "openid device:identity gateway:daemon:report"
+    },
+    "proof_header": {
+      "typ": "dpop+jwt",
+      "alg": "ES256",
+      "jwk": {
+        "kty": "EC",
+        "x": "wGlzX2M0T-oFYQYBmZAn7rkz4HD_fGecA8XRw6TTJi0",
+        "y": "p-pHlgD69vEaOY3sIZshUwduKRTnTdwNNUCmzuviwLg",
+        "crv": "P-256"
+      }
+    },
+    "proof_claims": {
+      "jti": "proof-fixture-1",
+      "htm": "POST",
+      "htu": "https://gateway.example.invalid/api/v1/daemon-management/reports",
+      "iat": 1790294400,
+      "nonce": "fixture-server-nonce",
+      "ath": "J52cfj9lF9wb52F0ibR0pgjOnM2K13GGCipi1YetKKk"
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gateway.example.invalid/api/v1/daemon-management/reports",
+      "headers": {
+        "Authorization": "DPoP eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImZpeHR1cmUtaWFtLWtleSJ9.eyJpc3MiOiJodHRwczovL2lhbS5leGFtcGxlLmludmFsaWQvdC90ZW5hbnQtZml4dHVyZSIsImF1ZCI6WyJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCJdLCJzdWIiOiJzdWJqZWN0LWZpeHR1cmUiLCJjbGllbnRfaWQiOiJ0b29scy1kYWVtb24tbWFuYWdlbWVudCIsInRlbmFudF9pZCI6InRlbmFudC1maXh0dXJlIiwiYWN0aXZlX29yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwiaWF0IjoxNzkwMjk0NDAwLCJleHAiOjE3OTAyOTQ3MDAsImp0aSI6InRva2VuLWZpeHR1cmUtMSIsInNjb3BlIjoib3BlbmlkIGRldmljZTppZGVudGl0eSBnYXRld2F5OmRhZW1vbjpyZXBvcnQiLCJjbmYiOnsiamt0IjoiUTdNMTRtclpvLV9iTFh5NkpyckdtNXZqMXFSSnhmdXBJQlZyWng1S3NBUSJ9LCJodHRwczovL2x5bnBseS5jb20vY2xhaW1zL2RldmljZSI6eyJ2IjoxLCJpZCI6ImRldmljZS1maXh0dXJlIiwidmVyc2lvbiI6MX0sInVzZXJfdmVyc2lvbiI6IjEiLCJzZXJ2aWNlX2FjY2Vzc192ZXJzaW9uIjoiMSJ9.OFzBDsa6YrUeLS52fzGBn2oYLsRMf2Y0Ri1TN3Mns8Yc2A2Q6hQlg0l90bmvXM54t_K_Zz99hTfodYwmQN6JBKHtMeJFpNDdoAUAXLyljMx9BR1qszhIXqEHYB_DdzC2CUNbQE4X26zlpUOqcQe9eaDJM8musMpZliMAdrtGNwZOyNRQIg1VVTG94-mXeVICkC2D_r5F6sD0KkX85lAz6iXjI_H2Ktsh1q4rUutwAMpg-qgH7Glcr9NUoRBFOJ556T7ZOIGUYJDYQd3ONFq_vbwAMi_qQIXRShMyeARFa69u1Up_WYs0Jv4Yv_pR2ohsGMzR1o3mbOaWK6tTYM9esQ",
+        "DPoP": "eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IkVTMjU2IiwiandrIjp7Imt0eSI6IkVDIiwieCI6IndHbHpYMk0wVC1vRllRWUJtWkFuN3JrejRIRF9mR2VjQThYUnc2VFRKaTAiLCJ5IjoicC1wSGxnRDY5dkVhT1kzc0lac2hVd2R1S1JUblRkd05OVUNtenV2aXdMZyIsImNydiI6IlAtMjU2In19.eyJqdGkiOiJwcm9vZi1maXh0dXJlLTEiLCJodG0iOiJQT1NUIiwiaHR1IjoiaHR0cHM6Ly9nYXRld2F5LmV4YW1wbGUuaW52YWxpZC9hcGkvdjEvZGFlbW9uLW1hbmFnZW1lbnQvcmVwb3J0cyIsImlhdCI6MTc5MDI5NDQwMCwibm9uY2UiOiJmaXh0dXJlLXNlcnZlci1ub25jZSIsImF0aCI6Iko1MmNmajlsRjl3YjUyRjBpYlIwcGdqT25NMksxM0dHQ2lwaTFZZXRLS2sifQ.MslOu7MqdKt91xBC121piw-X_es2CpB2dbo9a3dSs1cRwcUd-2BDgV2v1KIgXa0Kc1K8tZF0yiiZCd9v4tYdaA"
+      },
+      "body": {
+        "schema_version": 1,
+        "report_id": "report-fixture-1",
+        "sequence": 1,
+        "observed_at": "2026-09-25T00:00:00Z",
+        "status": {
+          "connection": "connected"
+        }
+      }
+    },
+    "status_response": {
+      "device_id": "device-fixture",
+      "subject": "subject-fixture",
+      "tenant_id": "tenant-fixture",
+      "organization_id": "org-fixture",
+      "device_version": 1,
+      "key_jkt": "Q7M14mrZo-_bLXy6JrrGm5vj1qRJxfupIBVrZx5KsAQ",
+      "status": "ACTIVE",
+      "authorized": true,
+      "user_version": "1",
+      "service_access_version": "1",
+      "checked_at": 1790294400
+    },
+    "context": {
+      "nonce": "fixture-server-nonce",
+      "status_age_seconds": 0,
+      "seen_proof_jtis": []
+    },
+    "response": {
+      "status": 202,
+      "body": {
+        "report_id": "report-fixture-1",
+        "sequence": 1,
+        "received_at": "2026-09-25T00:00:01Z"
+      }
+    }
+  },
+  "notes": [
+    "Private signing keys were generated in memory and discarded.",
+    "Token lifetime is evaluated at the fixed now above.",
+    "Enrollment examples omit authentication headers; real adapters must obtain a separate enrollment-audience DPoP token.",
+    "Management refresh token omitted; no usable credential exists in this fixture.",
+    "Report body is illustrative; detailed status payload remains LM2-4."
+  ]
+}

@@ -8,12 +8,17 @@ import type { GatewayConfig } from "../config/upstreamConfig.js";
 import { ToolAccessPolicy } from "../domain/toolAccessPolicy.js";
 import { createGatewayServer } from "../server/createGatewayServer.js";
 
+import type { JevGuardrail } from "../policy/jevGuardrail.js";
+import type { JevVirtualRouter } from "../jev/jevVirtualRouter.js";
+
 export interface McpRoutesOptions {
   config: GatewayConfig;
   oauthConfig: McpOAuthConfig;
   oauthVerifier: Pick<McpOAuthVerifier, "verify">;
   requestToolRegistryBuilder: Pick<RequestToolRegistryBuilder, "build">;
   auditLogger?: AuditLogger | undefined;
+  jevGuardrail?: JevGuardrail | undefined;
+  jevVirtualRouter?: JevVirtualRouter | undefined;
 }
 
 /** HTTP adapter for the Gateway-owned MCP protocol endpoint. */
@@ -40,11 +45,13 @@ export function registerMcpRoutes(app: FastifyInstance, options: McpRoutesOption
     }
 
     const requestToolRegistry = await options.requestToolRegistryBuilder.build(principal, request.log, token);
+    const virtualTools = options.jevVirtualRouter ? ["gateway.smart_dispatch"] : [];
     const accessPolicy = new ToolAccessPolicy({
       globalConfig: {
         default: "deny",
         allow: [
           ...options.config.toolPolicy.allow,
+          ...virtualTools,
           ...requestToolRegistry.activeCustomPrefixes.map((prefix) => `${prefix}.*`),
         ],
         deny: options.config.toolPolicy.deny,
@@ -67,6 +74,8 @@ export function registerMcpRoutes(app: FastifyInstance, options: McpRoutesOption
       undefined,
       options.auditLogger,
       requestContext,
+      options.jevGuardrail,
+      options.jevVirtualRouter,
     );
     const transport = new NodeStreamableHTTPServerTransport({ sessionIdGenerator: undefined });
     await server.connect(transport);

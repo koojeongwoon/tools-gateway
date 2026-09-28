@@ -1,0 +1,1934 @@
+{
+  "contract": "lynply.daemon-management-jobs",
+  "version": 1,
+  "synthetic": true,
+  "notes": [
+    "Public vectors only; random signing keys discarded.",
+    "Approval references are synthetic; no organizational authorization or execution is claimed."
+  ],
+  "cases": [
+    {
+      "id": "J01",
+      "description": "valid signed revoke plans a state transition only",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.Eifmq5-ehSEUj23SNvVsxFQzDTFO-UpLM5yOajV8CAbJRyX5eYKYFNokQGTbzgCZJvX4_XlmjIORFnyNsyISBQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "prepare_revoke"
+    },
+    {
+      "id": "J02",
+      "description": "tampered signature",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.Eyfmq5-ehSEUj23SNvVsxFQzDTFO-UpLM5yOajV8CAbJRyX5eYKYFNokQGTbzgCZJvX4_XlmjIORFnyNsyISBQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_signature_invalid"
+    },
+    {
+      "id": "J03",
+      "description": "unknown pinned key id",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6InVua25vd24iLCJ0eXAiOiJseW5wbHktZGFlbW9uLWpvYitqd3MifQ.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.VkHBJ5T7bCmDms6o2pf6UZLFnq-p0Mbj8IwS9rmvv8h6GAPCFQ2TGbmC1EXmK2lZdpZVqjJJgayJdQnZs1gEBw",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_key_untrusted"
+    },
+    {
+      "id": "J04",
+      "description": "different key with same kid",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.UbChflSB6YahRPNl4O6oQGHJqbZbMMEms5RIJfrwVtY0rW-s1npcJp6WSWznaW15bdYglpUGFDwI7d12raU7Cg",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_signature_invalid"
+    },
+    {
+      "id": "J05",
+      "description": "algorithm substitution",
+      "compact": "eyJhbGciOiJub25lIiwia2lkIjoiZml4dHVyZS1qb2Ita2V5IiwidHlwIjoibHlucGx5LWRhZW1vbi1qb2IrandzIn0.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.2Cr370KaQ108bKVhC5lsTnW66ltT91zr19tYOvvnarrJhZcOw_rl-BGSdDq74c4ZqVdBTeksdpC_KwF5WFNnAw",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J06",
+      "description": "type confusion",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6ImF0K2p3dCJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.HruwoaYSZnr6NFUJzE5SL6a9rwRU-9fdgNSESibJXuRIIMRcokoNqsiZCr0qMStos9JoN498klhMCRfzETeWBw",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J07",
+      "description": "embedded key is forbidden",
+      "compact": "eyJhbGciOiJFZERTQSIsImp3ayI6eyJjcnYiOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwieCI6IlZoTWFwRXVxSVZwMFZ5cmNYVHNSaWZsaUJIc3U4U3MwTUtHY0RkbXNhdlUifSwia2lkIjoiZml4dHVyZS1qb2Ita2V5IiwidHlwIjoibHlucGx5LWRhZW1vbi1qb2IrandzIn0.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.PEc6ps7-QYdfpYaG790LAJg1ypPwpgf_8knchKxQAsSzErtAML7zpQoROC2jG25slntiZeB61R_x0JrVpibTAQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J08",
+      "description": "remote key URL forbidden",
+      "compact": "eyJhbGciOiJFZERTQSIsImprdSI6Imh0dHBzOi8vb3RoZXIuaW52YWxpZC9rZXkiLCJraWQiOiJmaXh0dXJlLWpvYi1rZXkiLCJ0eXAiOiJseW5wbHktZGFlbW9uLWpvYitqd3MifQ.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.-f5pCA-OZVwg0FHhDGDUFNnyqOYXR38zLwR6dBEw75jA70nNWpDfShosnhUacKGfJje4sJA7bUjt0LMkfmvmDQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J09",
+      "description": "critical extension forbidden",
+      "compact": "eyJhbGciOiJFZERTQSIsImNyaXQiOlsiZXh0ZW5zaW9uIl0sImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.7FT5Yg6xNtyn0zhFRuN__Ua9u3UfKfw0nEoaJpzuIn1_UmQ97Qd2TA0H_qGVvFDMVVs-rGhyyOB4FIYcEYmVAw",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J10",
+      "description": "arbitrary command field forbidden",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJjb21tYW5kIjoiZml4dHVyZS1vbmx5LWNvbW1hbmQiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.G7dIC4u3OEMqyl_-bq2w1qKAHFbXpmGf55sdb0fOcLB5MOENGOanvB-pnoaJUFPxSXCrkDjOajKpXHqVBoH6Dw",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J11",
+      "description": "shell operation forbidden",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6InNoZWxsLnJ1biIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.3QGupVsHnXqjiGYyR3lb4BrM7BJdQHR16VMVFSqJjygmxAA0oW9amGkG9xI-3QfC1zHfWA6j_Vttw9_7CTOVBA",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J12",
+      "description": "policy apply not supported in v1",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6InBvbGljeS5hcHBseSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.9YGTTVMQhX2KFOtisTweabM7Y-aWLIGlgJdv-_TFoioJCD46nhz5EJHYXV7xyfGMNuCDKAX35JW9zQ7Mqw6jDQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J13",
+      "description": "caller chosen file path forbidden",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicGF0aCI6Ii9maXh0dXJlLW9ubHkiLCJwb2xpY3lfcmV2aXNpb24iOjcsInJlc291cmNlIjp7ImlkIjoibWNwLWZpeHR1cmUiLCJzaGEyNTYiOiIxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExIiwidmVyc2lvbiI6MX0sInNjaGVtYV92ZXJzaW9uIjoxLCJzdWJqZWN0Ijoib3duZXItZml4dHVyZSIsInRlbmFudF9pZCI6InRlbmFudC1maXh0dXJlIn0.DDodn81VkyPrkYnTd5eZIVIXbvxeOziUwpm9Gk4L7UeAUZttRSsIC-VD6uhgobHPc6a-p4JXE-iJmR-UD6THDw",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J14",
+      "description": "audience array forbidden",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOlsidXJuOmx5bnBseTp0b29scy1kYWVtb246bWFuYWdlbWVudC1qb2JzOnYxIl0sImRldmljZV9pZCI6ImRldmljZS1maXh0dXJlIiwiZGV2aWNlX3ZlcnNpb24iOjEsImV4cCI6MTc5MDI5NDcwMCwiZXhwZWN0ZWRfc3RhdGVfdmVyc2lvbiI6MywiaWF0IjoxNzkwMjk0NDAwLCJpZGVudGl0eV9pc3N1ZXIiOiJodHRwczovL2lhbS5leGFtcGxlLmludmFsaWQvdC90ZW5hbnQtZml4dHVyZSIsImlzcyI6Imh0dHBzOi8vZ2F0ZXdheS5leGFtcGxlLmludmFsaWQvYXBpL3YxL2RhZW1vbi1tYW5hZ2VtZW50Iiwiam9iX2lkIjoiam9iLWZpeHR1cmUtMSIsImtleV9qa3QiOiJBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBIiwib3BlcmF0aW9uIjoibWFuYWdlZF93b3JrZXIucmV2b2tlIiwib3JnYW5pemF0aW9uX2lkIjoib3JnLWZpeHR1cmUiLCJwb2xpY3lfcmV2aXNpb24iOjcsInJlc291cmNlIjp7ImlkIjoibWNwLWZpeHR1cmUiLCJzaGEyNTYiOiIxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExIiwidmVyc2lvbiI6MX0sInNjaGVtYV92ZXJzaW9uIjoxLCJzdWJqZWN0Ijoib3duZXItZml4dHVyZSIsInRlbmFudF9pZCI6InRlbmFudC1maXh0dXJlIn0.AjUZ3ezjn0nNkumKfWmGEd7giRtFmtFvTOfkGrpIpSRqhZPyR48w00DX-PuogtW372jDZ_XHBbhpkc78cSXWAw",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J15",
+      "description": "unknown schema version",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6Miwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.xEk5VuNwLkX6xLTdfce6gPZlxOjaRLW1k6EbX4f9dt96IX8bq8Jd1TfR43cpG_wGQeL0kXmbAABkN9RjwPcdBA",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J16",
+      "description": "missing approval reference",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.27LglQJbTJ5CVecMyOys0VAKbff6tzYqWfRaISsPEUuX8_zV9YdvPrCypwJ4ioyIxndrH9grICv0iAUKA90GCA",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J17",
+      "description": "empty approver",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiIn0sImF1ZCI6InVybjpseW5wbHk6dG9vbHMtZGFlbW9uOm1hbmFnZW1lbnQtam9iczp2MSIsImRldmljZV9pZCI6ImRldmljZS1maXh0dXJlIiwiZGV2aWNlX3ZlcnNpb24iOjEsImV4cCI6MTc5MDI5NDcwMCwiZXhwZWN0ZWRfc3RhdGVfdmVyc2lvbiI6MywiaWF0IjoxNzkwMjk0NDAwLCJpZGVudGl0eV9pc3N1ZXIiOiJodHRwczovL2lhbS5leGFtcGxlLmludmFsaWQvdC90ZW5hbnQtZml4dHVyZSIsImlzcyI6Imh0dHBzOi8vZ2F0ZXdheS5leGFtcGxlLmludmFsaWQvYXBpL3YxL2RhZW1vbi1tYW5hZ2VtZW50Iiwiam9iX2lkIjoiam9iLWZpeHR1cmUtMSIsImtleV9qa3QiOiJBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBIiwib3BlcmF0aW9uIjoibWFuYWdlZF93b3JrZXIucmV2b2tlIiwib3JnYW5pemF0aW9uX2lkIjoib3JnLWZpeHR1cmUiLCJwb2xpY3lfcmV2aXNpb24iOjcsInJlc291cmNlIjp7ImlkIjoibWNwLWZpeHR1cmUiLCJzaGEyNTYiOiIxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExIiwidmVyc2lvbiI6MX0sInNjaGVtYV92ZXJzaW9uIjoxLCJzdWJqZWN0Ijoib3duZXItZml4dHVyZSIsInRlbmFudF9pZCI6InRlbmFudC1maXh0dXJlIn0.WIUbM9ZbtmtJmX-7xLZctbFqoAUUZI5aFXJ5FxKRZ10icIFKhmWk9nxQHClBvqgoSIgv7NgvWJrN7GCL0s8VAg",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J18",
+      "description": "negative device version",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjotMSwiZXhwIjoxNzkwMjk0NzAwLCJleHBlY3RlZF9zdGF0ZV92ZXJzaW9uIjozLCJpYXQiOjE3OTAyOTQ0MDAsImlkZW50aXR5X2lzc3VlciI6Imh0dHBzOi8vaWFtLmV4YW1wbGUuaW52YWxpZC90L3RlbmFudC1maXh0dXJlIiwiaXNzIjoiaHR0cHM6Ly9nYXRld2F5LmV4YW1wbGUuaW52YWxpZC9hcGkvdjEvZGFlbW9uLW1hbmFnZW1lbnQiLCJqb2JfaWQiOiJqb2ItZml4dHVyZS0xIiwia2V5X2prdCI6IkFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUEiLCJvcGVyYXRpb24iOiJtYW5hZ2VkX3dvcmtlci5yZXZva2UiLCJvcmdhbml6YXRpb25faWQiOiJvcmctZml4dHVyZSIsInBvbGljeV9yZXZpc2lvbiI6NywicmVzb3VyY2UiOnsiaWQiOiJtY3AtZml4dHVyZSIsInNoYTI1NiI6IjExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJ2ZXJzaW9uIjoxfSwic2NoZW1hX3ZlcnNpb24iOjEsInN1YmplY3QiOiJvd25lci1maXh0dXJlIiwidGVuYW50X2lkIjoidGVuYW50LWZpeHR1cmUifQ.NWdURpwK5AAttREo1ORgCuNdlzUCTxUf-B85alVfZeW21TdysQdzCQrt3wmkbBv4v7X5_eFR6KwQ_WpVE9wQAg",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J19",
+      "description": "fractional version",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLjUsImV4cCI6MTc5MDI5NDcwMCwiZXhwZWN0ZWRfc3RhdGVfdmVyc2lvbiI6MywiaWF0IjoxNzkwMjk0NDAwLCJpZGVudGl0eV9pc3N1ZXIiOiJodHRwczovL2lhbS5leGFtcGxlLmludmFsaWQvdC90ZW5hbnQtZml4dHVyZSIsImlzcyI6Imh0dHBzOi8vZ2F0ZXdheS5leGFtcGxlLmludmFsaWQvYXBpL3YxL2RhZW1vbi1tYW5hZ2VtZW50Iiwiam9iX2lkIjoiam9iLWZpeHR1cmUtMSIsImtleV9qa3QiOiJBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBIiwib3BlcmF0aW9uIjoibWFuYWdlZF93b3JrZXIucmV2b2tlIiwib3JnYW5pemF0aW9uX2lkIjoib3JnLWZpeHR1cmUiLCJwb2xpY3lfcmV2aXNpb24iOjcsInJlc291cmNlIjp7ImlkIjoibWNwLWZpeHR1cmUiLCJzaGEyNTYiOiIxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExIiwidmVyc2lvbiI6MX0sInNjaGVtYV92ZXJzaW9uIjoxLCJzdWJqZWN0Ijoib3duZXItZml4dHVyZSIsInRlbmFudF9pZCI6InRlbmFudC1maXh0dXJlIn0.cdC0LHcQlqwQUIpDvlkF_jm9mrAICD1vgnNAPirsXyN07IFp2zlAVqey0a2fF6IDnl30nmn_7rNp6UW_Jc_WAA",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J20",
+      "description": "unsafe integer",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjo5MDA3MTk5MjU0NzQwOTkyLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.4SM_jbijs8lGGbrxDkfEEs9VtAwIoxWM_uEYuo0Tm5DUSXm0D0HrJhJX88HcXZGvBeqb-4sh6bFWw9TSMgxoBQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J21",
+      "description": "future issue time",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDYsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwNiwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.TNRGJF1iSQZqdtv_W54Usbkpjh8F_ly9omQbCnnqxgV-IaUbO9FxTxiFul1XPDCRAlsXyiOPp1NfRC6Zvu5NDQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_not_yet_valid"
+    },
+    {
+      "id": "J22",
+      "description": "expired at boundary",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ0MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.T_22ZIs7ro7U0aBZHNskc2799aiEbbNhtuvKELuaK2ZZRmFGsFtRwZqWndGoW-rsOPAGEz9GOr5Y4ZV40uWMAA",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J23",
+      "description": "expiry reached",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDM5OSwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ0MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDM5OSwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9._DFtn7WTG3-MrfHTS-Dolwm0Wk62pzGDH1PN1eYbhZeaM0xT3auusqUIQJDYxDf7WWRrsmvLJcecF5LgcCeaCQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_expired"
+    },
+    {
+      "id": "J24",
+      "description": "excessive lifetime",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDEsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.2oRCWTRBgM0SX02Y1-ai6_Xz_di0kIzR3DGhk6CNRHttlmQ2PM5_qJoYtG2PG5PMbedNBrm0YcmzsXJTCmrpCw",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J25",
+      "description": "approval too old",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDA5OSwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.RGUjbbF0oUUjaJ69azBG7YYjJ2KR-pCIxZg57Ft_g-uK2HhOkQ9FRRRcSHbAIHCTNHB7HLHKn_cZdbfFBHvNAg",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J26",
+      "description": "approval after issuance",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMSwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.cNPKlsAFp1D7f6aEaNFYrFhw_taUlIHwKDQ2zFGT7LqEwS3s-Y-yv73H7pHuiIWWOehdTL_v2xryyQGLWdh4DA",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J27",
+      "description": "wrong tenant_id",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJvdGhlciJ9.zbJE3Eopwuw9-WuD6B-H0YW-PnOrmpOcrzUg9e1Ys7gSKsniAf11TpSZOOigo2qnaK9OU_-KnierHPw2lqgPAA",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_binding_mismatch"
+    },
+    {
+      "id": "J28",
+      "description": "wrong organization_id",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im90aGVyIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.bMWcrUmWU8ugTKnGQDrcoNTTqlNHXLJMYBjEnkr6OgTDeCpEhFknSHk9abBavnlzMESc19TlJhZXitYoxH4qDA",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_binding_mismatch"
+    },
+    {
+      "id": "J29",
+      "description": "wrong subject",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im90aGVyIiwidGVuYW50X2lkIjoidGVuYW50LWZpeHR1cmUifQ.-jm4x6e_nHNQxY5Drx8f7k1VlGvE510fAymvejb0C9SRwuSNfBZkvSIHwpFLf2kCeAFsblQP3iZg6MhN8jOQDA",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_binding_mismatch"
+    },
+    {
+      "id": "J30",
+      "description": "wrong device_id",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJvdGhlciIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.1GcdM1arbTEB9HEsV6UeLt7MbD8QY6KdhzLSOiEF4kZrNd-vKDmyzGx92Qx0Nv5ucAHJQItx9OppJZEDsPQ5Dg",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_binding_mismatch"
+    },
+    {
+      "id": "J31",
+      "description": "wrong device_version",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoyLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.cOoYX19B06Gq4XnmIJChaEs6a3Un8VRssM7yOBJgKymkeRhVuXMQXgdeIeilaXiWhjMZLUPNzlksw-hgQOzTCA",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_binding_mismatch"
+    },
+    {
+      "id": "J32",
+      "description": "wrong key_jkt",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQiIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.CgEPF3Exi4CNf1yTopliKAR0ME4Tu6X7pV5w0nZv0kgCPvACjeZ7L1JhtwM33ypAEFBHc-6p6DmH5J6H6hs7CQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_binding_mismatch"
+    },
+    {
+      "id": "J33",
+      "description": "wrong iss",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL290aGVyLmludmFsaWQvYXBpL3YxL2RhZW1vbi1tYW5hZ2VtZW50Iiwiam9iX2lkIjoiam9iLWZpeHR1cmUtMSIsImtleV9qa3QiOiJBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBIiwib3BlcmF0aW9uIjoibWFuYWdlZF93b3JrZXIucmV2b2tlIiwib3JnYW5pemF0aW9uX2lkIjoib3JnLWZpeHR1cmUiLCJwb2xpY3lfcmV2aXNpb24iOjcsInJlc291cmNlIjp7ImlkIjoibWNwLWZpeHR1cmUiLCJzaGEyNTYiOiIxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExIiwidmVyc2lvbiI6MX0sInNjaGVtYV92ZXJzaW9uIjoxLCJzdWJqZWN0Ijoib3duZXItZml4dHVyZSIsInRlbmFudF9pZCI6InRlbmFudC1maXh0dXJlIn0.0XH8mbBMLIkKyvViWD82uaNuiidEfOB3Y8xEAMwOdt-AGGgmgz_wCSw_Ku0exYcRZ8wBHlt8uO3jWuI8i8f4AA",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_binding_mismatch"
+    },
+    {
+      "id": "J34",
+      "description": "wrong identity_issuer",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3Qvb3RoZXIiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.QrtET-vYAU9zLvoXRO1gQAlwx4oLdQT3Alrz8HOlD6me9nr7tAAHfeHHKv99tRhFjshStAZ20YH_UhEvgTnjAA",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_binding_mismatch"
+    },
+    {
+      "id": "J35",
+      "description": "different installed resource id",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.Eifmq5-ehSEUj23SNvVsxFQzDTFO-UpLM5yOajV8CAbJRyX5eYKYFNokQGTbzgCZJvX4_XlmjIORFnyNsyISBQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "other",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_resource_mismatch"
+    },
+    {
+      "id": "J36",
+      "description": "different installed resource version",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.Eifmq5-ehSEUj23SNvVsxFQzDTFO-UpLM5yOajV8CAbJRyX5eYKYFNokQGTbzgCZJvX4_XlmjIORFnyNsyISBQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 2,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_resource_mismatch"
+    },
+    {
+      "id": "J37",
+      "description": "different installed resource sha256",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.Eifmq5-ehSEUj23SNvVsxFQzDTFO-UpLM5yOajV8CAbJRyX5eYKYFNokQGTbzgCZJvX4_XlmjIORFnyNsyISBQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_resource_mismatch"
+    },
+    {
+      "id": "J38",
+      "description": "changed installed policy revision",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.Eifmq5-ehSEUj23SNvVsxFQzDTFO-UpLM5yOajV8CAbJRyX5eYKYFNokQGTbzgCZJvX4_XlmjIORFnyNsyISBQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 8,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_stale_state"
+    },
+    {
+      "id": "J39",
+      "description": "competing state already advanced",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.Eifmq5-ehSEUj23SNvVsxFQzDTFO-UpLM5yOajV8CAbJRyX5eYKYFNokQGTbzgCZJvX4_XlmjIORFnyNsyISBQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 4,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_stale_state"
+    },
+    {
+      "id": "J40",
+      "description": "already revoked resource",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.Eifmq5-ehSEUj23SNvVsxFQzDTFO-UpLM5yOajV8CAbJRyX5eYKYFNokQGTbzgCZJvX4_XlmjIORFnyNsyISBQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "revoked"
+      },
+      "prior": null,
+      "expected": "job_resource_revoked"
+    },
+    {
+      "id": "J41",
+      "description": "same durable job record does not execute again",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.Eifmq5-ehSEUj23SNvVsxFQzDTFO-UpLM5yOajV8CAbJRyX5eYKYFNokQGTbzgCZJvX4_XlmjIORFnyNsyISBQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 4,
+        "status": "revoked"
+      },
+      "prior": {
+        "job_id": "job-fixture-1",
+        "digest": "14a0e3d91e7f786a9b2425f8914c51c02e6453c72fd5b96213b83aca6c49d312"
+      },
+      "expected": "already_recorded"
+    },
+    {
+      "id": "J42",
+      "description": "same job id with changed content",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.Eifmq5-ehSEUj23SNvVsxFQzDTFO-UpLM5yOajV8CAbJRyX5eYKYFNokQGTbzgCZJvX4_XlmjIORFnyNsyISBQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": {
+        "job_id": "job-fixture-1",
+        "digest": "2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "expected": "job_conflict"
+    },
+    {
+      "id": "J43",
+      "description": "expired duplicate still rejected",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.Eifmq5-ehSEUj23SNvVsxFQzDTFO-UpLM5yOajV8CAbJRyX5eYKYFNokQGTbzgCZJvX4_XlmjIORFnyNsyISBQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294700,
+      "admission_now": 1790294700,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": {
+        "job_id": "job-fixture-1",
+        "digest": "14a0e3d91e7f786a9b2425f8914c51c02e6453c72fd5b96213b83aca6c49d312"
+      },
+      "expected": "job_expired"
+    },
+    {
+      "id": "J44",
+      "description": "unknown resource state",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.Eifmq5-ehSEUj23SNvVsxFQzDTFO-UpLM5yOajV8CAbJRyX5eYKYFNokQGTbzgCZJvX4_XlmjIORFnyNsyISBQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "unknown"
+      },
+      "prior": null,
+      "expected": "job_state_invalid"
+    },
+    {
+      "id": "J45",
+      "description": "state version cannot overflow",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjkwMDcxOTkyNTQ3NDA5OTEsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.ygnEaNb01Uh7ehlnnK_yndHf_SW8gIaQXKZG3eAXCLpa89TmeAmIpZgm383na95B0wKmoRzlb90o7f8nEdLqDw",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 9007199254740991,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_state_invalid"
+    },
+    {
+      "id": "J46",
+      "description": "payload whitespace not canonical",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.ewogICJzY2hlbWFfdmVyc2lvbiI6IDEsCiAgImpvYl9pZCI6ICJqb2ItZml4dHVyZS0xIiwKICAiaXNzIjogImh0dHBzOi8vZ2F0ZXdheS5leGFtcGxlLmludmFsaWQvYXBpL3YxL2RhZW1vbi1tYW5hZ2VtZW50IiwKICAiYXVkIjogInVybjpseW5wbHk6dG9vbHMtZGFlbW9uOm1hbmFnZW1lbnQtam9iczp2MSIsCiAgImlkZW50aXR5X2lzc3VlciI6ICJodHRwczovL2lhbS5leGFtcGxlLmludmFsaWQvdC90ZW5hbnQtZml4dHVyZSIsCiAgInRlbmFudF9pZCI6ICJ0ZW5hbnQtZml4dHVyZSIsCiAgIm9yZ2FuaXphdGlvbl9pZCI6ICJvcmctZml4dHVyZSIsCiAgInN1YmplY3QiOiAib3duZXItZml4dHVyZSIsCiAgImRldmljZV9pZCI6ICJkZXZpY2UtZml4dHVyZSIsCiAgImRldmljZV92ZXJzaW9uIjogMSwKICAia2V5X2prdCI6ICJBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBIiwKICAiYXBwcm92ZWRfYnkiOiB7CiAgICAic3ViamVjdCI6ICJhcHByb3Zlci1maXh0dXJlIiwKICAgICJhdXRob3JpemF0aW9uX2lkIjogImFwcHJvdmFsLWZpeHR1cmUiLAogICAgImFwcHJvdmVkX2F0IjogMTc5MDI5NDQwMAogIH0sCiAgIm9wZXJhdGlvbiI6ICJtYW5hZ2VkX3dvcmtlci5yZXZva2UiLAogICJyZXNvdXJjZSI6IHsKICAgICJpZCI6ICJtY3AtZml4dHVyZSIsCiAgICAidmVyc2lvbiI6IDEsCiAgICAic2hhMjU2IjogIjExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiCiAgfSwKICAicG9saWN5X3JldmlzaW9uIjogNywKICAiZXhwZWN0ZWRfc3RhdGVfdmVyc2lvbiI6IDMsCiAgImlhdCI6IDE3OTAyOTQ0MDAsCiAgImV4cCI6IDE3OTAyOTQ3MDAKfQ.nSJFQCUoofMcsV3JLtqhGv-cADShDq2e2DhW8Cmr5RFBCDs4H88QTZAJVCQbnYByt0sxcYL8qHZTasctQxrgBQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J47",
+      "description": "duplicate JSON property rejected",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJqb2JfaWQiOiJkdXBsaWNhdGUiLCJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.c3WVvz7SRg04G3obSeax-21Y3REFZ1_ZHyZiHN4xIqZ5NeMnTuBb3HguQlxu5QVJTNzqBs4NxxJHk-IF2nKFDg",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J48",
+      "description": "duplicate JOSE header rejected",
+      "compact": "eyJhbGciOiJFZERTQSIsImFsZyI6IkVkRFNBIiwia2lkIjoiZml4dHVyZS1qb2Ita2V5IiwidHlwIjoibHlucGx5LWRhZW1vbi1qb2IrandzIn0.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.5LB8rt_SpqfQOXg_73rsG4e3EZF57kWnbTYmw1ErP7rHWYh6NTcV4tpaOjU5CNUZbbxIFeUoteaS839apa1TBA",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J49",
+      "description": "resource is a logical id not path",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Ii9zb21lL2ZpbGUiLCJzaGEyNTYiOiIxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExIiwidmVyc2lvbiI6MX0sInNjaGVtYV92ZXJzaW9uIjoxLCJzdWJqZWN0Ijoib3duZXItZml4dHVyZSIsInRlbmFudF9pZCI6InRlbmFudC1maXh0dXJlIn0.bpi2X5mFUZtfNElp6XX3uPeu-D-rbDrrIaehvpRtubZpiaPqmVwXbFfoege1SYKJ9bd8QIJ-LaqTXw8RSVZ9AQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J50",
+      "description": "bounded envelope",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImV4dHJhIjoieHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgiLCJpYXQiOjE3OTAyOTQ0MDAsImlkZW50aXR5X2lzc3VlciI6Imh0dHBzOi8vaWFtLmV4YW1wbGUuaW52YWxpZC90L3RlbmFudC1maXh0dXJlIiwiaXNzIjoiaHR0cHM6Ly9nYXRld2F5LmV4YW1wbGUuaW52YWxpZC9hcGkvdjEvZGFlbW9uLW1hbmFnZW1lbnQiLCJqb2JfaWQiOiJqb2ItZml4dHVyZS0xIiwia2V5X2prdCI6IkFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUEiLCJvcGVyYXRpb24iOiJtYW5hZ2VkX3dvcmtlci5yZXZva2UiLCJvcmdhbml6YXRpb25faWQiOiJvcmctZml4dHVyZSIsInBvbGljeV9yZXZpc2lvbiI6NywicmVzb3VyY2UiOnsiaWQiOiJtY3AtZml4dHVyZSIsInNoYTI1NiI6IjExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJ2ZXJzaW9uIjoxfSwic2NoZW1hX3ZlcnNpb24iOjEsInN1YmplY3QiOiJvd25lci1maXh0dXJlIiwidGVuYW50X2lkIjoidGVuYW50LWZpeHR1cmUifQ.a-syWKwXe3TG-eA569LsjttFzyARBEAsqs-2YWqXUuxE58h8hP9PWKfzMy1QFibEEIy69hvqxYYlGKLCkTCiBw",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J51",
+      "description": "expires between verification and admission",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.Eifmq5-ehSEUj23SNvVsxFQzDTFO-UpLM5yOajV8CAbJRyX5eYKYFNokQGTbzgCZJvX4_XlmjIORFnyNsyISBQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294700,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_expired"
+    },
+    {
+      "id": "J52",
+      "description": "clock regressed after verification",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.Eifmq5-ehSEUj23SNvVsxFQzDTFO-UpLM5yOajV8CAbJRyX5eYKYFNokQGTbzgCZJvX4_XlmjIORFnyNsyISBQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294399,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_clock_regressed"
+    },
+    {
+      "id": "J53",
+      "description": "private JWK field rejected",
+      "compact": "eyJhbGciOiJFZERTQSIsImQiOiJmb3JiaWRkZW4tZmllbGQtbm90LWEta2V5Iiwia2lkIjoiZml4dHVyZS1qb2Ita2V5IiwidHlwIjoibHlucGx5LWRhZW1vbi1qb2IrandzIn0.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.SunwBK2-u2MzfnqSy4yqNSFeLU0w4lPUO90yTWUen_qosva5nBJWoJcGp-NNSsLTsyGSQDDxxP9zwdpF0FN0AQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J54",
+      "description": "noncanonical padded base64url",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9=.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.Eifmq5-ehSEUj23SNvVsxFQzDTFO-UpLM5yOajV8CAbJRyX5eYKYFNokQGTbzgCZJvX4_XlmjIORFnyNsyISBQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J55",
+      "description": "null resource",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6bnVsbCwic2NoZW1hX3ZlcnNpb24iOjEsInN1YmplY3QiOiJvd25lci1maXh0dXJlIiwidGVuYW50X2lkIjoidGVuYW50LWZpeHR1cmUifQ.AVLC4I9MSzrI7FPjoQ7kZX8DTw9S2Fvr7BTl_H8bPfrZyBp2xkA8E300YfVG0ibYywIyHxWIdav0T3YmqHjWAg",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J56",
+      "description": "arbitrary effect field",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJlZmZlY3QiOnsidXJsIjoiaHR0cHM6Ly9vdGhlci5pbnZhbGlkIn0sImV4cCI6MTc5MDI5NDcwMCwiZXhwZWN0ZWRfc3RhdGVfdmVyc2lvbiI6MywiaWF0IjoxNzkwMjk0NDAwLCJpZGVudGl0eV9pc3N1ZXIiOiJodHRwczovL2lhbS5leGFtcGxlLmludmFsaWQvdC90ZW5hbnQtZml4dHVyZSIsImlzcyI6Imh0dHBzOi8vZ2F0ZXdheS5leGFtcGxlLmludmFsaWQvYXBpL3YxL2RhZW1vbi1tYW5hZ2VtZW50Iiwiam9iX2lkIjoiam9iLWZpeHR1cmUtMSIsImtleV9qa3QiOiJBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBIiwib3BlcmF0aW9uIjoibWFuYWdlZF93b3JrZXIucmV2b2tlIiwib3JnYW5pemF0aW9uX2lkIjoib3JnLWZpeHR1cmUiLCJwb2xpY3lfcmV2aXNpb24iOjcsInJlc291cmNlIjp7ImlkIjoibWNwLWZpeHR1cmUiLCJzaGEyNTYiOiIxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExIiwidmVyc2lvbiI6MX0sInNjaGVtYV92ZXJzaW9uIjoxLCJzdWJqZWN0Ijoib3duZXItZml4dHVyZSIsInRlbmFudF9pZCI6InRlbmFudC1maXh0dXJlIn0.NIiB5S69iuB3wv05kFVpqcxYjPZ7RmzIUvaum2X1fQWVXl34KgeS0NxnKLSBU8wimVKJUrLnLQEWBZVdGLstDg",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_invalid"
+    },
+    {
+      "id": "J57",
+      "description": "zero state version",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.Eifmq5-ehSEUj23SNvVsxFQzDTFO-UpLM5yOajV8CAbJRyX5eYKYFNokQGTbzgCZJvX4_XlmjIORFnyNsyISBQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavU"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 0,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_state_invalid"
+    },
+    {
+      "id": "J58",
+      "description": "noncanonical pinned public key",
+      "compact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImZpeHR1cmUtam9iLWtleSIsInR5cCI6Imx5bnBseS1kYWVtb24tam9iK2p3cyJ9.eyJhcHByb3ZlZF9ieSI6eyJhcHByb3ZlZF9hdCI6MTc5MDI5NDQwMCwiYXV0aG9yaXphdGlvbl9pZCI6ImFwcHJvdmFsLWZpeHR1cmUiLCJzdWJqZWN0IjoiYXBwcm92ZXItZml4dHVyZSJ9LCJhdWQiOiJ1cm46bHlucGx5OnRvb2xzLWRhZW1vbjptYW5hZ2VtZW50LWpvYnM6djEiLCJkZXZpY2VfaWQiOiJkZXZpY2UtZml4dHVyZSIsImRldmljZV92ZXJzaW9uIjoxLCJleHAiOjE3OTAyOTQ3MDAsImV4cGVjdGVkX3N0YXRlX3ZlcnNpb24iOjMsImlhdCI6MTc5MDI5NDQwMCwiaWRlbnRpdHlfaXNzdWVyIjoiaHR0cHM6Ly9pYW0uZXhhbXBsZS5pbnZhbGlkL3QvdGVuYW50LWZpeHR1cmUiLCJpc3MiOiJodHRwczovL2dhdGV3YXkuZXhhbXBsZS5pbnZhbGlkL2FwaS92MS9kYWVtb24tbWFuYWdlbWVudCIsImpvYl9pZCI6ImpvYi1maXh0dXJlLTEiLCJrZXlfamt0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9wZXJhdGlvbiI6Im1hbmFnZWRfd29ya2VyLnJldm9rZSIsIm9yZ2FuaXphdGlvbl9pZCI6Im9yZy1maXh0dXJlIiwicG9saWN5X3JldmlzaW9uIjo3LCJyZXNvdXJjZSI6eyJpZCI6Im1jcC1maXh0dXJlIiwic2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInZlcnNpb24iOjF9LCJzY2hlbWFfdmVyc2lvbiI6MSwic3ViamVjdCI6Im93bmVyLWZpeHR1cmUiLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtZml4dHVyZSJ9.Eifmq5-ehSEUj23SNvVsxFQzDTFO-UpLM5yOajV8CAbJRyX5eYKYFNokQGTbzgCZJvX4_XlmjIORFnyNsyISBQ",
+      "trust": {
+        "kid": "fixture-job-key",
+        "publicKey": "VhMapEuqIVp0VyrcXTsRifliBHsu8Ss0MKGcDdmsavV"
+      },
+      "binding": {
+        "gateway": "https://gateway.example.invalid/api/v1/daemon-management",
+        "identityIssuer": "https://iam.example.invalid/t/tenant-fixture",
+        "tenant": "tenant-fixture",
+        "organization": "org-fixture",
+        "subject": "owner-fixture",
+        "device": "device-fixture",
+        "deviceVersion": 1,
+        "jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "now": 1790294400,
+      "admission_now": 1790294400,
+      "current": {
+        "resource": {
+          "id": "mcp-fixture",
+          "version": 1,
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "policy_revision": 7,
+        "state_version": 3,
+        "status": "active"
+      },
+      "prior": null,
+      "expected": "job_key_untrusted"
+    }
+  ]
+}

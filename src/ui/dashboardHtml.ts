@@ -70,6 +70,16 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     </header>
 
     <div id="dashboard-content" style="display: flex; flex-direction: column; gap: 1.5rem;">
+      <section class="card" id="jobs-panel" hidden>
+        <h2>관리 작업 결과</h2>
+        <p style="color: #8b949e; font-size: 0.85rem;">내 기기의 회수 요청과 마지막 실행 결과입니다. 보고가 지연되면 현재 상태를 확인할 수 없습니다.</p>
+        <div id="jobs-list"></div>
+      </section>
+      <section class="card" id="devices-panel" hidden>
+        <h2>내 등록 기기</h2>
+        <p style="color: #8b949e; font-size: 0.85rem;">내 기기가 보낸 로컬 작업 상태입니다. 기기 전체의 안전성이나 원격 도구 호출 허용을 뜻하지 않습니다.</p>
+        <div id="devices-list" aria-live="polite">상태 확인 중…</div>
+      </section>
       <!-- API Keys Section -->
       <section class="card">
         <h2>
@@ -202,12 +212,87 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             loadKeys();
             loadUpstreams();
             loadPermissions();
+            loadDevices();
+            loadJobs();
             document.getElementById('dashboard-content').style.display = 'flex';
             return;
           }
         }
       } catch (e) {}
       console.warn('Keeping dashboard visible');
+    }
+
+    async function loadDevices() {
+      const panel = document.getElementById('devices-panel');
+      const list = document.getElementById('devices-list');
+      try {
+        const res = await fetch('/api/v1/daemon-management/devices', { cache: 'no-store', signal: AbortSignal.timeout(10000) });
+        if (res.status === 404) { panel.hidden = true; return; }
+        panel.hidden = false;
+        if (!res.ok) throw new Error('unavailable');
+        const data = await res.json();
+        list.replaceChildren();
+        if (!data.devices.length) list.textContent = '아직 상태 보고를 받은 기기가 없습니다.';
+        for (const device of data.devices) {
+          const row = document.createElement('div');
+          row.className = 'list-item';
+          row.style.display = 'block';
+          const title = document.createElement('strong');
+          title.textContent = device.device_id;
+          const detail = document.createElement('p');
+          const auth = { authorized: 'IAM 허용', denied: 'IAM 허용 안 됨', unknown: 'IAM 확인 불가' }[device.authorization] || 'IAM 확인 불가';
+          const fresh = device.freshness === 'fresh' ? '최근 보고' : '보고 지연';
+          const status = device.report.status;
+          const policy = { valid: '유효', expired: '만료', unverified: '미확인' }[status.policy?.state] || '미확인';
+          const execution = { preflight_passed: '사전 검사 통과', blocked: '차단', unverified: '미확인' }[status.execution?.state] || '미확인';
+          detail.textContent = auth + ' · ' + fresh + ' · 로컬 연결 ' + (status.connection === 'connected' ? '연결됨' : '확인 불가')
+            + ' · 정책 ' + policy + (status.policy?.revision ? ' (v' + status.policy.revision + ')' : '') + ' · 실행 ' + execution;
+          const time = document.createElement('small');
+          time.textContent = '조직 ' + device.organization_id + ' · 순번 ' + device.report.sequence + ' · 관측 ' + new Date(device.report.observed_at).toLocaleString()
+            + ' · 수신 ' + new Date(device.receipt.received_at).toLocaleString();
+          row.append(title, detail, time);
+          for (const event of status.recent_events || []) {
+            const item = document.createElement('div');
+            item.textContent = '이벤트 #' + event.sequence + ' · ' + event.kind + ' · ' + new Date(event.timestamp).toLocaleString();
+            row.append(item);
+          }
+          list.append(row);
+        }
+      } catch {
+        panel.hidden = false;
+        list.textContent = '상태를 확인할 수 없습니다. 이전 보고를 현재 상태로 표시하지 않습니다.';
+      }
+      setTimeout(loadDevices, 5000);
+    }
+
+    async function loadJobs() {
+      const panel = document.getElementById('jobs-panel');
+      const list = document.getElementById('jobs-list');
+      try {
+        const res = await fetch('/api/v1/daemon-management/jobs', { cache: 'no-store', signal: AbortSignal.timeout(10000) });
+        if (res.status === 404) { panel.hidden = true; return; }
+        panel.hidden = false;
+        if (!res.ok) throw new Error('unavailable');
+        const data = await res.json();
+        list.replaceChildren();
+        if (!data.jobs.length) list.textContent = '아직 발행된 관리 작업이 없습니다.';
+        for (const job of data.jobs) {
+          const row = document.createElement('div');
+          row.className = 'list-item'; row.style.display = 'block';
+          const title = document.createElement('strong');
+          title.textContent = job.resource.id + ' · ' + job.device_id;
+          const detail = document.createElement('p');
+          const state = { queued: '전달 대기', completed: '회수 완료 관측', termination_unknown: '신규 실행 차단 · 종료 미확인', expired_unconfirmed: '전달 기한 만료 · 집행 여부 미확인' }[job.state] || '결과 미확인';
+          detail.textContent = state + ' · ' + (job.freshness === 'fresh' ? '최근 보고' : '보고 지연 · 현재 상태 미확인');
+          const time = document.createElement('small');
+          time.textContent = '작업 ' + job.job_id + (job.observed_at ? ' · 관측 ' + new Date(job.observed_at).toLocaleString() : ' · 결과 보고 없음');
+          row.append(title, detail, time); list.append(row);
+        }
+      } catch {
+        panel.hidden = false;
+        list.textContent = '작업 결과를 확인할 수 없습니다. 이전 결과를 현재 상태로 표시하지 않습니다.';
+      }
+      setTimeout(loadJobs, 5000);
     }
 
     function renderAuthUser(user) {
