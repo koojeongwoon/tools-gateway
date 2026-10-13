@@ -34,7 +34,11 @@ export function createGatewayServer(
   jevVirtualRouter?: JevVirtualRouter,
 ): McpServer {
   const server = new McpServer(
-    { name: "tools-gateway", version: "0.1.0" },
+    {
+      name: "tools-gateway",
+      version: "0.1.0",
+      websiteUrl: "https://tools-gateway.lynply.com/",
+    },
     { capabilities: { tools: {} } },
   );
 
