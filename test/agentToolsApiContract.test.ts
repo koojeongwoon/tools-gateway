@@ -20,6 +20,13 @@ describe('agent-tools Python/native contract', () => {
     }
     expect(() => invoke('cover.generate', {title:'x',subtitle:'',category:'',output_path:'/etc/token'})).toThrow();
   });
+  it('keeps secret egress checks for search and cover text while allowing consent handoff', () => {
+    const probe='p2Y9aK7qL3vX8nR4mT6cW1fH5sD0jB9uE2gI7oN';
+    expect(() => invoke('broker.json', {operation:'search',payload:{query:`find ${probe}`}})).toThrow();
+    expect(() => invoke('cover.generate', {title:probe,subtitle:'',category:''})).toThrow();
+    expect(() => invoke('broker.json', {operation:'google.authorization.complete',payload:{code_or_url:probe,state:probe}})).not.toThrow();
+    expect(() => invoke('broker.json', {operation:'search',payload:{query:'normal search',api_key:'secret'}})).toThrow();
+  });
   it('preserves arbitrary bytes, PII and 64-bit resource IDs without Node number conversion', () => {
     const encoded=Buffer.from('{"id":9223372036854775807,"email":"reader@example.com"}').toString('base64');
     const data={ok:true,kind:'json',content:encoded};

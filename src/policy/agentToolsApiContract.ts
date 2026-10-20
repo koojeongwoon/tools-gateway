@@ -1,4 +1,6 @@
 /** Typed data transport for the operator-bound agent-tools upstream only. */
+import { OutboundSecretLeakGuard } from "./outboundSecretLeakGuard.js";
+const secretGuard = new OutboundSecretLeakGuard();
 const MiB = 1024 * 1024;
 const operations = new Set(['broker.json', 'broker.forward', 'documents.read', 'documents.fetch',
   'documents.extract', 'documents.validate', 'cover.generate', 'blob.begin', 'blob.append',
@@ -47,6 +49,20 @@ export function validateAgentToolsApiArguments(envelope: Record<string, unknown>
   } else if (op === 'broker.json') {
     fields(args, ['operation', 'payload'], ['operation']);
     if (!jsonOperations.has(args.operation as string)) reject();
+    if (args.operation === 'search') {
+      const payload = object(args.payload);
+      fields(payload, ['query', 'max_results'], ['query']);
+      if (typeof payload.query !== 'string' || !payload.query.trim()) reject();
+      if (payload.max_results !== undefined) integer(payload.max_results, Number.MAX_SAFE_INTEGER, 1);
+      secretGuard.validate({query: payload.query});
+    } else if ((args.operation as string).endsWith('.start')) {
+      if (args.payload != null) fields(object(args.payload), []);
+    } else {
+      const payload = object(args.payload);
+      fields(payload, ['code_or_url', 'state'], ['code_or_url', 'state']);
+      if (typeof payload.code_or_url !== 'string' || !payload.code_or_url.trim() || payload.code_or_url.trim().length > 8192
+        || typeof payload.state !== 'string' || payload.state.length < 32 || payload.state.length > 4096) reject();
+    }
   } else if (op === 'broker.forward') {
     fields(args, ['operation', 'method', 'url', 'content', 'content_ref', 'headers', 'timeout'], ['operation', 'method', 'url']);
     if (!profiles.has(args.operation as string)
@@ -71,6 +87,7 @@ export function validateAgentToolsApiArguments(envelope: Record<string, unknown>
   } else if (op === 'cover.generate') {
     fields(args, ['title', 'subtitle', 'category', 'meta', 'style', 'accent', 'size_mode'], ['title', 'subtitle', 'category']);
     if (Object.values(args).some(value => typeof value !== 'string' || value.length > 65536)) reject();
+    secretGuard.validate(args);
   } else {
     const keys: Record<string, [string[], string[]]> = {
       'documents.read': [['urls', 'limit', 'preserve_html', 'compact_text'], ['urls']],
