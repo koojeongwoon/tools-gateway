@@ -1,0 +1,20 @@
+# Add after the independent service and IAM client are available.
+# Keep disabled until the owner-bound runtime and token exchange are verified.
+upstreams:
+  - id: agent-tools
+    toolPrefix: agent_tools
+    networkScope: cluster
+    endpoint: http://agent-tools.hermes.svc.cluster.local:8080/mcp
+    transport: streamable-http
+    enabled: false
+    timeoutMs: 200000
+    payloadContract: agent-tools-cli-v1
+    auth:
+      mode: gateway-delegation
+      audience: agent-tools
+      targetTenantId: ten_9664c024babc4110
+    headers: {}
+toolPolicy:
+  default: deny
+  allow: [agent_tools.*]
+  deny: []
