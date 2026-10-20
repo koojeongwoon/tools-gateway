@@ -97,7 +97,9 @@ export function createGatewayServer(
       async (arguments_) => {
         const argsObj = isArgumentsObject(arguments_) ? arguments_ : {};
 
-        const auditArguments = command ? { argvCount: Array.isArray(argsObj.argv) ? argsObj.argv.length : 0,
+        const apiOperation = command === "api" && typeof argsObj.operation === "string"
+          && /^(?:broker\.(?:json|forward)|documents\.(?:read|fetch|extract|validate)|cover\.generate|blob\.(?:begin|append|seal|read|release))$/.test(argsObj.operation) ? argsObj.operation : undefined;
+        const auditArguments = command === "api" ? { operation: apiOperation ?? "invalid" } : command ? { argvCount: Array.isArray(argsObj.argv) ? argsObj.argv.length : 0,
           attachmentCount: argsObj.files && typeof argsObj.files === "object" ? Object.keys(argsObj.files).length : 0,
           stdinPresent: Boolean(argsObj.stdin) } : argsObj;
         return invocationContext.invoke(tool.publicName, auditArguments, async () => {

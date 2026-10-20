@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { Client } from "@modelcontextprotocol/client";
@@ -28,7 +29,7 @@ describe.skipIf(!python)("agent-tools real HTTP integration", () => {
       server=createGatewayServer(registry,new ToolPolicy({default:"deny",allow:["agent_tools.*"],deny:[]}),undefined,undefined,undefined,undefined,undefined,[{upstreamId:"agent-tools",toolPrefix:"agent_tools"}]);
       client=new Client({name:"integration-consumer",version:"1"});const [a,b]=InMemoryTransport.createLinkedPair();
       await Promise.all([server.connect(b),client.connect(a)]);
-      expect((await client.listTools()).tools).toHaveLength(8);
+      expect((await client.listTools()).tools).toHaveLength(9);
       const help=await client.callTool({name:"agent_tools.wordpress",arguments:{argv:["--help"],files:{},stdin:""}});
       expect(help.isError).not.toBe(true);
       const content=help.content[0]!;
@@ -38,9 +39,38 @@ describe.skipIf(!python)("agent-tools real HTTP integration", () => {
       // A malformed remote file path is rejected before reading any server file.
       const rejected=await client.callTool({name:"agent_tools.wordpress",arguments:{argv:["upload-media","/etc/passwd"],files:{},stdin:""}});
       expect(rejected.isError).toBe(true);
+      const api = async (operation: string, args: Record<string, unknown>) => {
+        const result=await client!.callTool({name:"agent_tools.api",arguments:{operation,arguments:args}});
+        expect(result.isError).not.toBe(true);
+        const block=result.content[0]!;
+        if(block.type!=="text")throw new Error("Expected API envelope");
+        return JSON.parse(block.text);
+      };
+      const json = (data: any) => JSON.parse(Buffer.from(data.content,"base64").toString());
+      // Real Gateway -> HTTP -> API -> Broker boundary with a synthetic provider only.
+      // Chunk transfer crosses the old CLI 8 MiB limit without expanding the HTTP parser limit.
+      const bytes=Buffer.alloc(9*1024*1024+7,0x61), hash=createHash("sha256").update(bytes).digest("hex");
+      const ref=json(await api("blob.begin",{size:bytes.length,sha256:hash}));
+      for(let offset=0;offset<bytes.length;offset+=1024*1024){
+        const chunk=bytes.subarray(offset,offset+1024*1024);
+        expect(json(await api("blob.append",{reference:ref,offset,content:chunk.toString("base64")}))).toBe(offset+chunk.length);
+      }
+      await api("blob.seal",{reference:ref});
+      const forward={operation:"workspace",method:"PATCH",url:"https://www.googleapis.com/upload/drive/v3/files/fixture?uploadType=media",content_ref:ref};
+      const echoed=await api("broker.forward",forward);
+      expect(echoed.ok).toBe(true);expect(echoed.content_size).toBe(bytes.length);expect(echoed.sha256).toBe(hash);
+      const chunks: Buffer[]=[];
+      for(let offset=0;offset<bytes.length;offset+=1024*1024){
+        const chunk=await api("blob.read",{reference:echoed.content_ref,offset,length:1024*1024});
+        chunks.push(Buffer.from(chunk.content,"base64"));
+      }
+      expect(Buffer.concat(chunks).equals(bytes)).toBe(true);
+      await api("blob.release",{reference:echoed.content_ref});
+      expect((await api("broker.forward",forward)).ok).toBe(false);
+
     } finally {
       await client?.close();await server?.close();await connection?.close();
       peer.kill("SIGTERM");await once(peer,"exit").catch(()=>undefined);
     }
-  },30000);
+  },60000);
 });

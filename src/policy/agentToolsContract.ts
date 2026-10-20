@@ -1,10 +1,11 @@
 /** Operator-configured, owner-bound CLI relay. Never selected by upstream tool annotations. */
 import type { CallToolResult } from "@modelcontextprotocol/client";
+import { validateAgentToolsApiArguments, validateAgentToolsApiResult } from "./agentToolsApiContract.js";
 import { OutboundSecretLeakGuard } from "./outboundSecretLeakGuard.js";
 
 export const AGENT_TOOL_COMMANDS = new Set([
   "workspace", "search", "document_reader", "keywords", "wordpress", "thumbnail_tool",
-  "auth_workspace", "auth_google_ads",
+  "auth_workspace", "auth_google_ads", "api",
 ]);
 const MAX_FILE = 8 * 1024 * 1024;
 const MAX_TEXT = 2 * 1024 * 1024;
@@ -38,6 +39,7 @@ function files(value: unknown): Record<string, Buffer> {
 
 export function validateAgentToolsArguments(command: string, args: Record<string, unknown>): void {
   if (!AGENT_TOOL_COMMANDS.has(command)) throw new Error("Unknown agent-tools command");
+  if (command === "api") return validateAgentToolsApiArguments(args);
   exactKeys(args, ["argv", "files", "stdin"]);
   if (!Array.isArray(args.argv) || args.argv.length > 128 || args.argv.some(
     item => typeof item !== "string" || item.length > 65536 || item.includes("\0"),
@@ -70,6 +72,7 @@ export function validateAgentToolsResult(command: string, raw: CallToolResult): 
   if (raw.structuredContent && JSON.stringify(raw.structuredContent) !== JSON.stringify(data)) {
     throw new Error("Inconsistent agent-tools result");
   }
+  if (command === "api") { validateAgentToolsApiResult(data); return raw; }
   exactKeys(data, ["exit_code", "stdout", "stderr", "files"]);
   if (!Number.isInteger(data.exit_code) || (data.exit_code as number) < 0 || (data.exit_code as number) > 255
       || typeof data.stdout !== "string" || typeof data.stderr !== "string"
