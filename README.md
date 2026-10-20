@@ -226,3 +226,6 @@ Optional IAM-bound device reporting and owner dashboard: [configuration and loca
 `payloadContract: agent-tools-cli-v1`은 cluster + gateway-delegation + agent-tools audience 조합에만 허용한다. 실제 라우트의 upstream ID를 확인하고 고정 도구·필드·크기·파일 이름·base64·출력 종류를 검증한다. 해당 경로는 파일 bytes·문서 ID·사용자가 요청한 메일/문서 본문·일회용 OAuth 연결 데이터를 변형하지 않는다. 일반 인자·UTF-8 문서의 secret egress 검사는 유지한다. 요청 파일·본문·callback은 감사 로그에 기록하지 않고 개수만 기록한다. 다른 도구는 기존 sanitizer를 그대로 사용한다. 전용 계약 도구는 일반 JEV smart dispatcher 대상에서 제외한다.
 
 추가 교차 저장소 검증: `AGENT_TOOLS_TEST_PYTHON=/absolute/path/to/agent-tools/.venv/bin/python pnpm exec vitest run test/agentToolsHttp.test.ts`. 실제 Python MCP 서버와 별도 CLI 프로세스까지 통과하는 로컬 HTTP 검사이며 운영 호출이나 provider 쓰기를 수행하지 않는다.
+
+
+같은 전용 upstream의 `agent_tools.api`는 고정된 범용 Python/native 작업과 임시 조각 전송만 받는다. 임의 Python 실행·서버 파일 경로·credential header·모델/Telegram/Git 프로필은 허용하지 않는다. 본문과 응답은 base64 bytes로 유지하여 큰 정수 ID와 파일을 변형하지 않는다. 1 MiB 조각 전송으로 기존 HTTP 24 MiB 상한을 유지하며, 서버가 전체 크기·SHA-256·만료·한 번만 소비되는 업로드 참조를 검증한다. API 감사에는 허용된 작업 이름만 남기고 본문/URL/callback/참조는 남기지 않는다. 일반 upstream 정책은 그대로다. 교차 저장소 HTTP 검사는 9 MiB 왕복과 업로드 참조 재사용 거절도 확인한다.
