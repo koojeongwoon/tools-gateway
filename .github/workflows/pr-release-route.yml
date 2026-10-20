@@ -1,0 +1,25 @@
+name: PR release route
+on:
+  pull_request:
+    branches: [staging, main]
+    types: [opened, synchronize, reopened, edited]
+permissions:
+  contents: read
+concurrency:
+  group: route-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  route:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require staging for releases
+        env:
+          BASE: ${{ github.base_ref }}
+          HEAD: ${{ github.head_ref }}
+          SOURCE: ${{ github.event.pull_request.head.repo.full_name }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          if [ "$BASE" = main ] && { [ "$HEAD" != staging ] || [ "$SOURCE" != "$REPOSITORY" ]; }; then
+            echo 'Release PRs must use this repository staging branch. Target staging for development.'
+            exit 1
+          fi

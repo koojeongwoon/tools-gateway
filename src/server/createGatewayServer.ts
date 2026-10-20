@@ -1,3 +1,4 @@
+import { AGENT_TOOL_COMMANDS, validateAgentToolsArguments, validateAgentToolsResult } from "../policy/agentToolsContract.js";
 import {
   McpServer,
   fromJsonSchema,
@@ -32,6 +33,7 @@ export function createGatewayServer(
   requestContext?: GatewayRequestContext,
   jevGuardrail?: JevGuardrail,
   jevVirtualRouter?: JevVirtualRouter,
+  agentToolsContracts: readonly { upstreamId: string; toolPrefix: string }[] = [],
 ): McpServer {
   const server = new McpServer(
     {
@@ -70,7 +72,12 @@ export function createGatewayServer(
       continue;
     }
 
-    allowedTools.push(tool);
+    const route = registry instanceof ToolRouteMap ? registry.get(tool.publicName) : registry.getRouteMap().get(tool.publicName);
+    const contract = agentToolsContracts.find(c => route?.upstreamId === c.upstreamId && tool.publicName.startsWith(c.toolPrefix + "."));
+    const command = contract ? tool.publicName.slice(contract.toolPrefix.length + 1) : undefined;
+    if (command && !AGENT_TOOL_COMMANDS.has(command)) throw new Error("Unsupported agent-tools data contract tool");
+    // The generic smart dispatcher does not handle opaque attachments/consent data.
+    if (!command) allowedTools.push(tool);
 
     server.registerTool(
       tool.publicName,
@@ -90,9 +97,13 @@ export function createGatewayServer(
       async (arguments_) => {
         const argsObj = isArgumentsObject(arguments_) ? arguments_ : {};
 
-        return invocationContext.invoke(tool.publicName, argsObj, async () => {
+        const auditArguments = command ? { argvCount: Array.isArray(argsObj.argv) ? argsObj.argv.length : 0,
+          attachmentCount: argsObj.files && typeof argsObj.files === "object" ? Object.keys(argsObj.files).length : 0,
+          stdinPresent: Boolean(argsObj.stdin) } : argsObj;
+        return invocationContext.invoke(tool.publicName, auditArguments, async () => {
           // Security Guardrail: Validate & sanitize tool invocation arguments
-          argumentSanitizer.validate(argsObj);
+          if (command) validateAgentToolsArguments(command, argsObj);
+          else argumentSanitizer.validate(argsObj);
 
           if (policy instanceof ToolAccessPolicy) {
             policy.assertAllowed(tool.publicName);
@@ -107,16 +118,16 @@ export function createGatewayServer(
             }
           }
 
-          outboundSecretLeakGuard.validate(argsObj);
+          if (!command) outboundSecretLeakGuard.validate(argsObj);
 
           if (jevGuardrail) {
-            await jevGuardrail.validate(tool.publicName, argsObj);
+            await jevGuardrail.validate(tool.publicName, command ? auditArguments : argsObj);
           }
 
           try {
             const rawResult = await registry.call(tool.publicName, argsObj);
             // AI Guardrail: Sanitize and redact high-entropy keys/PII from tool output
-            return sanitizeToolResult(rawResult);
+            return command ? validateAgentToolsResult(command, rawResult) : sanitizeToolResult(rawResult);
           } catch (upstreamError: any) {
             // Data Protection: Mask sensitive downstream host/IP/internal stack details
             const sanitizedMsg = maskInternalErrorDetails(upstreamError?.message || String(upstreamError));

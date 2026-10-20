@@ -10,6 +10,7 @@ const upstreamSchema = z
     endpoint: z.string().url(),
     transport: z.literal("streamable-http"),
     enabled: z.boolean().default(true),
+    payloadContract: z.literal("agent-tools-cli-v1").optional(),
     timeoutMs: z.number().int().positive().default(30_000),
     auth: z.discriminatedUnion("mode", [
       z.object({ mode: z.literal("provider-credential") }),
@@ -27,7 +28,10 @@ const upstreamSchema = z
       )
       .default({}),
   })
-  .superRefine(({ endpoint, networkScope, auth, headers }, ctx) => {
+  .superRefine(({ endpoint, networkScope, auth, headers, payloadContract }, ctx) => {
+    if (payloadContract && (networkScope !== "cluster" || auth.mode !== "gateway-delegation" || auth.audience !== "agent-tools")) {
+      ctx.addIssue({ code: "custom", path: ["payloadContract"], message: "agent-tools data contract requires a cluster IAM-delegated agent-tools service" });
+    }
     if (auth.mode === "gateway-delegation" && Object.keys(headers).length > 0) {
       ctx.addIssue({
         code: "custom",
