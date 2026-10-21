@@ -31,7 +31,7 @@ export function registerMcpRoutes(app: FastifyInstance, options: McpRoutesOption
       bearer_methods_supported: ["header"],
     }));
 
-  app.post("/mcp", async (request, reply) => {
+  app.post("/mcp", { bodyLimit: 24 * 1024 * 1024 }, async (request, reply) => {
     const token = bearerToken(request.headers.authorization);
     const principal = token ? await options.oauthVerifier.verify(token) : undefined;
     if (!principal) {
@@ -76,6 +76,8 @@ export function registerMcpRoutes(app: FastifyInstance, options: McpRoutesOption
       requestContext,
       options.jevGuardrail,
       options.jevVirtualRouter,
+      options.config.upstreams.filter(upstream => upstream.enabled && upstream.payloadContract === "agent-tools-cli-v1")
+        .map(upstream => ({ upstreamId: upstream.id, toolPrefix: upstream.toolPrefix })),
     );
     const transport = new NodeStreamableHTTPServerTransport({ sessionIdGenerator: undefined });
     await server.connect(transport);
