@@ -82,7 +82,7 @@ describe("canonical user service access application", () => {
       { connect: vi.fn().mockResolvedValue(client) } as never,
       verifier as never,
       event("USER_SERVICE_DISABLED", 2),
-      expected,
+      { ...expected, clientId: "confidential-actor", additionalClientIds: [expected.clientId] },
       invalidateSessions,
     );
 

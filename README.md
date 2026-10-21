@@ -229,3 +229,10 @@ Optional IAM-bound device reporting and owner dashboard: [configuration and loca
 
 
 같은 전용 upstream의 `agent_tools.api`는 고정된 범용 Python/native 작업과 임시 조각 전송만 받는다. 임의 Python 실행·서버 파일 경로·credential header·모델/Telegram/Git 프로필은 허용하지 않는다. 본문과 응답은 base64 bytes로 유지하여 큰 정수 ID와 파일을 변형하지 않는다. 1 MiB 조각 전송으로 기존 HTTP 24 MiB 상한을 유지하며, 서버가 전체 크기·SHA-256·만료·한 번만 소비되는 업로드 참조를 검증한다. API 감사에는 허용된 작업 이름만 남기고 본문/URL/callback/참조는 남기지 않는다. 일반 upstream 정책은 그대로다. 교차 저장소 HTTP 검사는 9 MiB 왕복과 업로드 참조 재사용 거절도 확인한다.
+
+MCP resource tokens use the canonical IAM service enrollment `tools-gateway-service`
+(`TOOLS_GATEWAY_MCP_SERVICE_ACCESS_CLIENT_ID`), independently of the confidential
+`TOOLS_GATEWAY_CLIENT_ID` used for outbound delegation and existing web access.
+When enforcement is enabled, the token must match an ACTIVE mirrored enrollment
+version. The event consumer follows both client IDs; existing deployments must
+bootstrap canonical enrollment state from IAM before accepting MCP traffic.

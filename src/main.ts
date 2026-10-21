@@ -78,6 +78,7 @@ const userServiceAccessConsumer = databasePool && serviceAccessRedis && keyVerif
       issuer: lifecycleConfig.issuer,
       tenantId: lifecycleConfig.tenantId,
       clientId: lifecycleConfig.clientId,
+      additionalClientIds: [lifecycleConfig.serviceAccessClientId ?? "tools-gateway-service"],
     })
   : undefined;
 if (userServiceAccessConsumer) await userServiceAccessConsumer.start();

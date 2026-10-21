@@ -1,5 +1,5 @@
 import { generateKeyPair, SignJWT } from "jose";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { loadMcpOAuthConfig, McpOAuthVerifier } from "../src/auth/mcpOAuthVerifier.js";
 
 const config = loadMcpOAuthConfig({
@@ -72,7 +72,8 @@ describe("MCP OAuth verifier", () => {
   });
 
   describe("service access enforcement", () => {
-    const enforcedConfig = { ...config, serviceAccessEnforcementEnabled: true };
+    afterEach(() => vi.unstubAllEnvs());
+    const enforcedConfig = { ...config, clientId: "confidential-actor", serviceAccessEnforcementEnabled: true };
 
     it("rejects token without service_access_version when enforcement is enabled", async () => {
       const { publicKey, privateKey } = await generateKeyPair("RS256");
@@ -112,7 +113,7 @@ describe("MCP OAuth verifier", () => {
       expect(principal).toBeUndefined();
     });
 
-    it("rejects token when user service access is inactive", async () => {
+    it.each(["missing", "inactive", "older", "newer"])("rejects %s canonical service access state", async () => {
       const { publicKey, privateKey } = await generateKeyPair("RS256");
       const token = await new SignJWT({
         tenant_id: "tenant-a", scope: "openid mcp", email: "user@example.com", name: "User", user_version: 1, service_access_version: 1,
@@ -126,13 +127,15 @@ describe("MCP OAuth verifier", () => {
         .sign(privateKey);
       const query = vi.fn()
         .mockResolvedValueOnce({ rowCount: 1 }) // health check ok
-        .mockResolvedValueOnce({ rowCount: 1 }); // blocking state found
+        .mockResolvedValueOnce({ rowCount: 0 }); // no matching ACTIVE version
 
       const principal = await new McpOAuthVerifier({ query } as never, enforcedConfig, async () => publicKey).verify(token);
       expect(principal).toBeUndefined();
     });
 
-    it("accepts token when service access is valid and ACTIVE", async () => {
+    it("accepts canonical service access with a distinct actor and production enforcement", async () => {
+      vi.stubEnv("TOOLS_GATEWAY_SERVICE_ACCESS_ENFORCEMENT_ENABLED", "true");
+      vi.stubEnv("TOOLS_GATEWAY_CLIENT_ID", "confidential-actor");
       const { publicKey, privateKey } = await generateKeyPair("RS256");
       const token = await new SignJWT({
         tenant_id: "tenant-a", scope: "openid mcp", email: "user@example.com", name: "User", user_version: 1, service_access_version: 2,
@@ -146,7 +149,7 @@ describe("MCP OAuth verifier", () => {
         .sign(privateKey);
       const query = vi.fn()
         .mockResolvedValueOnce({ rowCount: 1 }) // health check ok
-        .mockResolvedValueOnce({ rowCount: 0 }) // no blocking state
+        .mockResolvedValueOnce({ rowCount: 1 }) // exact ACTIVE service version
         .mockResolvedValueOnce({ rows: [{ id: "tg-user-1" }] }) // ensureLocalUser
         .mockResolvedValueOnce({ rows: [{
           user_id: "tg-user-1",
@@ -155,6 +158,9 @@ describe("MCP OAuth verifier", () => {
         }] }); // permissions
 
       const principal = await new McpOAuthVerifier({ query } as never, enforcedConfig, async () => publicKey).verify(token);
+      expect(query).toHaveBeenNthCalledWith(2, expect.stringContaining("access_version = $4"),
+        ["tenant-a", "iam-user-1", "tools-gateway-service", 2]);
+      expect(query.mock.calls[2]?.[1]?.slice(-2)).toEqual(["tools-gateway-service", 2]);
       expect(principal).toEqual({
         userId: "tg-user-1",
         systemRole: "USER",
