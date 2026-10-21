@@ -12,14 +12,14 @@ export async function applyUserServiceAccessEvent(
   pool: Pool,
   verifier: Pick<KeyVerifier, "invalidateUser">,
   event: UserServiceAccessEvent,
-  expected: { issuer: string; tenantId: string; clientId: string },
+  expected: { issuer: string; tenantId: string; clientId: string; additionalClientIds?: readonly string[] },
   invalidateSessions: (subjectId: string) => Promise<void> = async () => undefined,
 ): Promise<boolean> {
   if (event.issuer !== expected.issuer || event.tenantId !== expected.tenantId) {
     // Other tenant events are acknowledged without local state changes
     return false;
   }
-  if (event.clientId !== expected.clientId) {
+  if (event.clientId !== expected.clientId && !expected.additionalClientIds?.includes(event.clientId)) {
     // Other client events are acknowledged without local state changes
     return false;
   }
@@ -83,7 +83,7 @@ export class UserServiceAccessConsumer {
     private readonly redis: RedisClientType,
     private readonly pool: Pool,
     private readonly verifier: KeyVerifier,
-    private readonly expected: { issuer: string; tenantId: string; clientId: string },
+    private readonly expected: { issuer: string; tenantId: string; clientId: string; additionalClientIds?: readonly string[] },
     private readonly consumerName = `gateway-service-access-${process.pid}`,
   ) {}
 
