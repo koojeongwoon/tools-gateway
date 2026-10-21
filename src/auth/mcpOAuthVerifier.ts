@@ -15,6 +15,7 @@ export interface McpOAuthConfig {
   jwksUri: string;
   tenantId: string;
   clientId: string;
+  serviceAccessClientId?: string;
   requiredScope: string;
   serviceAccessEnforcementEnabled: boolean;
 }
@@ -40,6 +41,7 @@ export function loadMcpOAuthConfig(environment: NodeJS.ProcessEnv = process.env)
     jwksUri: `${issuer}/oauth2/jwks`,
     tenantId,
     clientId: environment.TOOLS_GATEWAY_CLIENT_ID ?? "tools-gateway-service",
+    serviceAccessClientId: environment.TOOLS_GATEWAY_MCP_SERVICE_ACCESS_CLIENT_ID ?? "tools-gateway-service",
     requiredScope: environment.MCP_OAUTH_SCOPE?.trim() || "mcp",
     serviceAccessEnforcementEnabled: environment.TOOLS_GATEWAY_SERVICE_ACCESS_ENFORCEMENT_ENABLED === "true",
   };
@@ -76,8 +78,9 @@ export class McpOAuthVerifier {
       const userVersion = Number(payload.user_version ?? 1);
       if (!Number.isSafeInteger(userVersion) || userVersion < 1) return undefined;
 
+      const serviceAccessClientId = this.config.serviceAccessClientId ?? "tools-gateway-service";
+      const serviceAccessVersion = Number(payload.service_access_version);
       if (this.config.serviceAccessEnforcementEnabled) {
-        const serviceAccessVersion = Number(payload.service_access_version);
         if (!Number.isSafeInteger(serviceAccessVersion) || serviceAccessVersion < 1) {
           return undefined;
         }
@@ -90,18 +93,22 @@ export class McpOAuthVerifier {
         const accessState = await this.pool.query(
           `SELECT 1 FROM iam_user_service_access_states
             WHERE tenant_id = $1 AND subject_id = $2 AND client_id = $3
-              AND (service_access_status <> 'ACTIVE' OR access_version > $4)`,
-          [this.config.tenantId, payload.sub, this.config.clientId, serviceAccessVersion],
+              AND service_access_status = 'ACTIVE' AND access_version = $4`,
+          [this.config.tenantId, payload.sub, serviceAccessClientId, serviceAccessVersion],
         );
-        if (accessState.rowCount && accessState.rowCount > 0) return undefined;
+        if (!accessState.rowCount) return undefined;
       }
 
-      const userId = await new EnsureLocalUserService(this.pool, this.config.tenantId).ensureLocalUser({
+      const userId = await new EnsureLocalUserService(this.pool, this.config.tenantId, {
+        serviceAccessEnforcementEnabled: this.config.serviceAccessEnforcementEnabled,
+        clientId: serviceAccessClientId,
+      }).ensureLocalUser({
         tenantId: payload.tenant_id,
         subject: payload.sub,
         email: payload.email,
         ...(typeof payload.name === "string" && payload.name ? { name: payload.name } : {}),
         userVersion,
+        ...(this.config.serviceAccessEnforcementEnabled ? { serviceAccessVersion } : {}),
       });
 
       const result = await this.pool.query<{
