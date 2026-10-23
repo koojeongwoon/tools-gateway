@@ -221,7 +221,7 @@ Optional IAM-bound device reporting and owner dashboard: [configuration and loca
 
 ## agent-tools CLI upstream
 
-독립 서비스의 범용 CLI 8개를 추가하는 예제는 [config/agent-tools.example.yaml](config/agent-tools.example.yaml)에 있다. 기존 카탈로그를 대체하지 않고 upstream을 병합한다. 예제는 아직 비활성 상태이며 IAM 대상 client 등록·owner 바인딩·서비스 준비·사용자 권한 확인 뒤 활성화한다.
+독립 서비스의 범용 CLI 8개를 추가하는 예제는 [k3s의 Gateway upstream 예제](../k3s/operations/agent-tools/examples/gateway-upstream.yaml)에 있다. 기존 카탈로그를 대체하지 않고 upstream을 병합한다. 예제는 아직 비활성 상태이며 IAM 대상 client 등록·owner 바인딩·서비스 준비·사용자 권한 확인 뒤 활성화한다.
 
 `payloadContract: agent-tools-cli-v1`은 cluster + gateway-delegation + agent-tools audience 조합에만 허용한다. 실제 라우트의 upstream ID를 확인하고 고정 도구·필드·크기·파일 이름·base64·출력 종류를 검증한다. 해당 경로는 파일 bytes·문서 ID·사용자가 요청한 메일/문서 본문·일회용 OAuth 연결 데이터를 변형하지 않는다. 일반 인자·UTF-8 문서의 secret egress 검사는 유지한다. 요청 파일·본문·callback은 감사 로그에 기록하지 않고 개수만 기록한다. 다른 도구는 기존 sanitizer를 그대로 사용한다. 전용 계약 도구는 일반 JEV smart dispatcher 대상에서 제외한다.
 
