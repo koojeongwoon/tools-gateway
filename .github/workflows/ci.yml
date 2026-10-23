@@ -11,10 +11,17 @@ permissions:
 
 jobs:
   build-gateway:
+    if: (vars.BUILD_BACKEND == '' || vars.BUILD_BACKEND == 'github')
     name: Build Tools Gateway (ARM64)
     runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Shared hosted and PC test suite
+        run: bash scripts/test-build.sh
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
