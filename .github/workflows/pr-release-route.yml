@@ -10,6 +10,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   route:
+    if: (vars.BUILD_BACKEND == '' || vars.BUILD_BACKEND == 'github')
     runs-on: ubuntu-24.04
     steps:
       - name: Require staging for releases
