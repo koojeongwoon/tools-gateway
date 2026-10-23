@@ -2,10 +2,10 @@ name: Validate Gateway
 on:
   pull_request:
     branches: [staging, main]
-    paths: ['src/**', 'test/**', 'config/**', 'package.json', 'pnpm-lock.yaml', 'tsconfig.json', '.github/workflows/**']
+    paths: ['scripts/test-build.sh', '.github/build-plan.json', 'src/**', 'test/**', 'config/**', 'package.json', 'pnpm-lock.yaml', 'tsconfig.json', '.github/workflows/**']
   push:
     branches: [staging]
-    paths: ['src/**', 'test/**', 'config/**', 'package.json', 'pnpm-lock.yaml', 'tsconfig.json', '.github/workflows/**']
+    paths: ['scripts/test-build.sh', '.github/build-plan.json', 'src/**', 'test/**', 'config/**', 'package.json', 'pnpm-lock.yaml', 'tsconfig.json', '.github/workflows/**']
 permissions:
   contents: read
 concurrency:
@@ -13,6 +13,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   test:
+    if: (vars.BUILD_BACKEND == '' || vars.BUILD_BACKEND == 'github')
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -21,6 +22,5 @@ jobs:
         with:
           node-version: '24'
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-      - run: pnpm test
+      - name: Shared hosted and PC test suite
+        run: bash scripts/test-build.sh

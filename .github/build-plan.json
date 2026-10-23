@@ -1,0 +1,14 @@
+{
+  "repository": "koojeongwoon/tools-gateway",
+  "test": [
+    "bash",
+    "scripts/test-build.sh"
+  ],
+  "images": [
+    {
+      "image": "ghcr.io/koojeongwoon/tools-gateway",
+      "dockerfile": "Dockerfile",
+      "context": "."
+    }
+  ]
+}
