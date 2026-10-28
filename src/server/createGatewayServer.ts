@@ -22,6 +22,10 @@ import type { JevVirtualRouter } from "../jev/jevVirtualRouter.js";
 
 export type { GatewayRequestContext };
 
+export interface GatewayServerOptions {
+  delimiter?: string;
+}
+
 const argumentSanitizer = new ToolArgumentSanitizer({ strict: true });
 const outboundSecretLeakGuard = new OutboundSecretLeakGuard();
 
@@ -34,7 +38,10 @@ export function createGatewayServer(
   jevGuardrail?: JevGuardrail,
   jevVirtualRouter?: JevVirtualRouter,
   agentToolsContracts: readonly { upstreamId: string; toolPrefix: string }[] = [],
+  serverOptions?: GatewayServerOptions,
 ): McpServer {
+  const delimiter = serverOptions?.delimiter ?? ".";
+
   const server = new McpServer(
     {
       name: "tools-gateway",
@@ -79,8 +86,10 @@ export function createGatewayServer(
     // The generic smart dispatcher does not handle opaque attachments/consent data.
     if (!command) allowedTools.push(tool);
 
+    const exposedName = delimiter === "." ? tool.publicName : tool.publicName.replaceAll(".", delimiter);
+
     server.registerTool(
-      tool.publicName,
+      exposedName,
       {
         ...(tool.title ? { title: tool.title } : {}),
         ...(tool.description ? { description: tool.description } : {}),
@@ -150,13 +159,21 @@ export function createGatewayServer(
       : policy.allows(metaTool.name) && (!scopeGuard || scopeGuard.allows(metaTool.name));
 
     if (isMetaAllowed) {
+      const exposedMetaName = delimiter === "." ? metaTool.name : metaTool.name.replaceAll(".", delimiter);
+      const exposedToCanonical = new Map<string, string>();
+      for (const t of allowedTools) {
+        const exp = delimiter === "." ? t.publicName : t.publicName.replaceAll(".", delimiter);
+        exposedToCanonical.set(exp, t.publicName);
+        exposedToCanonical.set(t.publicName, t.publicName);
+      }
+
       const candidateTools = allowedTools.map((t) => ({
-        publicName: t.publicName,
+        publicName: delimiter === "." ? t.publicName : t.publicName.replaceAll(".", delimiter),
         ...(t.description !== undefined ? { description: t.description } : {}),
       }));
 
       server.registerTool(
-        metaTool.name,
+        exposedMetaName,
         {
           ...(metaTool.description !== undefined ? { description: metaTool.description } : {}),
           inputSchema: fromJsonSchema(metaTool.inputSchema as JsonSchemaType),
@@ -175,7 +192,7 @@ export function createGatewayServer(
 
             // Use Jev to decide target tool
             const decision = await jevVirtualRouter.route(intent, candidateTools);
-            const targetToolName = decision.selectedTool;
+            const targetToolName = exposedToCanonical.get(decision.selectedTool) ?? decision.selectedTool;
 
             // Validate target tool access policy
             if (policy instanceof ToolAccessPolicy) {
