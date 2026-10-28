@@ -75,6 +75,71 @@ describe("MCP gateway server", () => {
     await server.close();
   });
 
+  it("exposes tools using underscore delimiter when requested (Antigravity compatibility)", async () => {
+    const callTool = vi.fn(async (): Promise<CallToolResult> => ({
+      content: [{ type: "text", text: "forwarded-via-underscore" }],
+    }));
+    const tools: Tool[] = [
+      {
+        name: "get_file",
+        description: "Read a repository file",
+        inputSchema: {
+          type: "object",
+          properties: { path: { type: "string" } },
+          required: ["path"],
+        },
+      },
+      {
+        name: "create_pull_request",
+        inputSchema: { type: "object" },
+      },
+    ];
+    const upstream: UpstreamConnection = {
+      id: "git",
+      toolPrefix: "github",
+      listTools: async () => tools,
+      callTool,
+      close: async () => undefined,
+    };
+    const registry = new ToolRegistry([upstream]);
+    await registry.refresh();
+
+    const server = createGatewayServer(
+      registry,
+      new ToolPolicy({ default: "deny", allow: ["github.*"], deny: [] }),
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      [],
+      { delimiter: "_" },
+    );
+    const client = new Client({ name: "antigravity-test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+
+    await Promise.all([
+      server.connect(serverTransport),
+      client.connect(clientTransport),
+    ]);
+
+    const listed = await client.listTools();
+    expect(listed.tools.map(({ name }) => name)).toEqual([
+      "github_create_pull_request",
+      "github_get_file",
+    ]);
+
+    const result = await client.callTool({
+      name: "github_get_file",
+      arguments: { path: "README.md" },
+    });
+    expect(result.content).toEqual([{ type: "text", text: "forwarded-via-underscore" }]);
+    expect(callTool).toHaveBeenCalledWith("get_file", { path: "README.md" });
+
+    await client.close();
+    await server.close();
+  });
+
   it("blocks a secret-like argument before it reaches an upstream", async () => {
     const callTool = vi.fn();
     const upstream: UpstreamConnection = {

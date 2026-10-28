@@ -1,5 +1,5 @@
 import { NodeStreamableHTTPServerTransport } from "@modelcontextprotocol/node";
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyRequest } from "fastify";
 import type { AuditLogger } from "../audit/auditLogger.js";
 import { bearerToken } from "../auth/keyVerifier.js";
 import type { McpOAuthConfig, McpOAuthVerifier } from "../auth/mcpOAuthVerifier.js";
@@ -19,6 +19,22 @@ export interface McpRoutesOptions {
   auditLogger?: AuditLogger | undefined;
   jevGuardrail?: JevGuardrail | undefined;
   jevVirtualRouter?: JevVirtualRouter | undefined;
+}
+
+export function resolveMcpNamingDelimiter(request: FastifyRequest): string {
+  const query = request.query as Record<string, string> | undefined;
+  const queryDelimiter = query?.delimiter;
+  const naming = query?.naming;
+  const headerDelimiter = request.headers["x-mcp-delimiter"] as string | undefined;
+  const userAgent = (request.headers["user-agent"] as string) || "";
+
+  if (queryDelimiter === "_" || headerDelimiter === "_" || naming === "underscore" || naming === "flat") {
+    return "_";
+  }
+  if (/antigravity/i.test(userAgent)) {
+    return "_";
+  }
+  return ".";
 }
 
 /** HTTP adapter for the Gateway-owned MCP protocol endpoint. */
@@ -68,6 +84,8 @@ export function registerMcpRoutes(app: FastifyInstance, options: McpRoutesOption
         }
       : undefined;
 
+    const delimiter = resolveMcpNamingDelimiter(request);
+
     const server = createGatewayServer(
       requestToolRegistry.registry,
       accessPolicy,
@@ -78,6 +96,7 @@ export function registerMcpRoutes(app: FastifyInstance, options: McpRoutesOption
       options.jevVirtualRouter,
       options.config.upstreams.filter(upstream => upstream.enabled && upstream.payloadContract === "agent-tools-cli-v1")
         .map(upstream => ({ upstreamId: upstream.id, toolPrefix: upstream.toolPrefix })),
+      { delimiter },
     );
     const transport = new NodeStreamableHTTPServerTransport({ sessionIdGenerator: undefined });
     await server.connect(transport);
