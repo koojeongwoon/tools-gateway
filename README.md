@@ -186,6 +186,9 @@ pnpm start
 - MCP: `POST /mcp`
 - Public MCP: `POST https://tools-gateway.lynply.com/mcp` (Bearer API Key 필수)
 - Liveness: `GET /healthz`
+- PostgreSQL idle 연결과 각 Redis 소비자 연결의 `error` 이벤트를 처리한다.
+  일시적인 의존성 중단은 연결 라이브러리가 복구하며, 프로세스를 종료하거나 업무 요청을
+  자동 재실행하지 않는다. 경고에는 연결 URL·비밀번호·원본 오류를 기록하지 않는다.
 - Readiness: `GET /readyz`
 
 환경변수:
