@@ -50,5 +50,11 @@ export function loadDatabaseConfig(
 }
 
 export function createDatabasePool(config: DatabaseConfig): Pool | undefined {
-  return config.enabled ? new Pool(config.pool) : undefined;
+  if (!config.enabled) return undefined;
+  const pool = new Pool(config.pool);
+  // Idle clients emit outside query promises; without a listener Node exits.
+  pool.on("error", () => {
+    console.warn("PostgreSQL idle connection lost; the pool will reconnect");
+  });
+  return pool;
 }

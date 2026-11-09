@@ -18,8 +18,7 @@ import { RemoteMcpConnection } from "./upstream/remoteMcpConnection.js";
 import { ResilientUpstreamConnection } from "./upstream/resilientUpstreamConnection.js";
 import { ToolRegistry } from "./upstream/toolRegistry.js";
 import { RequestToolRegistryBuilder } from "./application/requestToolRegistryBuilder.js";
-import { createClient } from "redis";
-import { loadRedisConfig } from "./config/redis.js";
+import { createRedisClient } from "./config/redis.js";
 import { KeyVerifier } from "./auth/keyVerifier.js";
 import { UserSyncConsumer } from "./events/userSyncConsumer.js";
 import { UserLifecycleConsumer } from "./events/userLifecycleConsumer.js";
@@ -47,12 +46,12 @@ const databasePool = createDatabasePool(loadDatabaseConfig());
 if (databasePool) {
   await initializeDatabase(databasePool);
 }
-const redis = databasePool ? createClient(loadRedisConfig()) : undefined;
+const redis = databasePool ? createRedisClient() : undefined;
 if (redis) await redis.connect();
 const keyVerifier = databasePool && redis
   ? new KeyVerifier(databasePool, redis)
   : undefined;
-const eventRedis = redis?.duplicate();
+const eventRedis = redis ? createRedisClient() : undefined;
 if (eventRedis) await eventRedis.connect();
 const userSyncConsumer = databasePool && eventRedis && keyVerifier
   ? new UserSyncConsumer(eventRedis, databasePool, keyVerifier)
@@ -60,7 +59,7 @@ const userSyncConsumer = databasePool && eventRedis && keyVerifier
 if (userSyncConsumer) {
   await userSyncConsumer.start();
 }
-const lifecycleRedis = redis?.duplicate();
+const lifecycleRedis = redis ? createRedisClient() : undefined;
 if (lifecycleRedis) await lifecycleRedis.connect();
 const lifecycleConfig = loadMcpOAuthConfig();
 const userLifecycleConsumer = databasePool && lifecycleRedis && keyVerifier
@@ -71,7 +70,7 @@ const userLifecycleConsumer = databasePool && lifecycleRedis && keyVerifier
   : undefined;
 if (userLifecycleConsumer) await userLifecycleConsumer.start();
 
-const serviceAccessRedis = redis?.duplicate();
+const serviceAccessRedis = redis ? createRedisClient() : undefined;
 if (serviceAccessRedis) await serviceAccessRedis.connect();
 const userServiceAccessConsumer = databasePool && serviceAccessRedis && keyVerifier
   ? new UserServiceAccessConsumer(serviceAccessRedis, databasePool, keyVerifier, {

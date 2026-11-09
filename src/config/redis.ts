@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { createClient } from "redis";
 
 const schema = z.object({
   REDIS_HOST: z.string().trim().min(1).optional(),
@@ -15,4 +16,13 @@ export function loadRedisConfig(environment: NodeJS.ProcessEnv = process.env) {
     socket: { host: parsed.REDIS_HOST, port: parsed.REDIS_PORT },
     password: parsed.REDIS_PASSWORD,
   };
+}
+
+export function createRedisClient(config = loadRedisConfig()) {
+  const client = createClient(config);
+  // Each stream consumer owns a client and must register its own listener.
+  client.on("error", () => {
+    console.warn("Redis connection unavailable; the client will reconnect");
+  });
+  return client;
 }
